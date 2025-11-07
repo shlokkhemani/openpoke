@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -46,11 +47,67 @@ def register_exception_handlers(app: FastAPI) -> None:
 configure_logging()
 _settings = get_settings()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan - startup and shutdown of background services."""
+    # Startup: Initialize background services
+    logger.info("=" * 80)
+    logger.info("LIFESPAN STARTUP TRIGGERED")
+    logger.info("=" * 80)
+
+    # Initialize database FIRST
+    try:
+        from .database import check_db_connection, init_db
+        logger.info("Initializing database...")
+
+        if check_db_connection():
+            init_db()
+            logger.info("✅ Database initialized successfully")
+        else:
+            logger.warning("⚠️ Database connection failed - some features may not work")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {e}")
+        # Don't crash - fallback to JSON if DB unavailable
+
+    logger.info("Starting background services")
+
+    try:
+        scheduler = get_trigger_scheduler()
+        logger.info(f"Scheduler instance obtained: {scheduler}")
+        await scheduler.start()
+        logger.info("Trigger scheduler started successfully")
+
+        watcher = get_important_email_watcher()
+        logger.info(f"Email watcher instance obtained: {watcher}")
+        await watcher.start()
+        logger.info("Email watcher started successfully")
+
+        logger.info("=" * 80)
+        logger.info("ALL BACKGROUND SERVICES STARTED SUCCESSFULLY")
+        logger.info("=" * 80)
+    except Exception as e:
+        logger.exception(f"CRITICAL ERROR during startup: {e}")
+        raise
+
+    yield
+    
+    # Shutdown: Gracefully stop background services
+    logger.info("=" * 80)
+    logger.info("LIFESPAN SHUTDOWN TRIGGERED")
+    logger.info("=" * 80)
+    logger.info("Stopping background services")
+    await scheduler.stop()
+    await watcher.stop()
+    logger.info("Background services stopped successfully")
+
+
 app = FastAPI(
     title=_settings.app_name,
     version=_settings.app_version,
     docs_url=_settings.resolved_docs_url,
     redoc_url=None,
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -63,24 +120,6 @@ app.add_middleware(
 
 register_exception_handlers(app)
 app.include_router(api_router)
-
-
-@app.on_event("startup")
-# Initialize background services (trigger scheduler and email watcher) when the app starts
-async def _start_trigger_scheduler() -> None:
-    scheduler = get_trigger_scheduler()
-    await scheduler.start()
-    watcher = get_important_email_watcher()
-    await watcher.start()
-
-
-@app.on_event("shutdown")
-# Gracefully shutdown background services when the app stops
-async def _stop_trigger_scheduler() -> None:
-    scheduler = get_trigger_scheduler()
-    await scheduler.stop()
-    watcher = get_important_email_watcher()
-    await watcher.stop()
 
 
 __all__ = ["app"]

@@ -1,0 +1,34 @@
+# Node
+node_modules/
+web/node_modules/
+web/.next/
+.next/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+server/venv/
+
+# Data (will be mounted as volume)
+server/data/
+
+# Git
+.git/
+.gitignore
+
+# Development
+*.log
+.DS_Store
+
+# Documentation
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+
+# Tests
+*.test.js
+*.test.ts

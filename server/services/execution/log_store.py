@@ -6,7 +6,7 @@ import re
 import threading
 from html import escape, unescape
 from pathlib import Path
-from typing import Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
 from ...logging_config import logger
 from ...utils.timezones import now_in_user_timezone
@@ -174,6 +174,22 @@ class ExecutionAgentLogStore:
             logger.info("Cleared all execution agent logs")
         except Exception as exc:
             logger.error(f"Failed to clear execution logs: {exc}")
+
+    def remove_agent_logs(self, agent_name: str) -> bool:
+        """Delete the log file for a specific agent."""
+
+        path = self._log_path(agent_name)
+        with self._lock_for(agent_name):
+            try:
+                if path.exists():
+                    path.unlink()
+                    logger.info("Removed execution log for agent", extra={"agent_name": agent_name})
+                    return True
+            except FileNotFoundError:
+                pass
+            except Exception as exc:
+                logger.error(f"Failed to remove log for agent '{agent_name}': {exc}")
+        return False
 
 
 _execution_agent_logs = ExecutionAgentLogStore(_EXECUTION_LOG_DIR)

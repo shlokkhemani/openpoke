@@ -92,6 +92,7 @@ _SCHEMAS: List[Dict[str, Any]] = [
 
 _LOG_STORE = get_execution_agent_logs()
 _TRIGGER_SERVICE = get_trigger_service()
+_MAX_TRIGGER_EXPORT = 10
 
 
 # Return trigger tool schemas
@@ -102,19 +103,39 @@ def get_schemas() -> List[Dict[str, Any]]:
 
 
 # Convert TriggerRecord to dictionary payload for API responses
+def _summarize_payload(payload: str, *, max_length: int = 160) -> str:
+    """Condense a trigger payload to avoid bloating LLM prompts."""
+
+    normalized = " ".join(payload.split())
+    if len(normalized) <= max_length:
+        return normalized
+
+    return f"{normalized[: max_length - 1].rstrip()}…"
+
+
 def _trigger_record_to_payload(record: TriggerRecord) -> Dict[str, Any]:
-    return {
+    payload: Dict[str, Any] = {
         "id": record.id,
-        "payload": record.payload,
-        "start_time": record.start_time,
-        "next_trigger": record.next_trigger,
-        "recurrence_rule": record.recurrence_rule,
-        "timezone": record.timezone,
+        "payload_summary": _summarize_payload(record.payload),
         "status": record.status,
-        "last_error": record.last_error,
-        "created_at": record.created_at,
-        "updated_at": record.updated_at,
     }
+
+    if record.next_trigger:
+        payload["next_trigger"] = record.next_trigger
+
+    if record.start_time:
+        payload["start_time"] = record.start_time
+
+    if record.recurrence_rule:
+        payload["recurrence_rule"] = record.recurrence_rule
+
+    if record.timezone:
+        payload["timezone"] = record.timezone
+
+    if record.last_error:
+        payload["last_error"] = record.last_error
+
+    return payload
 
 
 # Create a new trigger for the specified execution agent
@@ -153,14 +174,9 @@ def _create_trigger_tool(
         agent_name,
         description=f"createTrigger succeeded | trigger_id={record.id}",
     )
-    return {
-        "trigger_id": record.id,
-        "status": record.status,
-        "next_trigger": record.next_trigger,
-        "start_time": record.start_time,
-        "timezone": record.timezone,
-        "recurrence_rule": record.recurrence_rule,
-    }
+    response = _trigger_record_to_payload(record)
+    response["trigger_id"] = record.id
+    return response
 
 
 # Update or pause an existing trigger owned by this execution agent
@@ -203,15 +219,9 @@ def _update_trigger_tool(
         agent_name,
         description=f"updateTrigger succeeded | trigger_id={trigger_id_int}",
     )
-    return {
-        "trigger_id": record.id,
-        "status": record.status,
-        "next_trigger": record.next_trigger,
-        "start_time": record.start_time,
-        "timezone": record.timezone,
-        "recurrence_rule": record.recurrence_rule,
-        "last_error": record.last_error,
-    }
+    response = _trigger_record_to_payload(record)
+    response["trigger_id"] = record.id
+    return response
 
 
 # List all triggers belonging to this execution agent
@@ -225,11 +235,20 @@ def _list_triggers_tool(*, agent_name: str) -> Dict[str, Any]:
         )
         return {"error": str(exc)}
 
+    total_records = len(records)
+    if total_records > _MAX_TRIGGER_EXPORT:
+        records = records[:_MAX_TRIGGER_EXPORT]
+
     _LOG_STORE.record_action(
         agent_name,
-        description=f"listTriggers succeeded | count={len(records)}",
+        description=f"listTriggers succeeded | count={total_records} | returned={len(records)}",
     )
-    return {"triggers": [_trigger_record_to_payload(record) for record in records]}
+    summarized: List[Dict[str, Any]] = []
+    for record in records:
+        payload = _trigger_record_to_payload(record)
+        summarized.append(payload)
+
+    return {"triggers": summarized}
 
 
 # Return trigger tool callables bound to a specific agent

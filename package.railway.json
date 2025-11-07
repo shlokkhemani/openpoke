@@ -1,0 +1,13 @@
+{
+  "name": "alyn-telegram",
+  "version": "1.0.0",
+  "description": "Telegram integration for Alyn on Railway",
+  "type": "module",
+  "scripts": {
+    "telegram": "node server/services/telegram/telegram_watcher.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "dotenv": "^17.2.3"
+  }
+}

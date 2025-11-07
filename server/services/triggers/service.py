@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timedelta
 from typing import Any, Dict, List, Optional
 
 from zoneinfo import ZoneInfo
@@ -42,12 +42,35 @@ class TriggerService:
         tz = resolve_timezone(timezone_name)
         now = utc_now()
         start_dt_local = coerce_start_datetime(start_time, tz, now)
+
+        # Validate that start time is not in the past (with 5 second grace period)
+        if start_dt_local < (now.astimezone(tz) - timedelta(seconds=5)):
+            logger.warning(
+                "Trigger start_time is in the past, will fire immediately",
+                extra={
+                    "agent_name": agent_name,
+                    "start_time": start_time,
+                    "current_time": to_storage_timestamp(now)
+                }
+            )
+
         stored_recurrence = build_recurrence(recurrence_rule, start_dt_local, tz)
         next_fire = self._compute_next_fire(
             stored_recurrence=stored_recurrence,
             start_dt_local=start_dt_local,
             tz=tz,
-            now=now,
+            now=now
+        )
+
+        logger.info(
+            "Creating trigger",
+            extra={
+                "agent_name": agent_name,
+                "start_time": to_storage_timestamp(start_dt_local),
+                "next_fire": to_storage_timestamp(next_fire) if next_fire else None,
+                "timezone": getattr(tz, "key", "UTC"),
+                "has_recurrence": stored_recurrence is not None
+            }
         )
         timestamp = to_storage_timestamp(now)
         record: Dict[str, Any] = {
@@ -207,8 +230,13 @@ class TriggerService:
         fired_at: datetime,
     ) -> Optional[TriggerRecord]:
         if not trigger.recurrence_rule:
-            self.mark_as_completed(trigger.id, agent_name=trigger.agent_name)
-            return self._store.fetch_one(trigger.id, trigger.agent_name)
+            # One-time triggers: delete after firing instead of just marking completed
+            logger.info(
+                "Deleting one-time trigger after successful execution",
+                extra={"trigger_id": trigger.id, "agent": trigger.agent_name}
+            )
+            self._store.delete(trigger.id, trigger.agent_name)
+            return None
 
         tz = resolve_timezone(trigger.timezone)
         next_fire = self._compute_next_after(trigger.recurrence_rule, fired_at, tz)

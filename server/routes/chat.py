@@ -17,18 +17,18 @@ async def chat_send(
 
 @router.get("/history", response_model=ChatHistoryResponse)
 # Retrieve the conversation history from the log
-def chat_history() -> ChatHistoryResponse:
+async def chat_history() -> ChatHistoryResponse:
     log = get_conversation_log()
-    return ChatHistoryResponse(messages=log.to_chat_messages())
+    return ChatHistoryResponse(messages=await log.to_chat_messages())
 
 
 @router.delete("/history", response_model=ChatHistoryClearResponse)
-def clear_history() -> ChatHistoryClearResponse:
+async def clear_history() -> ChatHistoryClearResponse:
     from ..services import get_execution_agent_logs, get_agent_roster
 
     # Clear conversation log
     log = get_conversation_log()
-    log.clear()
+    await log.clear()
 
     # Clear execution agent logs
     execution_logs = get_execution_agent_logs()

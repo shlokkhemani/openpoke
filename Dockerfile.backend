@@ -1,0 +1,37 @@
+# Backend Dockerfile for Alyn (with Telegram watcher)
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies including Node.js and curl
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY server/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy and install Node.js dependencies (for Telegram watcher)
+# Use package.railway.json instead of package.json to avoid macOS-only dependencies
+COPY package.railway.json ./package.json
+RUN npm install
+
+# Copy server code
+COPY server/ ./server/
+
+# Copy startup script
+COPY start-railway.sh .
+RUN chmod +x start-railway.sh
+
+# Create data directory
+RUN mkdir -p /app/server/data
+
+# Expose port
+EXPOSE 8001
+
+# Run both backend and Telegram watcher
+CMD ["./start-railway.sh"]

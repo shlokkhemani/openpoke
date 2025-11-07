@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8001:8001"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - COMPOSIO_API_KEY=${COMPOSIO_API_KEY}
+      - COMPOSIO_GMAIL_AUTH_CONFIG_ID=${COMPOSIO_GMAIL_AUTH_CONFIG_ID}
+    volumes:
+      - backend-data:/app/server/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - PY_SERVER_URL=http://backend:8001
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-data:

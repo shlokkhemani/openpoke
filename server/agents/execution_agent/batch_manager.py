@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from .runtime import ExecutionAgentRuntime, ExecutionResult
 from ...logging_config import logger
+from ...utils.exceptions import AgentExecutionError, OpenPokeError, ToolExecutionError
 
 
 @dataclass
@@ -74,12 +75,40 @@ class ExecutionBatchManager:
                 response=f"Execution timed out after {self.timeout_seconds} seconds",
                 error="Timeout",
             )
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.exception(f"[{agent_name}] Execution failed unexpectedly")
+        except AgentExecutionError as exc:
+            logger.error(
+                f"[{agent_name}] Execution failed",
+                extra={"error": str(exc), "details": exc.details},
+                exc_info=True,
+            )
             result = ExecutionResult(
                 agent_name=agent_name,
                 success=False,
                 response=f"Execution failed: {exc}",
+                error=str(exc),
+            )
+        except ToolExecutionError as exc:
+            logger.error(
+                f"[{agent_name}] Tool failure bubbled up",
+                extra={"error": str(exc), "tool": exc.tool_name, "arguments": exc.arguments},
+                exc_info=True,
+            )
+            result = ExecutionResult(
+                agent_name=agent_name,
+                success=False,
+                response=f"Tool failure: {exc}",
+                error=str(exc),
+            )
+        except OpenPokeError as exc:
+            logger.error(
+                f"[{agent_name}] Execution raised domain error",
+                extra={"error": str(exc), "error_type": type(exc).__name__},
+                exc_info=True,
+            )
+            result = ExecutionResult(
+                agent_name=agent_name,
+                success=False,
+                response=f"Execution error: {exc}",
                 error=str(exc),
             )
         finally:
@@ -144,7 +173,7 @@ class ExecutionBatchManager:
             await self._dispatch_to_interaction_agent(dispatch_payload)
 
     # Return list of currently pending execution requests for monitoring purposes
-    def get_pending_executions(self) -> List[Dict[str, str]]:
+    def get_pending_executions(self) -> List[Dict[str, object]]:
         """Expose pending executions for observability."""
 
         return [

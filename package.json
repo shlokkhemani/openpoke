@@ -1,0 +1,17 @@
+{
+  "name": "alyn-imessage",
+  "version": "1.0.0",
+  "description": "iMessage integration for Alyn",
+  "main": "server/services/imessage/imessage_watcher.js",
+  "type": "module",
+  "scripts": {
+    "watch": "node server/services/imessage/imessage_watcher_v3.js",
+    "watch-old": "node server/services/imessage/imessage_watcher.js"
+  },
+  "dependencies": {
+    "@photon-ai/imessage-kit": "^1.0.0",
+    "better-sqlite3": "^11.0.0",
+    "dotenv": "^17.2.3",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}

@@ -20,7 +20,7 @@ function uiToOpenAIContent(messages: UIMessage[]): { role: string; content: stri
 }
 
 export async function POST(req: Request) {
-  let body: any;
+  let body: unknown;
   try {
     body = await req.json();
   } catch (e) {
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     return new Response('Invalid JSON', { status: 400 });
   }
 
-  const { messages } = body || {};
+  const { messages } = (body as Record<string, unknown>) || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return new Response('Missing messages', { status: 400 });
   }
@@ -44,18 +44,34 @@ export async function POST(req: Request) {
   };
 
   try {
-    const upstream = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'text/plain, */*' },
-      body: JSON.stringify(payload),
-    });
-    const text = await upstream.text();
-    return new Response(text, {
-      status: upstream.status,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-    });
-  } catch (e: any) {
+    // Set a timeout that's slightly longer than the backend's timeout (60s)
+    // to allow the backend to properly handle and respond to errors
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 seconds
+
+    try {
+      const upstream = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'text/plain, */*' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      const text = await upstream.text();
+      return new Response(text, {
+        status: upstream.status,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch (e: unknown) {
     console.error('[chat-proxy] upstream error', e);
-    return new Response(e?.message || 'Upstream error', { status: 502 });
+    if (e instanceof Error && e.name === 'AbortError') {
+      return new Response('Request timeout - the server took too long to respond', { status: 504 });
+    }
+    const message = e instanceof Error ? e.message : 'Upstream error';
+    return new Response(message, { status: 502 });
   }
 }

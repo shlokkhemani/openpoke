@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  let body: any = {};
+  let body: Record<string, unknown> = {};
   try {
     body = await req.json();
   } catch {}
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   const serverBase = process.env.PY_SERVER_URL || 'http://localhost:8001';
   const url = `${serverBase.replace(/\/$/, '')}/api/v1/gmail/disconnect`;
-  const payload: any = {};
+  const payload: Record<string, unknown> = {};
   if (userId) payload.user_id = userId;
   if (connectionId) payload.connection_id = connectionId;
   if (connectionRequestId) payload.connection_request_id = connectionRequestId;
@@ -28,9 +28,10 @@ export async function POST(req: Request) {
       status: resp.status,
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
     return new Response(
-      JSON.stringify({ ok: false, error: 'Upstream error', detail: e?.message || String(e) }),
+      JSON.stringify({ ok: false, error: 'Upstream error', detail: message }),
       { status: 502, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
     );
   }

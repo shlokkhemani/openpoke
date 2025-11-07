@@ -1,14 +1,14 @@
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  let body: any;
+  let body: unknown;
   try {
     body = await req.json();
-  } catch (e) {
+  } catch {
     return new Response('Invalid JSON', { status: 400 });
   }
 
-  const { timezone } = body || {};
+  const { timezone } = (body as Record<string, unknown>) || {};
   if (!timezone || typeof timezone !== 'string') {
     return new Response('Missing or invalid timezone', { status: 400 });
   }
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ timezone }),
     });
-    
+
     if (!upstream.ok) {
       const text = await upstream.text();
       return new Response(text || 'Failed to set timezone', { status: upstream.status });
@@ -33,7 +33,8 @@ export async function POST(req: Request) {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (e: any) {
-    return new Response(e?.message || 'Server error', { status: 502 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Server error';
+    return new Response(message, { status: 502 });
   }
 }

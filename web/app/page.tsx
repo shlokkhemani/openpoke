@@ -19,25 +19,34 @@ const formatEscapeCharacters = (text: string): string => {
     .replace(/\\\\/g, '\\');
 };
 
-const isRenderableMessage = (entry: any) =>
-  typeof entry?.role === 'string' &&
-  typeof entry?.content === 'string' &&
-  entry.content.trim().length > 0;
+const isRenderableMessage = (entry: unknown) => {
+  const msg = entry as Record<string, unknown>;
+  return (
+    typeof msg?.role === 'string' &&
+    typeof msg?.content === 'string' &&
+    msg.content.trim().length > 0
+  );
+};
 
-const toBubbles = (payload: any): ChatBubble[] => {
-  if (!Array.isArray(payload?.messages)) return [];
+const toBubbles = (payload: unknown): ChatBubble[] => {
+  const data = payload as Record<string, unknown>;
+  if (!Array.isArray(data?.messages)) return [];
 
-  return payload.messages
+  return data.messages
     .filter(isRenderableMessage)
-    .map((message: any, index: number) => ({
-      id: `history-${index}`,
-      role: message.role,
-      text: formatEscapeCharacters(message.content),
-    }));
+    .map((message: unknown, index: number) => {
+      const msg = message as Record<string, unknown>;
+      return {
+        id: `history-${index}`,
+        role: msg.role as string,
+        text: formatEscapeCharacters(msg.content as string),
+        timestamp: typeof msg.timestamp === 'string' ? msg.timestamp : null,
+      };
+    });
 };
 
 export default function Page() {
-  const { settings, setSettings } = useSettings();
+  const { settings, saveSettings } = useSettings();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatBubble[]>([]);
@@ -56,8 +65,8 @@ export default function Page() {
       if (!res.ok) return;
       const data = await res.json();
       setMessages(toBubbles(data));
-    } catch (err: any) {
-      if (err?.name === 'AbortError') return;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error('Failed to load chat history', err);
     }
   }, []);
@@ -70,7 +79,10 @@ export default function Page() {
   useEffect(() => {
     const detectAndStoreTimezone = async () => {
       // Only run if timezone not already stored
-      if (settings.timezone) return;
+      const existingTimezone = typeof window !== 'undefined'
+        ? localStorage.getItem('user_timezone')
+        : null;
+      if (existingTimezone) return;
       
       try {
         const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -83,8 +95,13 @@ export default function Page() {
         });
         
         if (response.ok) {
-          // Update local settings
-          setSettings({ ...settings, timezone: browserTimezone });
+          // Update localStorage only, don't persist the whole profile
+          // (profile might not be loaded yet from backend)
+          try {
+            localStorage.setItem('user_timezone', browserTimezone);
+          } catch {
+            console.debug('Failed to save timezone to localStorage');
+          }
         }
       } catch (error) {
         // Fail silently - timezone detection is not critical
@@ -93,7 +110,8 @@ export default function Page() {
     };
 
     void detectAndStoreTimezone();
-  }, [settings, setSettings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
 
 
   useEffect(() => {
@@ -120,6 +138,7 @@ export default function Page() {
         id: `user-${Date.now()}`,
         role: 'user',
         text: formatEscapeCharacters(trimmed),
+        timestamp: new Date().toISOString(),
       };
       setMessages(prev => {
         const newMessages = [...prev, userMessage];
@@ -139,9 +158,10 @@ export default function Page() {
           const detail = await res.text();
           throw new Error(detail || `Request failed (${res.status})`);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to send message', err);
-        setError(err?.message || 'Failed to send message');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
+        setError(errorMessage);
         // Remove the optimistic message on error
         setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
         setIsWaitingForResponse(false);
@@ -193,23 +213,6 @@ export default function Page() {
     [loadHistory],
   );
 
-  const handleClearHistory = useCallback(async () => {
-    try {
-      const res = await fetch('/api/chat/history', { method: 'DELETE' });
-      if (!res.ok) {
-        console.error('Failed to clear chat history', res.statusText);
-        return;
-      }
-      setMessages([]);
-    } catch (err) {
-      console.error('Failed to clear chat history', err);
-    }
-  }, [setMessages]);
-
-  const triggerClearHistory = useCallback(() => {
-    void handleClearHistory();
-  }, [handleClearHistory]);
-
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
     const value = input;
@@ -228,11 +231,11 @@ export default function Page() {
   const clearError = useCallback(() => setError(null), [setError]);
 
   return (
-    <main className="chat-bg min-h-screen p-4 sm:p-6">
-      <div className="chat-wrap flex flex-col">
-        <ChatHeader onOpenSettings={openSettings} onClearHistory={triggerClearHistory} />
+    <main className="chat-bg flex h-full flex-col p-1 sm:p-2 md:p-6">
+      <div className="chat-wrap flex h-full flex-col">
+        <ChatHeader onOpenSettings={openSettings} />
 
-        <div className="card flex-1 overflow-hidden">
+        <div className="card flex flex-1 flex-col overflow-hidden">
           <ChatMessages
             messages={messages}
             isWaitingForResponse={isWaitingForResponse}
@@ -240,7 +243,7 @@ export default function Page() {
             onScroll={handleScroll}
           />
 
-          <div className="border-t border-gray-200 p-3">
+          <div className="border-t border-gray-200 px-1 pt-1 pb-[calc(env(safe-area-inset-bottom)+0.25rem)] sm:px-2 sm:pt-2 sm:pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:px-3 md:pt-3 md:pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
             {error && <ErrorBanner message={error} onDismiss={clearError} />}
 
             <ChatInput
@@ -253,7 +256,7 @@ export default function Page() {
           </div>
         </div>
 
-        <SettingsModal open={open} onClose={closeSettings} settings={settings} onSave={setSettings} />
+        <SettingsModal open={open} onClose={closeSettings} settings={settings} onSave={saveSettings} />
       </div>
     </main>
   );

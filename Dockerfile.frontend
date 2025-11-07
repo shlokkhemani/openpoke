@@ -1,0 +1,25 @@
+# Frontend Dockerfile for Alyn
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY web/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the code
+COPY web/ ./
+
+# Build the Next.js app
+RUN npm run build
+
+# Expose port
+EXPOSE 3000
+
+# Set port environment variable
+ENV PORT=3000
+
+# Start the app
+CMD ["npm", "start"]

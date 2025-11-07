@@ -121,6 +121,15 @@ class TriggerStore:
         with self._lock, self._connect() as conn:
             conn.execute("DELETE FROM triggers")
 
+    def delete(self, trigger_id: int, agent_name: str) -> bool:
+        """Delete a specific trigger by ID and agent name."""
+        with self._lock, self._connect() as conn:
+            cursor = conn.execute(
+                "DELETE FROM triggers WHERE id = ? AND agent_name = ?",
+                (trigger_id, agent_name),
+            )
+            return cursor.rowcount > 0
+
     def _row_to_record(self, row: sqlite3.Row) -> TriggerRecord:
         data = dict(row)
         return TriggerRecord.model_validate(data)

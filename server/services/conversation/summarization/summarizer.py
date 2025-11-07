@@ -20,10 +20,12 @@ def _resolve_conversation_log() -> "ConversationLog":
     return get_conversation_log()
 
 
-def _collect_entries(log) -> List[LogEntry]:
+async def _collect_entries(log) -> List[LogEntry]:
     entries: List[LogEntry] = []
-    for index, (tag, timestamp, payload) in enumerate(log.iter_entries()):
+    index = 0
+    async for tag, timestamp, payload in log.iter_entries():
         entries.append(LogEntry(tag=tag, payload=payload, index=index, timestamp=timestamp or None))
+        index += 1
     return entries
 
 
@@ -78,7 +80,7 @@ async def summarize_conversation() -> bool:
     conversation_log = _resolve_conversation_log()
     working_memory_log = get_working_memory_log()
 
-    entries = _collect_entries(conversation_log)
+    entries = await _collect_entries(conversation_log)
     state = working_memory_log.load_summary_state()
 
     threshold = settings.conversation_summary_threshold
@@ -110,7 +112,7 @@ async def summarize_conversation() -> bool:
     summary_text = await _call_openrouter(prompt, settings.summarizer_model, settings.openrouter_api_key)
     summary_body = summary_text if summary_text else state.summary_text
 
-    refreshed_entries = _collect_entries(conversation_log)
+    refreshed_entries = await _collect_entries(conversation_log)
     remaining_entries = [entry for entry in refreshed_entries if entry.index > cutoff_index]
 
     new_state = SummaryState(

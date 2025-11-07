@@ -34,17 +34,29 @@
 }
 
 .bubble-out {
-  @apply inline-block max-w-[80%] rounded-2xl bg-brand-600 px-4 py-2.5 text-sm text-white shadow-sm;
+  @apply inline-flex max-w-[85%] items-center rounded-[1.75rem] border border-gray-300 bg-gray-100 px-4 py-2 text-sm text-gray-900 shadow-sm transition-transform sm:max-w-[80%] sm:px-5 sm:py-2.5;
+  min-width: 5rem;
+  min-height: 2.25rem;
+}
+
+.bubble-out > span {
+  @apply text-left leading-snug;
 }
 
 .bubble-in {
-  @apply inline-block max-w-[80%] rounded-2xl bg-gray-100 px-4 py-2.5 text-sm text-gray-900 shadow-sm border border-gray-200;
+  @apply inline-flex max-w-[85%] items-center rounded-[1.75rem] border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 shadow-sm sm:max-w-[80%] sm:px-5 sm:py-2.5;
+  min-width: 5rem;
+  min-height: 2.25rem;
+}
+
+.bubble-in > span {
+  @apply text-left leading-snug;
 }
 
 .bubble-tail-out {
-  @apply rounded-br-md;
+  @apply rounded-br-[1.1rem];
 }
 
 .bubble-tail-in {
-  @apply rounded-bl-md;
+  @apply rounded-bl-[1.1rem];
 }

@@ -9,14 +9,24 @@ from typing import Any, Dict, Optional
 from fastapi import status
 from fastapi.responses import JSONResponse
 
-from ...config import Settings, get_settings
+from ...config import Settings
 from ...logging_config import logger
 from ...models import GmailConnectPayload, GmailDisconnectPayload, GmailStatusPayload
 from ...utils import error_response
+from ..composio_client import (
+    get_composio_client as _shared_get_composio_client,
+    normalize_composio_payload,
+)
 
+# PostgreSQL database imports
+try:
+    from ...database import SessionLocal
+    from ...db_models import User
+    _USE_DATABASE = True
+except ImportError:
+    _USE_DATABASE = False
+    logger.warning("Database not available for Gmail persistence")
 
-_CLIENT_LOCK = threading.Lock()
-_CLIENT: Optional[Any] = None
 
 _PROFILE_CACHE: Dict[str, Dict[str, Any]] = {}
 _PROFILE_CACHE_LOCK = threading.Lock()
@@ -40,31 +50,8 @@ def get_active_gmail_user_id() -> Optional[str]:
         return _ACTIVE_USER_ID
 
 
-def _gmail_import_client():
-    from composio import Composio  # type: ignore
-    return Composio
-
-
-# Get or create a singleton Composio client instance with thread-safe initialization
 def _get_composio_client(settings: Optional[Settings] = None):
-    global _CLIENT
-    if _CLIENT is not None:
-        return _CLIENT
-
-    with _CLIENT_LOCK:
-        if _CLIENT is None:
-            resolved_settings = settings or get_settings()
-            Composio = _gmail_import_client()
-            api_key = resolved_settings.composio_api_key
-            try:
-                _CLIENT = Composio(api_key=api_key) if api_key else Composio()
-            except TypeError as exc:
-                if api_key:
-                    raise RuntimeError(
-                        "Installed Composio SDK does not accept the api_key argument; upgrade the SDK or remove COMPOSIO_API_KEY."
-                    ) from exc
-                _CLIENT = Composio()
-    return _CLIENT
+    return _shared_get_composio_client(settings)
 
 
 def _extract_email(obj: Any) -> Optional[str]:
@@ -119,6 +106,56 @@ def _extract_email(obj: Any) -> Optional[str]:
             if isinstance(current, str) and "@" in current:
                 return current
     return None
+
+
+def _save_gmail_to_db(connected: bool, email: Optional[str], connection_id: Optional[str]) -> None:
+    """Save Gmail connection status to PostgreSQL database."""
+    if not _USE_DATABASE:
+        return
+
+    try:
+        db = SessionLocal()
+        try:
+            # Get or create user with ID=1 (single-user mode)
+            user = db.query(User).filter(User.id == 1).first()
+            if not user:
+                user = User(id=1)
+                db.add(user)
+
+            # Update Gmail fields
+            user.gmail_connected = connected
+            user.gmail_email = email if connected else None
+            user.gmail_connection_id = connection_id if connected else None
+
+            db.commit()
+            logger.info(f"💾 Gmail status saved to PostgreSQL: connected={connected}, email={email}")
+        finally:
+            db.close()
+    except Exception as exc:
+        logger.error(f"❌ Failed to save Gmail status to database: {exc}")
+
+
+def _load_gmail_from_db() -> Dict[str, Any]:
+    """Load Gmail connection status from PostgreSQL database."""
+    if not _USE_DATABASE:
+        return {"connected": False, "email": None, "connection_id": None}
+
+    try:
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == 1).first()
+            if user:
+                return {
+                    "connected": user.gmail_connected or False,
+                    "email": user.gmail_email,
+                    "connection_id": user.gmail_connection_id,
+                }
+        finally:
+            db.close()
+    except Exception as exc:
+        logger.error(f"❌ Failed to load Gmail status from database: {exc}")
+
+    return {"connected": False, "email": None, "connection_id": None}
 
 
 def _cache_profile(user_id: str, profile: Dict[str, Any]) -> None:
@@ -305,6 +342,9 @@ def fetch_status(payload: GmailStatusPayload) -> JSONResponse:
 
         _set_active_gmail_user_id(user_id)
 
+        # Save Gmail connection status to PostgreSQL
+        _save_gmail_to_db(connected, email, connection_request_id)
+
         return JSONResponse(
             {
                 "ok": True,
@@ -422,46 +462,21 @@ def disconnect_account(payload: GmailDisconnectPayload) -> JSONResponse:
             detail="; ".join(errors),
         )
 
-    payload = {
+    # Clear Gmail connection status from PostgreSQL
+    if removed_ids:
+        _save_gmail_to_db(False, None, None)
+
+    response_payload = {
         "ok": True,
         "disconnected": bool(removed_ids),
         "removed_connection_ids": removed_ids,
     }
     if not removed_ids:
-        payload["message"] = "No Gmail connection found"
+        response_payload["message"] = "No Gmail connection found"
 
     if errors:
-        payload["warnings"] = errors
-    return JSONResponse(payload)
-
-
-def _normalize_tool_response(result: Any) -> Dict[str, Any]:
-    payload_dict: Optional[Dict[str, Any]] = None
-    try:
-        if hasattr(result, "model_dump"):
-            payload_dict = result.model_dump()  # type: ignore[assignment]
-        elif hasattr(result, "dict"):
-            payload_dict = result.dict()  # type: ignore[assignment]
-    except Exception:
-        payload_dict = None
-
-    if payload_dict is None:
-        try:
-            if hasattr(result, "model_dump_json"):
-                payload_dict = json.loads(result.model_dump_json())
-        except Exception:
-            payload_dict = None
-
-    if payload_dict is None:
-        if isinstance(result, dict):
-            payload_dict = result
-        elif isinstance(result, list):
-            payload_dict = {"items": result}
-        else:
-            payload_dict = {"repr": str(result)}
-
-    return payload_dict
-
+        response_payload["warnings"] = errors
+    return JSONResponse(response_payload)
 
 # Execute Gmail operations through Composio SDK with error handling
 def execute_gmail_tool(
@@ -485,10 +500,20 @@ def execute_gmail_tool(
             user_id=composio_user_id,
             arguments=prepared_arguments,
         )
-        return _normalize_tool_response(result)
+        return normalize_composio_payload(result)
     except Exception as exc:
-        logger.exception(
-            "gmail tool execution failed",
-            extra={"tool": tool_name, "user_id": composio_user_id},
-        )
-        raise RuntimeError(f"{tool_name} invocation failed: {exc}") from exc
+        error_msg = str(exc)
+        # Check for specific Composio connection errors
+        if "No connected account found" in error_msg or "400" in error_msg:
+            logger.warning(
+                "Gmail tool execution failed - no connected account: %s",
+                error_msg,
+                extra={"tool": tool_name, "user_id": composio_user_id},
+            )
+            raise RuntimeError(f"Gmail not connected. Please connect your Gmail account first.") from exc
+        else:
+            logger.exception(
+                "gmail tool execution failed",
+                extra={"tool": tool_name, "user_id": composio_user_id},
+            )
+            raise RuntimeError(f"{tool_name} invocation failed: {exc}") from exc
