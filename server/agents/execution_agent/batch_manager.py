@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from .runtime import ExecutionAgentRuntime, ExecutionResult
 from ...logging_config import logger
+from ...services.execution import get_agent_roster
 
 
 @dataclass
@@ -84,6 +85,14 @@ class ExecutionBatchManager:
             )
         finally:
             self._pending.pop(request_id, None)
+
+        # Mark agent as completed in the roster regardless of success/failure
+        try:
+            roster = get_agent_roster()
+            roster.load()
+            roster.complete_agent(agent_name)
+        except Exception as exc:
+            logger.warning(f"[{agent_name}] Failed to mark agent completed: {exc}")
 
         await self._complete_execution(batch_id, result, agent_name)
         return result

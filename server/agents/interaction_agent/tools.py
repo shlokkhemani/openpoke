@@ -118,6 +118,11 @@ def send_message_to_agent(agent_name: str, instructions: str) -> ToolResult:
 
     if is_new:
         roster.add_agent(agent_name)
+    else:
+        # Re-activate a previously completed agent
+        if roster.get_agent_status(agent_name) == "completed":
+            roster._agents[agent_name] = "active"
+            roster.save()
 
     get_execution_agent_logs().record_request(agent_name, instructions)
 

@@ -45,15 +45,21 @@ def _render_conversation_history(transcript: str) -> str:
 def _render_active_agents() -> str:
     roster = get_agent_roster()
     roster.load()
-    agents = roster.get_agents()
+    active = roster.get_active_agents()
+    completed = roster.get_completed_agents()
 
-    if not agents:
+    if not active and not completed:
         return "None"
 
     rendered: List[str] = []
-    for agent_name in agents:
+    for agent_name in active:
         name = escape(agent_name or "agent", quote=True)
-        rendered.append(f'<agent name="{name}" />')
+        rendered.append(f'<agent name="{name}" status="active" />')
+
+    # Show recent completed agents compactly so the LLM can reuse them
+    if completed:
+        names = ", ".join(escape(n, quote=True) for n in completed[-10:])
+        rendered.append(f'<completed_agents names="{names}" />')
 
     return "\n".join(rendered)
 
