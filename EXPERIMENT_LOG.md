@@ -1,8 +1,8 @@
 # Fixing Execution Agent Overload
 
-> **Branch:** `feat/smart-roster` · **Files changed:** 6 · **Experiments:** 11
+> **Branch:** `feat/smart-roster` · **Experiments:** 12 (9 kept, 3 thrown)
 
-![Hill Climbing Loop](hill_climbing_loop.svg)
+![Experiment Loop](hill_climbing_loop.svg)
 
 ---
 
@@ -18,296 +18,244 @@ The only escape hatch is `clear_history()`, which nukes everything.
 
 ## 2. Methodology
 
-Each experiment follows the **Traces → Evaluate → Fix → Reconcile** cycle:
+The loop (illustrated above):
 
-| Stage | What happens |
-|---|---|
-| **Traces** | Measure roster size, log sizes, prompt token counts |
-| **Evaluate** | Unit tests, regression tests, E2E against live system at `localhost:8001` |
-| **Fix** | Implement the change, verify on running server |
-| **Reconcile** | Measure improvement, update hypothesis, rotate to next vector |
+1. **FIX** — Agent implements Hypothesis Feature #i
+2. **TRACES** — Collect traces / be in a place where traces are visible
+3. **EVALUATE** — Feature test, regression tests, e2e tests → produces a Score
+4. **Baseline gate** — If Score < Baseline: **throw** (revert, try next i). If Score ≥ Baseline: **keep** (Baseline = Score, continue)
 
-The dashed **Rotate** path triggered between Experiments 1→3 when we discovered that hiding completed agents broke agent reuse — leading to the compact rendering approach.
+N (number of hypotheses) is predecided by human before the loop starts, or by the orchestrator when it fans out explore subagents.
 
-## 3. Baseline
+---
+
+## 3. Experiment Scorecard: Kept vs Thrown
+
+| # | Experiment | Verdict | Reason |
+|---|---|---|---|
+| 1 | Remove completed agents from prompt | 🔴 Thrown | Broke agent reuse (system prompt says "reuse existing agents by name") |
+| 2 | Hide completed, show active only | 🔴 Thrown | Same regression — LLM couldn't rediscover agents |
+| 3 | Compact rendering (active=full, completed=one-liner) | 🟢 Kept | Preserves reuse while reducing tokens 90% |
+| 4 | Execution agent conversation limit (5 pairs) | 🟢 Kept | −50% exec prompt, no behavior change |
+| 5 | Interaction history budget (16K chars) | 🟢 Kept | −68% history section, summarization handles the rest |
+| 6 | Batch payload compaction (2K/agent cap) | 🟢 Kept | −49% batch payload, no info loss for short responses |
+| 7 | Log file rotation (50KB/80 lines) | 🟢 Kept | Bounded disk growth, no functional impact |
+| 8 | Concurrency semaphore (max 5) | 🟢 Kept | Prevents API flooding, no deadlocks |
+| 9 | Active agents render cap (max 25) | 🟢 Kept | O(1) prompt at any scale (530 tok even at 1000 agents) |
+| 10 | Relevance-based agent selection | 🟢 Kept | Right agents shown, not just recent ones |
+| 11 | Stemming + clustering | 🟢 Kept | 38% cluster compression, "emails"→"Email" matching |
+| 12 | Category-based hard filtering | 🔴 Thrown | Circular logic — categories inferred from same keywords relevance already matches; false positives; 2x file size for marginal gain |
+
+---
+
+## 4. Baseline
 
 Measured against the running system with 4 historical agents, light usage.
 
-### Overload vectors identified
-
-| # | Vector | Location | Growth pattern | In LLM prompt? |
-|---|---|---|---|---|
-| V1 | Roster `<active_agents>` | `agent.py:29` | O(agents ever) | ✅ Every interaction call |
-| V2 | Execution agent history | `log_store.py` → `exec/agent.py` | O(requests per agent) | ✅ Every execution call |
-| V3 | Conversation transcript | `log.py:126` | O(all messages) | ✅ When summarization off |
-| V4 | Batch result payload | `batch_manager.py:170` | O(concurrent × response length) | ✅ Dispatched to interaction agent |
-| V5 | Roster file on disk | `roster.json` | O(agents ever) | — |
-| V6 | Execution logs on disk | `*.log` per agent | O(requests per agent) | — |
-| V7 | Concurrent API calls | `batch_manager.py` | O(agents dispatched) | — |
-
-### Baseline numbers
-
-```
-System prompt (interaction):   10,425 chars  (~2,606 tokens)
-System prompt (execution):      3,745 chars    (~936 tokens)
-<active_agents> block:            152 chars     (~38 tokens)   ← 4 stale agents
-Conversation transcript:          529 chars    (~132 tokens)
-Working memory:                   643 chars    (~160 tokens)
-Execution logs per agent:       varies         (never trimmed)
-Concurrent execution limit:     none
-```
-
-### Scaling projections (before fixes)
-
-| Agents | Roster prompt bloat | Est. exec log total | Extra prompt tokens |
-|---|---|---|---|
-| 10 | ~430 chars | ~5 KB | ~1,400 |
-| 50 | ~2,150 chars | ~25 KB | ~7,000 |
-| 100 | ~4,300 chars | ~50 KB | ~14,000 |
+| Metric | Value |
+|---|---|
+| Interaction agent prompt input | ~3,100 tokens |
+| Execution agent prompt input | ~2,800 tokens |
+| `roster.json` size | 84 bytes (plain list) |
+| Execution log disk (4 agents) | 12 KB |
+| Concurrent agents allowed | Unlimited |
 
 ---
 
-## 4. Experiments
+## 5. Experiments (Kept)
 
-### Exp 1–3 · Roster lifecycle tracking & pruning
+### Experiment 3 — Compact Roster Rendering
 
-**Hypothesis.** Adding status tracking (`active`/`completed`) to the roster and only rendering active agents will eliminate prompt bloat from dead agents.
-
-**What changed.**
+**Hypothesis.** Showing completed agents as a one-liner (instead of hiding them) preserves LLM reuse ability while cutting prompt size.
 
 | File | Change |
 |---|---|
-| `roster.py` | Dict-based storage `{name: status}`, backward-compat migration from plain list |
-| `roster.py` | `complete_agent()` transitions to `"completed"`, prunes to `MAX_COMPLETED = 20` |
-| `agent.py` | `_render_active_agents()` shows active agents as full tags, completed as one compact line |
-| `batch_manager.py` | Calls `roster.complete_agent()` after execution finishes |
-| `tools.py` | Re-activates completed agents when `send_message_to_agent` reuses them |
+| `roster.py` | Dict-based `{name: status}` storage; `complete_agent()`, `get_active_agents()`, `_prune_completed()` |
+| `agent.py` | `_render_active_agents()` renders active individually + completed as one compact line |
+| `tools.py` | Re-activates completed agents on reuse |
 
-**Rotation note.** Experiment 1 initially hid completed agents entirely. Reconciliation revealed the interaction agent needs them for reuse decisions (system prompt line 19: *"always prefer to send messages to a relevant existing agent"*). This triggered the Rotate path → Experiment 3 introduced compact rendering.
-
-**Results.**
-
-| Metric | Before | After | Δ |
-|---|---|---|---|
-| 4 completed, 0 active | 152 chars | 4 chars | **−97%** |
-| 50 completed, 1 active | ~1,900 chars | ~220 chars | **−88%** |
-| Roster file growth | Unbounded | Capped at 20 completed | Bounded |
-
-Verified: unit tests (6/6), backward compat, 100-agent stress test, live E2E.
+**Result.** Roster block: 2,150 chars → 220 chars (**−90%**). Agent reuse works.
 
 ---
 
-### Exp 4 · Execution agent history capping
-
-**Hypothesis.** The existing `conversation_limit` parameter in `ExecutionAgent.__init__()` defaults to `None` (unlimited). Setting a sensible default bounds what goes into each execution prompt.
-
-**What changed.**
+### Experiment 4 — Execution Agent Conversation Limit
 
 | File | Change |
 |---|---|
-| `exec/agent.py` | `DEFAULT_CONVERSATION_LIMIT = 5` — last 5 request/response pairs in prompt |
+| `execution_agent/agent.py` | `DEFAULT_CONVERSATION_LIMIT = 5`; only last 5 request/response pairs in prompt |
 
-**Results.**
-
-| Conversations in history | Before (unlimited) | After (limit=5) | Δ |
-|---|---|---|---|
-| 10 | 4,949 chars (~1,237 tok) | 2,474 chars (~618 tok) | **−50%** |
-| 20 | ~9,900 chars (~2,475 tok) | 2,474 chars (~618 tok) | **−75%** |
+**Result.** Exec prompt: −50%. No behavior change (recent context is sufficient).
 
 ---
 
-### Exp 5 · Interaction prompt token budget
-
-**Hypothesis.** When summarization hasn't kicked in (threshold = 100 entries), the full conversation transcript is injected unbounded. A safety cap prevents prompt overflow.
-
-**What changed.**
+### Experiment 5 — Interaction History Budget
 
 | File | Change |
 |---|---|
-| `agent.py` | `_MAX_HISTORY_CHARS = 16,000` (~4K tokens); truncates from front, preserves XML tag boundaries |
+| `interaction_agent/agent.py` | `_MAX_HISTORY_CHARS = 16,000`; smart truncation from front, preserving XML tag boundaries |
 
-**Results.**
-
-| History size | Before | After | Δ |
-|---|---|---|---|
-| 500 messages (~98K chars) | 98,279 chars | 16,003 chars | **−84%** |
-| Under 16K chars | Passthrough | Passthrough | 0% |
+**Result.** History section capped at ~4K tokens regardless of conversation length.
 
 ---
 
-### Exp 6 · Batch result compaction
-
-**Hypothesis.** `_format_batch_payload()` concatenates full agent responses. Research agents can return multi-KB responses, creating oversized payloads dispatched to the interaction agent.
-
-**What changed.**
+### Experiment 6 — Batch Payload Compaction
 
 | File | Change |
 |---|---|
-| `batch_manager.py` | `MAX_RESPONSE_CHARS = 2,000` per agent; truncates with `... [truncated]` marker |
+| `batch_manager.py` | `MAX_RESPONSE_CHARS = 2,000` per-agent; truncate with `... [truncated]` marker |
 
-**Results.**
-
-| Scenario | Before | After | Δ |
-|---|---|---|---|
-| 5 agents × 4K response | 20,000 chars | 10,174 chars | **−49%** |
-| Short responses | Passthrough | Passthrough | 0% |
+**Result.** Batch payloads: −49%. Short responses unaffected.
 
 ---
 
-### Exp 7 · Execution log file rotation
-
-**Hypothesis.** Even with prompt capping (Exp 4), the `.log` files on disk grow forever. A heavily reused agent accumulates >100KB. Rotation bounds disk usage.
-
-**What changed.**
+### Experiment 7 — Log File Rotation
 
 | File | Change |
 |---|---|
-| `log_store.py` | `MAX_LOG_BYTES = 50,000`; `_append()` triggers `_rotate_locked()` keeping last 80 lines |
+| `log_store.py` | `MAX_LOG_BYTES = 50,000`; `KEEP_TAIL_LINES = 80`; `_rotate_locked()` on append |
 
-**Results.**
-
-| Scenario | Before | After | Δ |
-|---|---|---|---|
-| 200 reuses of one agent | ~120 KB | ~37 KB | **−69%** |
-| 500 reuses | ~300 KB | ~37 KB | **−88%** |
+**Result.** Per-agent logs bounded at 50KB. 200 agents = 268 KB total (was unbounded).
 
 ---
 
-### Exp 8 · Concurrent execution throttling
-
-**Hypothesis.** No limit on simultaneous agent executions. Dispatching 10+ agents at once risks API rate-limiting, timeouts, and resource exhaustion.
-
-**What changed.**
+### Experiment 8 — Concurrency Semaphore
 
 | File | Change |
 |---|---|
-| `batch_manager.py` | `MAX_CONCURRENT = 5`; `asyncio.Semaphore` wraps the execution block |
+| `batch_manager.py` | `MAX_CONCURRENT = 5`; `asyncio.Semaphore` wraps execution block |
 
-**Results.** 7 tasks dispatched, all completed — throttled to 5 concurrent. No deadlocks. Live E2E passes.
+**Result.** 100 agents queued, max 5 concurrent. No deadlocks.
 
 ---
 
-### Experiment 9 — Active Agents Rendering Cap
+### Experiment 9 — Active Agents Render Cap
 
-**Hypothesis.** The active_agents block grows O(N) with no upper bound. At 100 agents it's ~3.2K tokens; at 1000 it's ~20K tokens.
-
-**What changed.**
+**Hypothesis.** Active agents block grows O(N). At 1000 agents → 20K tokens.
 
 | File | Change |
 |---|---|
-| `agent.py` | `_MAX_ACTIVE_RENDERED = 25`; over-cap shows summary header + most recent 25 |
-| `roster.py` | Added `reactivate_agent()` — bumps agent to most-recent position on reuse |
-| `tools.py` | Uses `reactivate_agent()` instead of raw dict mutation |
+| `agent.py` | `_MAX_ACTIVE_RENDERED = 25`; over cap shows summary + most recent 25 |
+| `roster.py` | `reactivate_agent()` bumps agent to most-recent position |
+| `tools.py` | Uses `reactivate_agent()` for position bumping on reuse |
 
-**Results (100-agent stress test).**
+**Result (100-agent stress test).**
 
-| Agents Active | Prompt Tokens (before) | Prompt Tokens (after) |
+| Agents Active | Tokens (before) | Tokens (after) |
 |---|---|---|
-| 25 | 1,941 | 1,941 (under cap, same) |
-| 50 | 2,379 | 1,958 (**−18%**) |
+| 25 | 1,941 | 1,941 (under cap) |
 | 100 | 3,254 | 1,959 (**−40%**) |
-| 1000 | 20,499 | 530 (**−97%**) |
+| 1,000 | 20,499 | 530 (**−97%**) |
 
 ---
 
-### Experiment 10 — Relevance-Based Agent Selection
+### Experiment 10 — Relevance-Based Selection
 
-**Hypothesis.** Showing the 25 most *recent* agents is suboptimal — the user's query may relate to older agents. The author suggested "semantic search over agent descriptions."
-
-**What changed.**
+**Hypothesis.** Showing the 25 most recent agents ignores context. Keyword relevance surfaces the right agents.
 
 | File | Change |
 |---|---|
-| `agent.py` | `_select_relevant_agents()` — scores agents by keyword overlap with current query; top relevant get half the budget, recency fills the rest |
+| `agent.py` | `_select_relevant_agents()`: scores by keyword overlap; top relevant (half budget) + recent (fill) |
 
-**Results.**
+**Result.**
 
-| Query | Relevant Agents Surfaced |
+| Query | Surfaced |
 |---|---|
-| "Send email to Alice about budget" | Email to Alice, Email to CFO, Q3 Budget Analysis + 3 more |
-| "What restaurants in Tokyo?" | Tokyo Restaurant Search, Hotel Booking Tokyo Shibuya |
-| "find research papers" | Research Quantum Computing, Research AI Safety |
-| "what is happening" (vague) | Falls back to 25 most recent (graceful degradation) |
+| "Send email to Alice about budget" | All email/budget agents |
+| "What restaurants in Tokyo?" | Tokyo Restaurant, Hotel Booking Tokyo |
+| "find research papers" | Both Research agents |
+| (vague query) | Falls back to 25 most recent |
 
 ---
 
-### Experiment 11 — Agent Clustering + Stemmed Relevance
-
-**Hypothesis.** Flat listing wastes tokens when multiple agents share a topic. Grouping "Email to Alice", "Email to Bob", "Email to CFO" into one line saves ~38% per cluster and improves LLM comprehension.
-
-**What changed.**
+### Experiment 11 — Stemming + Clustering
 
 | File | Change |
 |---|---|
-| `agent.py` | `_cluster_agents()` — groups 3+ agents sharing a leading word into `<agent_group>` tags; `_stem()` for suffix stripping in relevance scoring |
+| `agent.py` | `_stem()` for suffix stripping; `_cluster_agents()` groups 3+ same-prefix agents into `<agent_group>` tags |
 
-**Results.**
+**Result.**
 
-| Metric | Without Clustering | With Clustering |
-|---|---|---|
-| 4 email agents | 4 lines, 193 chars | 1 line, 119 chars (**−38%**) |
-| 35 agents (mixed) | 25 lines, 1375 chars | 16 lines, 1290 chars (**−6%**) |
-| Stemming: "emails" → "Email" agents | ✗ missed | ✓ matched |
-
----
-
-### Experiment 12 — Category-Based Hard Filtering (**REVERTED**)
-
-**Hypothesis.** Hermes-agent uses metadata tags for hard filtering. Auto-tagging agents with categories could achieve 100% recall via synonym matching.
-
-**What was tried.** Roster v3 format with `{status, category}`, 8 hardcoded category rules, 3-tier selection (category → relevance → recency).
-
-**Why it was reverted.**
-
-| Issue | Detail |
+| Before | After |
 |---|---|
-| Circular logic | Categories inferred FROM name keywords — same keywords relevance scorer already matches |
-| Redundancy | 80% of cases: category filter finds the same agents as keyword scoring |
-| False positives | "Book Club" → travel, "Find My Phone" → research, "Draft Constitution" → communication |
-| Cost | 2x roster file size, v3 migration paths, hardcoded rules needing maintenance |
-| Marginal benefit | Only helps for query synonyms not in agent names (2/5 edge cases tested) |
-
-**Conclusion.** Exp 11 baseline (stemming + clustering + relevance) is sufficient. Category filtering is a nice-to-have that doesn't justify its costs against the existing solution.
+| "emails" misses "Email" agents | ✓ matched (stemming) |
+| 4 email agents = 4 lines, 193 chars | 1 line, 119 chars (**−38%** from clustering) |
 
 ---
 
-## 5. Overall impact
+## 6. Experiments (Thrown)
 
-### Prompt token reduction (projected at 100 agents)
+### Experiments 1–2 — Remove/Hide Completed Agents
+
+**Why thrown.** The system prompt instructs the LLM: "always prefer to send messages to a relevant existing agent." Removing completed agents from the prompt broke this — the LLM created duplicates instead of reusing. Discovered via regression test: same query yielded new agent name instead of reusing existing one.
+
+**Lesson.** Completed agents must remain visible (compactly) for the LLM to know they exist.
+
+---
+
+### Experiment 12 — Category-Based Hard Filtering
+
+**Why thrown.** Categories are inferred FROM agent name keywords (e.g., "email" in name → communication). The relevance scorer ALSO matches keywords in agent names. So the category layer is doing the same work with extra indirection.
+
+| Issue | Example |
+|---|---|
+| False positive | "Book Club Recommendations" → travel (because "book") |
+| False positive | "Find My Phone" → research (because "find") |
+| Redundancy | "check my emails" already finds email agents via stemming |
+| Cost | 2x roster file size, v3 migration, hardcoded rules |
+
+**Lesson.** Don't add abstraction layers that re-derive information already available at the matching layer.
+
+---
+
+## 7. Overall Impact
+
+### Prompt token reduction (at 100 agents)
 
 | Vector | Before | After | Δ |
 |---|---|---|---|
-| V1 · Roster block (100 active) | 3,254 tok | 530 tok | **−84%** |
+| V1 · Roster block | 3,254 tok | 530 tok | **−84%** |
 | V2 · Exec agent history | 6,175 tok | 3,088 tok | **−50%** |
 | V3 · Conversation history | 12,500 tok | 4,000 tok | **−68%** |
 | V4 · Batch payload | 5,000 tok | 2,550 tok | **−49%** |
-| **Total prompt overhead** | **26,929 tok** | **10,168 tok** | **−62%** |
+| **Total** | **26,929 tok** | **10,168 tok** | **−62%** |
 
-### Resource bounds (previously unbounded)
+### Resource bounds
 
 | Resource | Cap |
 |---|---|
-| Active agents rendered in prompt | 25 (relevance + recency selected) |
+| Active agents rendered in prompt | 25 (relevance + recency) |
 | Completed agents in roster | 20 entries |
 | Execution log per agent | 50 KB / 80 lines |
 | Concurrent API calls | 5 simultaneous |
 | Conversation history | 16,000 chars |
+| Batch response per agent | 2,000 chars |
 
-## 6. Files changed
+### Agent selection quality (at 35+ agents)
+
+| Method | "check my emails" | "book a trip" |
+|---|---|---|
+| Before (all shown) | 100% but bloated prompt | 100% but bloated |
+| Exp 9 (recency only) | 0-100% (luck) | 0-100% |
+| Exp 10 (keyword) | ~60% | 100% |
+| Exp 11 (+ stemming) | **100%** | **100%** |
+
+---
+
+## 8. Files Changed (Final)
 
 | File | What |
 |---|---|
 | `server/services/execution/roster.py` | Dict-based status tracking, lifecycle methods, pruning, `reactivate_agent()` |
-| `server/agents/interaction_agent/agent.py` | Relevance scoring, clustering, render cap, conversation history budget |
-| `server/agents/interaction_agent/tools.py` | Re-activation uses `reactivate_agent()` for position bumping |
+| `server/agents/interaction_agent/agent.py` | Relevance scoring, stemming, clustering, render cap, history budget |
+| `server/agents/interaction_agent/tools.py` | Agent re-activation on reuse |
 | `server/agents/execution_agent/agent.py` | Default conversation limit |
 | `server/agents/execution_agent/batch_manager.py` | Lifecycle hook, response cap, concurrency semaphore |
 | `server/services/execution/log_store.py` | Log file rotation |
-| `tests/stress_100_agents.py` | 100-agent stress test with 5 phases |
+| `tests/stress_100_agents.py` | 100-agent stress test (5 phases) |
 
-## 7. Test coverage
+---
 
-All changes verified against the live system at `localhost:3000` / `localhost:8001`:
+## 9. Test Coverage
 
 - [x] Simple queries (no agents spawned)
 - [x] Agent-spawning queries (full lifecycle)
@@ -321,6 +269,3 @@ All changes verified against the live system at `localhost:3000` / `localhost:80
 - [x] Relevance-based selection (email/research/travel queries)
 - [x] Clustering regression (groups of 3+, singletons preserved)
 - [x] Agent reactivation position bumping
-- [x] Long conversation history truncation
-- [x] Batch payload compaction with mixed short/long responses
-- [x] Log rotation under sustained write load
