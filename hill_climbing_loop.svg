@@ -1,78 +1,56 @@
-<svg width="100%" viewBox="0 0 1000 550" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family: system-ui, -apple-system, sans-serif;">
-<title>Experiment loop: Traces → Evaluate → Fix with baseline gating</title>
+<svg width="100%" viewBox="0 0 680 400" role="img" style="" xmlns="http://www.w3.org/2000/svg">
+<title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Hill climbing machine with baseline ratchet</title>
+<desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Agent improvement loop: Traces, Evaluate against baseline score, Fix. Score below baseline throws; score above ratchets the baseline and tries the next hypothesis.</desc>
 <defs>
-<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-<path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/>
-</marker>
-<marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-<path d="M 0 0 L 10 5 L 0 10 z" fill="#c0392b"/>
-</marker>
-<marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-<path d="M 0 0 L 10 5 L 0 10 z" fill="#27ae60"/>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </marker>
 </defs>
 
-<!-- Background -->
-<rect width="1000" height="550" fill="#fff"/>
+<g style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+<rect x="30" y="278" width="150" height="56" rx="8" stroke-width="0.5" style="fill:rgb(225, 245, 238);stroke:rgb(15, 110, 86);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<text x="105" y="298" text-anchor="middle" dominant-baseline="central" style="fill:rgb(8, 80, 65);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Traces</text>
+<text x="105" y="316" text-anchor="middle" dominant-baseline="central" style="fill:rgb(15, 110, 86);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Observe behavior</text>
+</g>
 
-<!-- TRACES box (bottom-left) -->
-<rect x="50" y="350" width="210" height="130" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2.5"/>
-<text x="155" y="338" text-anchor="middle" font-size="17" font-weight="bold" fill="#333">TRACES</text>
-<text x="155" y="385" text-anchor="middle" font-size="13" fill="#555">collect traces / be</text>
-<text x="155" y="405" text-anchor="middle" font-size="13" fill="#555">in a place where</text>
-<text x="155" y="425" text-anchor="middle" font-size="13" fill="#555">traces are visible</text>
+<g style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+<rect x="235" y="278" width="170" height="56" rx="8" stroke-width="0.5" style="fill:rgb(238, 237, 254);stroke:rgb(83, 74, 183);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<text x="320" y="298" text-anchor="middle" dominant-baseline="central" style="fill:rgb(60, 52, 137);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Evaluate</text>
+<text x="320" y="316" text-anchor="middle" dominant-baseline="central" style="fill:rgb(83, 74, 183);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">Feature · reg · e2e</text>
+</g>
 
-<!-- EVALUATE box (bottom-center) -->
-<rect x="340" y="350" width="230" height="130" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2.5"/>
-<text x="455" y="338" text-anchor="middle" font-size="17" font-weight="bold" fill="#333">EVALUATE</text>
-<text x="455" y="385" text-anchor="middle" font-size="13" fill="#555">1. Feature test</text>
-<text x="455" y="408" text-anchor="middle" font-size="13" fill="#555">2. Regression tests</text>
-<text x="455" y="431" text-anchor="middle" font-size="13" fill="#555">3. e2e browser/playwright</text>
-<text x="455" y="454" text-anchor="middle" font-size="13" fill="#555">   tests</text>
+<g style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+<rect x="470" y="278" width="150" height="56" rx="8" stroke-width="0.5" style="fill:rgb(250, 236, 231);stroke:rgb(153, 60, 29);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<text x="545" y="298" text-anchor="middle" dominant-baseline="central" style="fill:rgb(113, 43, 19);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Fix</text>
+<text x="545" y="316" text-anchor="middle" dominant-baseline="central" style="fill:rgb(153, 60, 29);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:central">You (the agent)</text>
+</g>
 
-<!-- Baseline Score box (top-center) -->
-<rect x="360" y="130" width="190" height="75" rx="10" fill="#fff" stroke="#333" stroke-width="2.5"/>
-<text x="455" y="163" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Baseline</text>
-<text x="455" y="188" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Score</text>
+<line x1="180" y1="306" x2="233" y2="306" marker-end="url(#arrow)" style="fill:none;stroke:rgb(137, 135, 129);color:rgb(11, 11, 11);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<line x1="405" y1="306" x2="468" y2="306" marker-end="url(#arrow)" style="fill:none;stroke:rgb(137, 135, 129);color:rgb(11, 11, 11);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
 
-<!-- Throw/Keep decision (top-left) -->
-<text x="220" y="80" font-size="14" font-weight="bold" fill="#c0392b">Throw if Score &lt; Baseline</text>
-<text x="220" y="103" font-size="14" font-weight="bold" fill="#27ae60">if no: Baseline = Score</text>
+<path d="M 545 334 V 366 Q 545 378 533 378 H 117 Q 105 378 105 366 V 334" fill="none" marker-end="url(#arrow)" style="fill:none;stroke:rgb(137, 135, 129);color:rgb(11, 11, 11);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<text x="320" y="365" text-anchor="middle" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:middle;dominant-baseline:auto">Reconcile</text>
 
-<!-- Hypothesis Feature #i (center-right) -->
-<text x="640" y="195" font-size="15" font-weight="bold" fill="#333">Hypothesis Feature #i</text>
-<text x="640" y="218" font-size="15" fill="#333">for i to N</text>
+<g style="fill:rgb(0, 0, 0);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+<rect x="245" y="168" width="150" height="44" rx="8" stroke-width="0.5" style="fill:rgb(230, 241, 251);stroke:rgb(24, 95, 165);color:rgb(11, 11, 11);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<text x="320" y="190" text-anchor="middle" dominant-baseline="central" style="fill:rgb(12, 68, 124);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:14px;font-weight:500;text-anchor:middle;dominant-baseline:central">Baseline score</text>
+</g>
 
-<!-- N annotation (far right) -->
-<text x="650" y="80" font-size="13" fill="#666" font-style="italic">N is predecided by</text>
-<text x="650" y="100" font-size="13" fill="#666" font-style="italic">Human before loop starts</text>
-<text x="650" y="120" font-size="13" fill="#666" font-style="italic">or by the orchestrator</text>
-<text x="650" y="140" font-size="13" fill="#666" font-style="italic">when it fans out</text>
-<text x="650" y="160" font-size="13" fill="#666" font-style="italic">Explore subagents.</text>
+<line x1="320" y1="278" x2="320" y2="214" marker-end="url(#arrow)" style="fill:none;stroke:rgb(137, 135, 129);color:rgb(11, 11, 11);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<text x="330" y="250" text-anchor="start" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:start;dominant-baseline:auto">score</text>
 
-<!-- FIX box (bottom-right) -->
-<rect x="650" y="310" width="220" height="140" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2.5"/>
-<text x="760" y="298" text-anchor="middle" font-size="17" font-weight="bold" fill="#333">FIX</text>
-<text x="760" y="385" text-anchor="middle" font-size="16" fill="#555">You (the agent)</text>
+<path d="M 320 168 V 56 Q 320 46 330 46 H 535 Q 545 46 545 56 V 276" fill="none" stroke="var(--s)" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)" style="fill:none;stroke:rgb(82, 81, 78);color:rgb(11, 11, 11);stroke-width:1px;stroke-dasharray:4px, 3px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
 
-<!-- ARROWS -->
+<text x="312" y="116" text-anchor="end" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:end;dominant-baseline:auto">score ≥ baseline:</text>
+<text x="312" y="132" text-anchor="end" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:end;dominant-baseline:auto">baseline = score</text>
 
-<!-- Traces → Evaluate (right) -->
-<path d="M 260 415 L 335 415" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
+<line x1="245" y1="190" x2="168" y2="190" stroke="#E24B4A" stroke-width="1" marker-end="url(#arrow)" style="fill:rgb(0, 0, 0);stroke:rgb(226, 75, 74);color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<text x="160" y="182" text-anchor="end" fill="#E24B4A" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:end;dominant-baseline:auto">score &lt; baseline</text>
+<text x="160" y="198" text-anchor="end" fill="#E24B4A" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:end;dominant-baseline:auto">→ throw</text>
 
-<!-- Evaluate → Baseline Score (up) -->
-<path d="M 455 350 L 455 210" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="556" y="104" text-anchor="start" style="fill:rgb(11, 11, 11);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:14px;font-weight:500;text-anchor:start;dominant-baseline:auto">Hypothesis #i</text>
+<text x="556" y="120" text-anchor="start" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:start;dominant-baseline:auto">for i = 1 to N</text>
 
-<!-- Keep: Baseline → Hypothesis (green, right) -->
-<path d="M 550 167 L 630 200" fill="none" stroke="#27ae60" stroke-width="2.5" marker-end="url(#arrow-green)"/>
-
-<!-- Throw: Baseline → back to Hypothesis (red dashed, curves up and back) -->
-<path d="M 360 145 C 300 80 500 40 640 185" fill="none" stroke="#c0392b" stroke-width="2" stroke-dasharray="8,5" marker-end="url(#arrow-red)"/>
-
-<!-- Hypothesis → FIX (down) -->
-<path d="M 700 225 L 740 305" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
-
-<!-- FIX → Traces (bottom curve, the main reconcile loop) -->
-<path d="M 650 450 C 500 530 280 530 155 480" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
-
+<text x="556" y="150" text-anchor="start" opacity="0.5" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.5;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:start;dominant-baseline:auto">N set by human or</text>
+<text x="556" y="166" text-anchor="start" opacity="0.5" style="fill:rgb(82, 81, 78);stroke:none;color:rgb(11, 11, 11);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.5;font-family:Anthropic Sans, -apple-system, &quot;system-ui&quot;, Segoe UI, sans-serif;font-size:12px;font-weight:400;text-anchor:start;dominant-baseline:auto">orchestrator fan-out</text>
 </svg>
