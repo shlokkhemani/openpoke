@@ -128,37 +128,71 @@ def _render_active_agents(query: str = "") -> str:
 def _select_relevant_agents(
     active: List[str], query: str, limit: int
 ) -> List[str]:
-    """Select up to `limit` agents by relevance to query, with recency tiebreak.
+    """Select up to `limit` agents using category filtering + relevance scoring.
 
-    Strategy: score each agent by keyword overlap with the query.
-    Take top scorers first, then fill remaining slots with most recent agents.
-    This ensures relevant agents are always visible, while recent agents
-    provide fallback context.
+    3-tier selection (inspired by hermes-agent lazy loading):
+      1. Hard filter: if query matches a known category, prioritize those agents
+      2. Relevance score: keyword overlap with stemming
+      3. Recency fallback: fill remaining slots with most recent agents
     """
+    from ...services.execution.roster import infer_category, _CATEGORY_RULES
+
     query_tokens = _tokenize(query)
 
     if not query_tokens:
-        # No usable query — fall back to most recent
         return active[-limit:]
 
-    # Score all agents
-    scored = [(name, _relevance_score(name, query_tokens)) for name in active]
+    # Tier 1: Category hard-filter
+    # Check if query matches any category keywords
+    query_lower = query.lower()
+    matched_categories: List[str] = []
+    for keywords, category in _CATEGORY_RULES:
+        if any(kw in query_lower for kw in keywords):
+            matched_categories.append(category)
 
-    # Split into relevant (score > 0) and non-relevant
+    # Get agents in matching categories (from roster metadata)
+    roster = get_agent_roster()
+    category_matched: List[str] = []
+    if matched_categories:
+        for name in active:
+            agent_cat = roster.get_agent_category(name)
+            if agent_cat in matched_categories:
+                category_matched.append(name)
+
+    # Tier 2: Relevance scoring on the full list
+    scored = [(name, _relevance_score(name, query_tokens)) for name in active]
     relevant = [(name, score) for name, score in scored if score > 0]
     relevant.sort(key=lambda x: x[1], reverse=True)
 
-    # Take top relevant agents (up to half the budget)
-    relevance_budget = limit // 2
-    selected_relevant = [name for name, _ in relevant[:relevance_budget]]
+    # Combine: category matches first, then relevance, then recency
+    selected: List[str] = []
+    selected_set: Set[str] = set()
 
-    # Fill remaining slots with most recent agents (excluding already selected)
-    selected_set = set(selected_relevant)
-    remaining_slots = limit - len(selected_relevant)
-    recent_fill = [n for n in reversed(active) if n not in selected_set][:remaining_slots]
+    # Category-matched agents get priority (up to 1/3 budget)
+    cat_budget = limit // 3
+    for name in category_matched[:cat_budget]:
+        if name not in selected_set:
+            selected.append(name)
+            selected_set.add(name)
 
-    # Combine: relevant first, then recent
-    return selected_relevant + recent_fill
+    # Relevance-scored agents fill next (up to 1/3 budget)
+    rel_budget = limit // 3
+    for name, _ in relevant[:rel_budget]:
+        if name not in selected_set:
+            selected.append(name)
+            selected_set.add(name)
+
+    # Recency fills remaining slots
+    remaining = limit - len(selected)
+    for name in reversed(active):
+        if remaining <= 0:
+            break
+        if name not in selected_set:
+            selected.append(name)
+            selected_set.add(name)
+            remaining -= 1
+
+    return selected
 
 
 def _cluster_agents(agents: List[str]) -> List[str]:
