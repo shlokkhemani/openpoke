@@ -1,6 +1,6 @@
 # Fixing Execution Agent Overload
 
-> **Branch:** `feat/smart-roster` · **Files changed:** 6 · **Experiments:** 11
+> **Branch:** `feat/smart-roster` · **Files changed:** 7 · **Experiments:** 12
 
 ![Hill Climbing Loop](hill_climbing_loop.svg)
 
@@ -251,6 +251,49 @@ Verified: unit tests (6/6), backward compat, 100-agent stress test, live E2E.
 
 ---
 
+### Experiment 12 — Category-Based Hard Filtering (Hermes-Inspired)
+
+**Hypothesis.** Hermes-agent uses metadata tags + `check_fn` gating to filter skills before the model sees them. We can apply the same pattern: auto-tag agents with categories, then hard-filter by category before relevance scoring. This should achieve 100% recall for category-matching queries (vs ~60% with pure keyword overlap).
+
+**Inspiration:** hermes-agent's 3-level lazy loading:
+1. Metadata-only listing (name + category) — ✅ we already do this
+2. Full content loaded on demand — ✅ execution history loaded only on `send_message_to_agent`
+3. Tag-based hard filtering — **NEW: this experiment**
+
+**What changed.**
+
+| File | Change |
+|---|---|
+| `roster.py` | Storage format v3: `{name: {status, category}}`; `infer_category()` from keywords; `get_agents_by_category()`; backward compat for v1/v2 |
+| `agent.py` | 3-tier `_select_relevant_agents()`: category filter (1/3) → relevance (1/3) → recency (1/3) |
+
+**Categories auto-inferred (no LLM call):**
+
+| Category | Trigger Keywords |
+|---|---|
+| communication | email, mail, send, draft, compose |
+| research | research, search, find, lookup, investigate |
+| travel | book, booking, reserve, flight, hotel, travel |
+| engineering | review, code, pr, deploy, refactor, debug |
+| scheduling | meeting, schedule, calendar, appointment, remind |
+| analysis | analysis, analyze, report, dashboard, budget, revenue |
+| content | write, blog, post, article, presentation, slides |
+| task | task, todo, process, background, job |
+| general | (fallback) |
+
+**Results (35 agents, diverse categories).**
+
+| Query | Category Match | Agents Surfaced | Recall |
+|---|---|---|---|
+| "check my emails" | communication | 5/5 email agents | **100%** |
+| "book a trip to Japan" | travel | 4/4 travel agents | **100%** |
+| "show me research papers" | research | 5/5 research agents | **100%** |
+| "review the code" | engineering | 3/3 review agents | **100%** |
+
+**Before (Exp 10, keyword only):** "check my emails" missed email agents because "emails"≠"email" (fixed by stemming in Exp 11, but category filter is more robust).
+
+---
+
 ## 5. Overall impact
 
 ### Prompt token reduction (projected at 100 agents)
@@ -262,6 +305,16 @@ Verified: unit tests (6/6), backward compat, 100-agent stress test, live E2E.
 | V3 · Conversation history | 12,500 tok | 4,000 tok | **−68%** |
 | V4 · Batch payload | 5,000 tok | 2,550 tok | **−49%** |
 | **Total prompt overhead** | **26,929 tok** | **10,168 tok** | **−62%** |
+
+### Agent selection quality (at 35+ agents, over cap)
+
+| Method | "check my emails" recall | "book a trip" recall |
+|---|---|---|
+| Before (all shown) | 100% but 35 agents in prompt | 100% but 35 agents |
+| Exp 9 (recency only) | 0-100% (depends on timing) | 0-100% |
+| Exp 10 (keyword relevance) | ~60% (stem mismatch) | 100% |
+| Exp 11 (+ stemming) | 100% | 100% |
+| **Exp 12 (+ category filter)** | **100% (hard guarantee)** | **100%** |
 
 ### Resource bounds (previously unbounded)
 
