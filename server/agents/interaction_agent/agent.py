@@ -1,8 +1,9 @@
 """Interaction agent helpers for prompt construction."""
 
+import re
 from html import escape
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from ...services.execution import get_agent_roster
 
@@ -10,11 +11,29 @@ _prompt_path = Path(__file__).parent / "system_prompt.md"
 SYSTEM_PROMPT = _prompt_path.read_text(encoding="utf-8").strip()
 
 # Budget ~4K tokens for conversation history in the user message.
-# This is a safety cap — summarization should keep things smaller in practice.
 _MAX_HISTORY_CHARS = 16_000
 
 # Max active agents rendered individually before switching to summary mode.
 _MAX_ACTIVE_RENDERED = 25
+
+# Words to ignore when scoring relevance
+_STOP_WORDS: Set[str] = {
+    "the", "a", "an", "to", "for", "of", "in", "on", "and", "is", "it",
+    "my", "me", "i", "do", "can", "this", "that", "with", "from", "agent",
+    "please", "what", "how", "about", "exec", "execution",
+}
+
+
+def _tokenize(text: str) -> Set[str]:
+    """Extract lowercase word tokens from text, filtering stop words."""
+    words = set(re.findall(r"[a-z]+", text.lower()))
+    return words - _STOP_WORDS
+
+
+def _relevance_score(agent_name: str, query_tokens: Set[str]) -> int:
+    """Score an agent name by keyword overlap with the query."""
+    agent_tokens = _tokenize(agent_name)
+    return len(agent_tokens & query_tokens)
 
 
 # Load and return the pre-defined system prompt from markdown file
@@ -33,7 +52,9 @@ def prepare_message_with_history(
     sections: List[str] = []
 
     sections.append(_render_conversation_history(transcript))
-    sections.append(f"<active_agents>\n{_render_active_agents()}\n</active_agents>")
+    sections.append(
+        f"<active_agents>\n{_render_active_agents(latest_text)}\n</active_agents>"
+    )
     sections.append(_render_current_turn(latest_text, message_type))
 
     content = "\n\n".join(sections)
@@ -46,9 +67,7 @@ def _render_conversation_history(transcript: str) -> str:
     if not history:
         history = "None"
     elif len(history) > _MAX_HISTORY_CHARS:
-        # Truncate from the front (keep most recent), preserving line boundaries
         truncated = history[-_MAX_HISTORY_CHARS:]
-        # Find the first complete XML tag boundary
         first_tag = truncated.find("<")
         if first_tag > 0:
             truncated = truncated[first_tag:]
@@ -57,7 +76,7 @@ def _render_conversation_history(transcript: str) -> str:
 
 
 # Format currently active execution agents into XML tags for LLM awareness
-def _render_active_agents() -> str:
+def _render_active_agents(query: str = "") -> str:
     roster = get_agent_roster()
     roster.load()
     active = roster.get_active_agents()
@@ -69,19 +88,20 @@ def _render_active_agents() -> str:
     rendered: List[str] = []
 
     if len(active) <= _MAX_ACTIVE_RENDERED:
-        # Under cap: render each individually
         for agent_name in active:
             name = escape(agent_name or "agent", quote=True)
             rendered.append(f'<agent name="{name}" status="active" />')
     else:
-        # Over cap: show most recent N individually + summary count
-        overflow = len(active) - _MAX_ACTIVE_RENDERED
+        # Over cap: select by relevance to current query, fallback to recency
+        selected = _select_relevant_agents(active, query, _MAX_ACTIVE_RENDERED)
+        overflow = len(active) - len(selected)
         rendered.append(
             f'<active_summary count="{len(active)}" '
-            f'showing="most_recent_{_MAX_ACTIVE_RENDERED}" '
-            f'overflow="{overflow}" />'
+            f'showing="{len(selected)}" '
+            f'overflow="{overflow}" '
+            f'selection="relevance+recency" />'
         )
-        for agent_name in active[-_MAX_ACTIVE_RENDERED:]:
+        for agent_name in selected:
             name = escape(agent_name or "agent", quote=True)
             rendered.append(f'<agent name="{name}" status="active" />')
 
@@ -91,6 +111,42 @@ def _render_active_agents() -> str:
         rendered.append(f'<completed_agents names="{names}" />')
 
     return "\n".join(rendered)
+
+
+def _select_relevant_agents(
+    active: List[str], query: str, limit: int
+) -> List[str]:
+    """Select up to `limit` agents by relevance to query, with recency tiebreak.
+
+    Strategy: score each agent by keyword overlap with the query.
+    Take top scorers first, then fill remaining slots with most recent agents.
+    This ensures relevant agents are always visible, while recent agents
+    provide fallback context.
+    """
+    query_tokens = _tokenize(query)
+
+    if not query_tokens:
+        # No usable query — fall back to most recent
+        return active[-limit:]
+
+    # Score all agents
+    scored = [(name, _relevance_score(name, query_tokens)) for name in active]
+
+    # Split into relevant (score > 0) and non-relevant
+    relevant = [(name, score) for name, score in scored if score > 0]
+    relevant.sort(key=lambda x: x[1], reverse=True)
+
+    # Take top relevant agents (up to half the budget)
+    relevance_budget = limit // 2
+    selected_relevant = [name for name, _ in relevant[:relevance_budget]]
+
+    # Fill remaining slots with most recent agents (excluding already selected)
+    selected_set = set(selected_relevant)
+    remaining_slots = limit - len(selected_relevant)
+    recent_fill = [n for n in reversed(active) if n not in selected_set][:remaining_slots]
+
+    # Combine: relevant first, then recent
+    return selected_relevant + recent_fill
 
 
 # Wrap the current message in appropriate XML tags based on sender type
