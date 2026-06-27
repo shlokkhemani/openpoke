@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from .runtime import ExecutionAgentRuntime, ExecutionResult
 from ...logging_config import logger
+from ...services.execution import get_agent_roster
 
 
 @dataclass
@@ -36,12 +37,15 @@ class _BatchState:
 class ExecutionBatchManager:
     """Run execution agents and deliver their combined outcome."""
 
+    MAX_CONCURRENT = 5  # Max simultaneous agent executions
+
     # Initialize batch manager with timeout and coordination state for execution agents
     def __init__(self, timeout_seconds: int = 90) -> None:
         self.timeout_seconds = timeout_seconds
         self._pending: Dict[str, PendingExecution] = {}
         self._batch_lock = asyncio.Lock()
         self._batch_state: Optional[_BatchState] = None
+        self._semaphore = asyncio.Semaphore(self.MAX_CONCURRENT)
 
     # Run execution agent with timeout handling and batch coordination for interaction agent
     async def execute_agent(
@@ -57,33 +61,42 @@ class ExecutionBatchManager:
 
         batch_id = await self._register_pending_execution(agent_name, instructions, request_id)
 
+        async with self._semaphore:
+            try:
+                logger.info(f"[{agent_name}] Execution started")
+                runtime = ExecutionAgentRuntime(agent_name=agent_name)
+                result = await asyncio.wait_for(
+                    runtime.execute(instructions),
+                    timeout=self.timeout_seconds,
+                )
+                status = "SUCCESS" if result.success else "FAILED"
+                logger.info(f"[{agent_name}] Execution finished: {status}")
+            except asyncio.TimeoutError:
+                logger.error(f"[{agent_name}] Execution timed out after {self.timeout_seconds}s")
+                result = ExecutionResult(
+                    agent_name=agent_name,
+                    success=False,
+                    response=f"Execution timed out after {self.timeout_seconds} seconds",
+                    error="Timeout",
+                )
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.exception(f"[{agent_name}] Execution failed unexpectedly")
+                result = ExecutionResult(
+                    agent_name=agent_name,
+                    success=False,
+                    response=f"Execution failed: {exc}",
+                    error=str(exc),
+                )
+            finally:
+                self._pending.pop(request_id, None)
+
+        # Mark agent as completed in the roster regardless of success/failure
         try:
-            logger.info(f"[{agent_name}] Execution started")
-            runtime = ExecutionAgentRuntime(agent_name=agent_name)
-            result = await asyncio.wait_for(
-                runtime.execute(instructions),
-                timeout=self.timeout_seconds,
-            )
-            status = "SUCCESS" if result.success else "FAILED"
-            logger.info(f"[{agent_name}] Execution finished: {status}")
-        except asyncio.TimeoutError:
-            logger.error(f"[{agent_name}] Execution timed out after {self.timeout_seconds}s")
-            result = ExecutionResult(
-                agent_name=agent_name,
-                success=False,
-                response=f"Execution timed out after {self.timeout_seconds} seconds",
-                error="Timeout",
-            )
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.exception(f"[{agent_name}] Execution failed unexpectedly")
-            result = ExecutionResult(
-                agent_name=agent_name,
-                success=False,
-                response=f"Execution failed: {exc}",
-                error=str(exc),
-            )
-        finally:
-            self._pending.pop(request_id, None)
+            roster = get_agent_roster()
+            roster.load()
+            roster.complete_agent(agent_name)
+        except Exception as exc:
+            logger.warning(f"[{agent_name}] Failed to mark agent completed: {exc}")
 
         await self._complete_execution(batch_id, result, agent_name)
         return result
@@ -167,6 +180,8 @@ class ExecutionBatchManager:
             self._batch_state = None
 
     # Format multiple execution results into single message for interaction agent
+    MAX_RESPONSE_CHARS = 2000  # Per-agent response cap in batch payload
+
     def _format_batch_payload(self, results: List[ExecutionResult]) -> str:
         """Render execution results into the interaction-agent format."""
 
@@ -174,6 +189,8 @@ class ExecutionBatchManager:
         for result in results:
             status = "SUCCESS" if result.success else "FAILED"
             response_text = (result.response or "(no response provided)").strip()
+            if len(response_text) > self.MAX_RESPONSE_CHARS:
+                response_text = response_text[:self.MAX_RESPONSE_CHARS] + "... [truncated]"
             entries.append(f"[{status}] {result.agent_name}: {response_text}")
         return "\n".join(entries)
 
