@@ -251,6 +251,26 @@ Verified: unit tests (6/6), backward compat, 100-agent stress test, live E2E.
 
 ---
 
+### Experiment 12 — Category-Based Hard Filtering (**REVERTED**)
+
+**Hypothesis.** Hermes-agent uses metadata tags for hard filtering. Auto-tagging agents with categories could achieve 100% recall via synonym matching.
+
+**What was tried.** Roster v3 format with `{status, category}`, 8 hardcoded category rules, 3-tier selection (category → relevance → recency).
+
+**Why it was reverted.**
+
+| Issue | Detail |
+|---|---|
+| Circular logic | Categories inferred FROM name keywords — same keywords relevance scorer already matches |
+| Redundancy | 80% of cases: category filter finds the same agents as keyword scoring |
+| False positives | "Book Club" → travel, "Find My Phone" → research, "Draft Constitution" → communication |
+| Cost | 2x roster file size, v3 migration paths, hardcoded rules needing maintenance |
+| Marginal benefit | Only helps for query synonyms not in agent names (2/5 edge cases tested) |
+
+**Conclusion.** Exp 11 baseline (stemming + clustering + relevance) is sufficient. Category filtering is a nice-to-have that doesn't justify its costs against the existing solution.
+
+---
+
 ## 5. Overall impact
 
 ### Prompt token reduction (projected at 100 agents)
