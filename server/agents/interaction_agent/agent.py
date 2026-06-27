@@ -30,10 +30,23 @@ def _tokenize(text: str) -> Set[str]:
     return words - _STOP_WORDS
 
 
+def _stem(word: str) -> str:
+    """Minimal suffix stripping for matching (emails→email, booking→book)."""
+    for suffix in ("ing", "tion", "ment", "ness", "able", "ible", "ies", "es", "ed", "ly", "s"):
+        if len(word) > len(suffix) + 3 and word.endswith(suffix):
+            return word[: -len(suffix)]
+    return word
+
+
 def _relevance_score(agent_name: str, query_tokens: Set[str]) -> int:
-    """Score an agent name by keyword overlap with the query."""
+    """Score an agent name by keyword overlap with the query (with stemming)."""
     agent_tokens = _tokenize(agent_name)
-    return len(agent_tokens & query_tokens)
+    query_stems = {_stem(w) for w in query_tokens}
+    agent_stems = {_stem(w) for w in agent_tokens}
+    # Exact match counts 2, stem match counts 1
+    exact = len(agent_tokens & query_tokens)
+    stem_only = len(agent_stems & query_stems) - exact
+    return exact * 2 + max(stem_only, 0)
 
 
 # Load and return the pre-defined system prompt from markdown file
@@ -101,9 +114,8 @@ def _render_active_agents(query: str = "") -> str:
             f'overflow="{overflow}" '
             f'selection="relevance+recency" />'
         )
-        for agent_name in selected:
-            name = escape(agent_name or "agent", quote=True)
-            rendered.append(f'<agent name="{name}" status="active" />')
+        # Cluster selected agents for compact rendering
+        rendered.extend(_cluster_agents(selected))
 
     # Show recent completed agents compactly so the LLM can reuse them
     if completed:
@@ -147,6 +159,47 @@ def _select_relevant_agents(
 
     # Combine: relevant first, then recent
     return selected_relevant + recent_fill
+
+
+def _cluster_agents(agents: List[str]) -> List[str]:
+    """Cluster agents with shared leading word into compact group tags.
+
+    Groups of 3+ agents sharing the same first word are collapsed into
+    a single <agent_group> tag. Singletons and pairs remain individual.
+    """
+    from collections import defaultdict
+
+    # Group by first word
+    groups: Dict[str, List[str]] = defaultdict(list)
+    for name in agents:
+        first_word = name.split()[0].lower() if name.split() else ""
+        groups[first_word].append(name)
+
+    rendered: List[str] = []
+    rendered_set: Set[str] = set()
+
+    for prefix, members in groups.items():
+        if len(members) >= 3:
+            # Cluster: show as group
+            suffixes = []
+            for m in members:
+                # Strip the prefix word to get the distinguishing part
+                parts = m.split(maxsplit=1)
+                suffix = parts[1] if len(parts) > 1 else m
+                suffixes.append(escape(suffix, quote=True))
+            rendered.append(
+                f'<agent_group prefix="{escape(prefix.title(), quote=True)}" '
+                f'count="{len(members)}" '
+                f'agents="{"; ".join(suffixes)}" />'
+            )
+            rendered_set.update(members)
+
+    # Remaining agents rendered individually
+    for name in agents:
+        if name not in rendered_set:
+            rendered.append(f'<agent name="{escape(name, quote=True)}" status="active" />')
+
+    return rendered
 
 
 # Wrap the current message in appropriate XML tags based on sender type
