@@ -1,4 +1,4 @@
-<svg width="100%" viewBox="0 0 900 500" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family: system-ui, -apple-system, sans-serif;">
+<svg width="100%" viewBox="0 0 1000 550" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family: system-ui, -apple-system, sans-serif;">
 <title>Experiment loop: Traces → Evaluate → Fix with baseline gating</title>
 <defs>
 <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -7,69 +7,72 @@
 <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
 <path d="M 0 0 L 10 5 L 0 10 z" fill="#c0392b"/>
 </marker>
+<marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#27ae60"/>
+</marker>
 </defs>
 
-<!-- TRACES box -->
-<rect x="40" y="300" width="200" height="140" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
-<text x="140" y="290" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">TRACES</text>
-<text x="140" y="330" text-anchor="middle" font-size="13" fill="#555">collect traces / be</text>
-<text x="140" y="350" text-anchor="middle" font-size="13" fill="#555">in a place where</text>
-<text x="140" y="370" text-anchor="middle" font-size="13" fill="#555">traces are visible</text>
+<!-- Background -->
+<rect width="1000" height="550" fill="#fff"/>
 
-<!-- EVALUATE box -->
-<rect x="320" y="300" width="220" height="140" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
-<text x="430" y="290" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">EVALUATE</text>
-<text x="430" y="330" text-anchor="middle" font-size="13" fill="#555">1. Feature test</text>
-<text x="430" y="355" text-anchor="middle" font-size="13" fill="#555">2. Regression tests</text>
-<text x="430" y="380" text-anchor="middle" font-size="13" fill="#555">3. e2e browser/playwright</text>
-<text x="430" y="405" text-anchor="middle" font-size="13" fill="#555">   tests</text>
+<!-- TRACES box (bottom-left) -->
+<rect x="50" y="350" width="210" height="130" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2.5"/>
+<text x="155" y="338" text-anchor="middle" font-size="17" font-weight="bold" fill="#333">TRACES</text>
+<text x="155" y="385" text-anchor="middle" font-size="13" fill="#555">collect traces / be</text>
+<text x="155" y="405" text-anchor="middle" font-size="13" fill="#555">in a place where</text>
+<text x="155" y="425" text-anchor="middle" font-size="13" fill="#555">traces are visible</text>
 
-<!-- FIX box (You the agent) -->
-<rect x="640" y="300" width="200" height="140" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
-<text x="740" y="290" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">FIX</text>
-<text x="740" y="370" text-anchor="middle" font-size="15" fill="#555">You (the agent)</text>
+<!-- EVALUATE box (bottom-center) -->
+<rect x="340" y="350" width="230" height="130" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2.5"/>
+<text x="455" y="338" text-anchor="middle" font-size="17" font-weight="bold" fill="#333">EVALUATE</text>
+<text x="455" y="385" text-anchor="middle" font-size="13" fill="#555">1. Feature test</text>
+<text x="455" y="408" text-anchor="middle" font-size="13" fill="#555">2. Regression tests</text>
+<text x="455" y="431" text-anchor="middle" font-size="13" fill="#555">3. e2e browser/playwright</text>
+<text x="455" y="454" text-anchor="middle" font-size="13" fill="#555">   tests</text>
 
-<!-- Baseline Score box -->
-<rect x="330" y="130" width="180" height="70" rx="10" fill="#fff" stroke="#333" stroke-width="2.5"/>
-<text x="420" y="160" text-anchor="middle" font-size="15" font-weight="bold" fill="#333">Baseline</text>
-<text x="420" y="182" text-anchor="middle" font-size="15" font-weight="bold" fill="#333">Score</text>
+<!-- Baseline Score box (top-center) -->
+<rect x="360" y="130" width="190" height="75" rx="10" fill="#fff" stroke="#333" stroke-width="2.5"/>
+<text x="455" y="163" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Baseline</text>
+<text x="455" y="188" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">Score</text>
 
-<!-- Hypothesis Feature #i loop label -->
-<text x="680" y="215" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Hypothesis Feature #i</text>
-<text x="680" y="235" text-anchor="middle" font-size="14" fill="#333">for i to N</text>
+<!-- Throw/Keep decision (top-left) -->
+<text x="220" y="80" font-size="14" font-weight="bold" fill="#c0392b">Throw if Score &lt; Baseline</text>
+<text x="220" y="103" font-size="14" font-weight="bold" fill="#27ae60">if no: Baseline = Score</text>
 
-<!-- N annotation -->
-<text x="770" y="140" font-size="12" fill="#666" font-style="italic">N is predecided by</text>
-<text x="770" y="158" font-size="12" fill="#666" font-style="italic">Human before loop starts</text>
-<text x="770" y="176" font-size="12" fill="#666" font-style="italic">or by the orchestrator</text>
-<text x="770" y="194" font-size="12" fill="#666" font-style="italic">when it fans out</text>
-<text x="770" y="212" font-size="12" fill="#666" font-style="italic">Explore subagents.</text>
+<!-- Hypothesis Feature #i (center-right) -->
+<text x="640" y="195" font-size="15" font-weight="bold" fill="#333">Hypothesis Feature #i</text>
+<text x="640" y="218" font-size="15" fill="#333">for i to N</text>
 
-<!-- Throw/Keep decision label -->
-<text x="300" y="80" text-anchor="middle" font-size="13" font-weight="bold" fill="#c0392b">Throw if Score &lt; Baseline</text>
-<text x="300" y="100" text-anchor="middle" font-size="13" fill="#27ae60" font-weight="bold">if no: Baseline = Score</text>
+<!-- N annotation (far right) -->
+<text x="650" y="80" font-size="13" fill="#666" font-style="italic">N is predecided by</text>
+<text x="650" y="100" font-size="13" fill="#666" font-style="italic">Human before loop starts</text>
+<text x="650" y="120" font-size="13" fill="#666" font-style="italic">or by the orchestrator</text>
+<text x="650" y="140" font-size="13" fill="#666" font-style="italic">when it fans out</text>
+<text x="650" y="160" font-size="13" fill="#666" font-style="italic">Explore subagents.</text>
+
+<!-- FIX box (bottom-right) -->
+<rect x="650" y="310" width="220" height="140" rx="12" fill="#f8f9fa" stroke="#333" stroke-width="2.5"/>
+<text x="760" y="298" text-anchor="middle" font-size="17" font-weight="bold" fill="#333">FIX</text>
+<text x="760" y="385" text-anchor="middle" font-size="16" fill="#555">You (the agent)</text>
 
 <!-- ARROWS -->
 
-<!-- Traces → Evaluate -->
-<path d="M 240 370 L 315 370" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<!-- Traces → Evaluate (right) -->
+<path d="M 260 415 L 335 415" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
 
 <!-- Evaluate → Baseline Score (up) -->
-<path d="M 430 300 L 430 205" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 455 350 L 455 210" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
 
-<!-- Baseline Score → Throw/Keep decision (up-left) -->
-<path d="M 380 130 C 340 100 310 95 300 110" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+<!-- Keep: Baseline → Hypothesis (green, right) -->
+<path d="M 550 167 L 630 200" fill="none" stroke="#27ae60" stroke-width="2.5" marker-end="url(#arrow-green)"/>
 
-<!-- Keep: Baseline → Hypothesis (right) -->
-<path d="M 510 165 L 620 225" fill="none" stroke="#27ae60" stroke-width="2" marker-end="url(#arrow)"/>
+<!-- Throw: Baseline → back to Hypothesis (red dashed, curves up and back) -->
+<path d="M 360 145 C 300 80 500 40 640 185" fill="none" stroke="#c0392b" stroke-width="2" stroke-dasharray="8,5" marker-end="url(#arrow-red)"/>
 
 <!-- Hypothesis → FIX (down) -->
-<path d="M 720 245 L 740 295" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 700 225 L 740 305" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
 
-<!-- FIX → back to Traces (bottom curve) -->
-<path d="M 640 440 C 500 490 280 490 140 440" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
-
-<!-- Throw: loops back to Hypothesis (top curve) -->
-<path d="M 330 110 C 430 50 600 50 680 200" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-red)"/>
+<!-- FIX → Traces (bottom curve, the main reconcile loop) -->
+<path d="M 650 450 C 500 530 280 530 155 480" fill="none" stroke="#333" stroke-width="2.5" marker-end="url(#arrow)"/>
 
 </svg>
