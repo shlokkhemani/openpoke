@@ -272,3 +272,91 @@ in the batch payload will prevent interaction-agent prompt overload.
 - [x] Long conversation history truncation
 - [x] Batch payload compaction
 - [x] Live E2E through localhost:3000 UI
+
+---
+
+## Experiment 7: Execution Log File Rotation
+
+### Hypothesis
+Even though Experiment 4 caps what goes into the prompt, execution `.log` files on disk
+grow unboundedly (append-only). A heavily reused agent (e.g., email agent used 100+ times)
+will accumulate >100KB log files. Adding rotation in `_append()` when file size exceeds
+a threshold will bound disk usage while preserving recent context.
+
+### Changes
+1. Added `MAX_LOG_BYTES = 50_000` and `KEEP_TAIL_LINES = 80` to `ExecutionAgentLogStore`
+2. `_append()` checks file size after each write and triggers rotation
+3. `_rotate_locked()` truncates to the most recent 80 lines
+
+### Status: ✅ PASSED
+
+### Results
+- ✓ 200 request cycles (would produce ~120KB): file stayed at 37.5KB
+- ✓ 5 rotation events triggered automatically
+- ✓ Most recent entries preserved (Response 199 in transcript)
+- ✓ Transcript remains readable after rotation
+
+### Disk Impact
+| Scenario | Before | After | Savings |
+|---|---|---|---|
+| 200 reuses of same agent | ~120KB | ~37KB | **69%** |
+| 500 reuses | ~300KB | ~37KB | **88%** |
+
+---
+
+## Experiment 8: Concurrent Execution Throttling
+
+### Hypothesis
+There is no limit on how many execution agents can run simultaneously. If the interaction
+agent dispatches 10+ agents at once, they all hit OpenRouter's API concurrently,
+potentially causing rate limiting, timeouts, and resource exhaustion.
+Adding an asyncio.Semaphore will cap concurrent executions.
+
+### Changes
+1. Added `MAX_CONCURRENT = 5` to `ExecutionBatchManager`
+2. Added `self._semaphore = asyncio.Semaphore(self.MAX_CONCURRENT)` in `__init__`
+3. Wrapped execution in `async with self._semaphore:` block
+
+### Status: ✅ PASSED
+
+### Results
+- ✓ Semaphore initialized with correct limit (5)
+- ✓ 7 tasks all complete, but throttled to 5 concurrent
+- ✓ No deadlocks or starvation
+- ✓ Live E2E: server processes messages correctly
+
+---
+
+## Final Summary
+
+### All Overload Vectors — Status
+
+| # | Vector | Fix | Experiment | Status |
+|---|---|---|---|---|
+| V1 | Roster `<active_agents>` prompt bloat | Lifecycle tracking + compact rendering | 1-3 | ✅ |
+| V2 | Execution agent history in prompt | `DEFAULT_CONVERSATION_LIMIT = 5` | 4 | ✅ |
+| V3 | Conversation history in prompt | `_MAX_HISTORY_CHARS = 16,000` cap | 5 | ✅ |
+| V4 | Batch result payload | `MAX_RESPONSE_CHARS = 2,000` per agent | 6 | ✅ |
+| V5 | Roster file growth on disk | `MAX_COMPLETED = 20` pruning | 1-3 | ✅ |
+| V6 | Execution log file growth on disk | `MAX_LOG_BYTES = 50,000` rotation | 7 | ✅ |
+| V7 | Concurrent execution overload | `MAX_CONCURRENT = 5` semaphore | 8 | ✅ |
+
+### Files Changed (5)
+1. `server/services/execution/roster.py` — Dict-based status tracking + pruning
+2. `server/agents/interaction_agent/agent.py` — Compact rendering + history budget
+3. `server/agents/execution_agent/agent.py` — Default conversation limit
+4. `server/agents/execution_agent/batch_manager.py` — Lifecycle hook + response cap + semaphore
+5. `server/services/execution/log_store.py` — Log file rotation
+
+### Overall Token Impact (projected at 50 agents)
+
+| Vector | Before | After | Savings |
+|---|---|---|---|
+| V1: Roster block | 2,150 chars | 220 chars | **90%** |
+| V2: Exec history | 24,700 chars | 12,350 chars | **50%** |
+| V3: Conversation | 50,000 chars | 16,000 chars | **68%** |
+| V4: Batch payload | 20,000 chars | 10,200 chars | **49%** |
+| **Prompt total** | **96,850 chars (~24K tokens)** | **38,770 chars (~10K tokens)** | **60%** |
+| V5: Roster disk | Unbounded | Capped at ~20 entries | **Bounded** |
+| V6: Exec log disk | Unbounded | Capped at ~50KB/agent | **Bounded** |
+| V7: API concurrency | Unbounded | Max 5 simultaneous | **Bounded** |

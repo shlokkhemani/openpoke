@@ -40,7 +40,14 @@ _ATTR_PATTERN = re.compile(r"(\w+)\s*=\s*\"([^\"]*)\"")
 
 
 class ExecutionAgentLogStore:
-    """Append-only journal for execution agents with XML-style tags."""
+    """Append-only journal for execution agents with XML-style tags.
+
+    Log files are rotated when they exceed MAX_LOG_BYTES to prevent
+    unbounded disk growth.
+    """
+
+    MAX_LOG_BYTES = 50_000  # ~50KB per agent log file; rotate when exceeded
+    KEEP_TAIL_LINES = 80    # Keep the most recent N lines after rotation
 
     def __init__(self, base_dir: Path):
         self._base_dir = base_dir
@@ -67,17 +74,38 @@ class ExecutionAgentLogStore:
         return self._base_dir / f"{_slugify(agent_name)}.log"
 
     def _append(self, agent_name: str, tag: str, payload: str) -> None:
-        """Append an entry with the given tag."""
+        """Append an entry with the given tag, rotating if the file is too large."""
         encoded = _encode_payload(str(payload))
         timestamp = now_in_user_timezone("%Y-%m-%d %H:%M:%S")
         entry = f"<{tag} timestamp=\"{timestamp}\">{encoded}</{tag}>\n"
 
         with self._lock_for(agent_name):
+            path = self._log_path(agent_name)
             try:
-                with self._log_path(agent_name).open("a", encoding="utf-8") as handle:
+                with path.open("a", encoding="utf-8") as handle:
                     handle.write(entry)
             except Exception as exc:
                 logger.error(f"Failed to append to log: {exc}")
+                return
+
+            # Rotate if file exceeds size limit
+            try:
+                if path.stat().st_size > self.MAX_LOG_BYTES:
+                    self._rotate_locked(path)
+            except Exception as exc:
+                logger.warning(f"Log rotation check failed: {exc}")
+
+    def _rotate_locked(self, path: Path) -> None:
+        """Truncate log to KEEP_TAIL_LINES most recent lines. Caller holds lock."""
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+            if len(lines) <= self.KEEP_TAIL_LINES:
+                return
+            kept = lines[-self.KEEP_TAIL_LINES:]
+            path.write_text("".join(kept), encoding="utf-8")
+            logger.info(f"Rotated log {path.name}: {len(lines)} → {len(kept)} lines")
+        except Exception as exc:
+            logger.warning(f"Log rotation failed for {path.name}: {exc}")
 
     def _parse_line(self, line: str) -> Optional[Tuple[str, str, str]]:
         """Parse a single log line."""

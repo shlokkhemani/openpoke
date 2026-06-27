@@ -37,12 +37,15 @@ class _BatchState:
 class ExecutionBatchManager:
     """Run execution agents and deliver their combined outcome."""
 
+    MAX_CONCURRENT = 5  # Max simultaneous agent executions
+
     # Initialize batch manager with timeout and coordination state for execution agents
     def __init__(self, timeout_seconds: int = 90) -> None:
         self.timeout_seconds = timeout_seconds
         self._pending: Dict[str, PendingExecution] = {}
         self._batch_lock = asyncio.Lock()
         self._batch_state: Optional[_BatchState] = None
+        self._semaphore = asyncio.Semaphore(self.MAX_CONCURRENT)
 
     # Run execution agent with timeout handling and batch coordination for interaction agent
     async def execute_agent(
@@ -58,33 +61,34 @@ class ExecutionBatchManager:
 
         batch_id = await self._register_pending_execution(agent_name, instructions, request_id)
 
-        try:
-            logger.info(f"[{agent_name}] Execution started")
-            runtime = ExecutionAgentRuntime(agent_name=agent_name)
-            result = await asyncio.wait_for(
-                runtime.execute(instructions),
-                timeout=self.timeout_seconds,
-            )
-            status = "SUCCESS" if result.success else "FAILED"
-            logger.info(f"[{agent_name}] Execution finished: {status}")
-        except asyncio.TimeoutError:
-            logger.error(f"[{agent_name}] Execution timed out after {self.timeout_seconds}s")
-            result = ExecutionResult(
-                agent_name=agent_name,
-                success=False,
-                response=f"Execution timed out after {self.timeout_seconds} seconds",
-                error="Timeout",
-            )
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.exception(f"[{agent_name}] Execution failed unexpectedly")
-            result = ExecutionResult(
-                agent_name=agent_name,
-                success=False,
-                response=f"Execution failed: {exc}",
-                error=str(exc),
-            )
-        finally:
-            self._pending.pop(request_id, None)
+        async with self._semaphore:
+            try:
+                logger.info(f"[{agent_name}] Execution started")
+                runtime = ExecutionAgentRuntime(agent_name=agent_name)
+                result = await asyncio.wait_for(
+                    runtime.execute(instructions),
+                    timeout=self.timeout_seconds,
+                )
+                status = "SUCCESS" if result.success else "FAILED"
+                logger.info(f"[{agent_name}] Execution finished: {status}")
+            except asyncio.TimeoutError:
+                logger.error(f"[{agent_name}] Execution timed out after {self.timeout_seconds}s")
+                result = ExecutionResult(
+                    agent_name=agent_name,
+                    success=False,
+                    response=f"Execution timed out after {self.timeout_seconds} seconds",
+                    error="Timeout",
+                )
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.exception(f"[{agent_name}] Execution failed unexpectedly")
+                result = ExecutionResult(
+                    agent_name=agent_name,
+                    success=False,
+                    response=f"Execution failed: {exc}",
+                    error=str(exc),
+                )
+            finally:
+                self._pending.pop(request_id, None)
 
         # Mark agent as completed in the roster regardless of success/failure
         try:
