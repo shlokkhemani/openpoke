@@ -176,6 +176,8 @@ class ExecutionBatchManager:
             self._batch_state = None
 
     # Format multiple execution results into single message for interaction agent
+    MAX_RESPONSE_CHARS = 2000  # Per-agent response cap in batch payload
+
     def _format_batch_payload(self, results: List[ExecutionResult]) -> str:
         """Render execution results into the interaction-agent format."""
 
@@ -183,6 +185,8 @@ class ExecutionBatchManager:
         for result in results:
             status = "SUCCESS" if result.success else "FAILED"
             response_text = (result.response or "(no response provided)").strip()
+            if len(response_text) > self.MAX_RESPONSE_CHARS:
+                response_text = response_text[:self.MAX_RESPONSE_CHARS] + "... [truncated]"
             entries.append(f"[{status}] {result.agent_name}: {response_text}")
         return "\n".join(entries)
 

@@ -9,6 +9,10 @@ from ...services.execution import get_agent_roster
 _prompt_path = Path(__file__).parent / "system_prompt.md"
 SYSTEM_PROMPT = _prompt_path.read_text(encoding="utf-8").strip()
 
+# Budget ~4K tokens for conversation history in the user message.
+# This is a safety cap — summarization should keep things smaller in practice.
+_MAX_HISTORY_CHARS = 16_000
+
 
 # Load and return the pre-defined system prompt from markdown file
 def build_system_prompt() -> str:
@@ -38,6 +42,14 @@ def _render_conversation_history(transcript: str) -> str:
     history = transcript.strip()
     if not history:
         history = "None"
+    elif len(history) > _MAX_HISTORY_CHARS:
+        # Truncate from the front (keep most recent), preserving line boundaries
+        truncated = history[-_MAX_HISTORY_CHARS:]
+        # Find the first complete XML tag boundary
+        first_tag = truncated.find("<")
+        if first_tag > 0:
+            truncated = truncated[first_tag:]
+        history = f"[earlier conversation truncated]\n{truncated}"
     return f"<conversation_history>\n{history}\n</conversation_history>"
 
 

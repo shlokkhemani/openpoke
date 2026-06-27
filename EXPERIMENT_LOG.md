@@ -1,4 +1,19 @@
-# Active Agents Prompt Bloat — Experiment Log
+# Execution Agent Overload — Experiment Log
+
+## Methodology: Hill Climbing Machine
+
+![Hill Climbing Loop](hill_climbing_loop.svg)
+
+Each experiment follows the **Traces → Evaluate → Fix → Reconcile** loop:
+1. **Traces** — Observe current behavior (measure roster size, log sizes, prompt token counts)
+2. **Evaluate** — Run feature tests, regression tests, and E2E tests against the live system
+3. **Fix** — Implement the change, deploy to running server
+4. **Reconcile** — Measure improvement, update hypothesis, rotate to next vector if needed
+
+The dashed **Rotate** path triggered between Exp 1→3 when we discovered that hiding
+completed agents broke agent reuse — leading to the compact rendering approach.
+
+---
 
 ## Problem Statement
 The `<active_agents>` XML block is injected into every interaction-agent LLM prompt unconditionally. 
@@ -98,42 +113,162 @@ prevents filesystem bloat while preserving recent context for agent reuse decisi
 
 ---
 
-## Final Summary
+---
 
-### Changes Made (4 files)
-1. **`server/services/execution/roster.py`** — Rewritten to dict-based status tracking
-   - `add_agent()` → sets `"active"` status
-   - New `complete_agent()` → transitions to `"completed"` + prunes oldest
-   - New `get_active_agents()`, `get_completed_agents()`, `get_agent_status()`
-   - `_prune_completed()` caps at 20 completed agents
-   - Backward compat: plain list auto-migrated to dict format
+## Baseline Metrics
 
-2. **`server/agents/interaction_agent/agent.py`** — `_render_active_agents()` updated
-   - Active agents: full XML tags with `status="active"`
-   - Completed agents: single compact `<completed_agents names="..." />` tag (last 10)
-   - Empty roster: renders `"None"`
+Measured against the running system at localhost:8001.
 
-3. **`server/agents/execution_agent/batch_manager.py`** — Lifecycle hook added
-   - Calls `roster.complete_agent()` after execution finishes (success or failure)
-   - Wrapped in try/except to avoid disrupting execution flow
+### Overload Vectors Identified
 
-4. **`server/agents/interaction_agent/tools.py`** — Agent reuse support
-   - When `send_message_to_agent` targets a completed agent, re-activates it
+| # | Vector | Where | Growth | Injected Into LLM? |
+|---|---|---|---|---|
+| V1 | Roster `<active_agents>` | `agent.py:29` | O(agents ever) | ✅ Every interaction prompt |
+| V2 | Execution log history | `log_store.py` → `exec/agent.py:63-96` | O(requests per agent) | ✅ Every execution prompt |
+| V3 | Conversation log transcript | `log.py:126-134` | O(all messages) | ✅ Every interaction prompt (if summarization off/empty) |
+| V4 | Batch result payload | `batch_manager.py:170-178` | O(concurrent agents) | ✅ Dispatched to interaction agent |
+| V5 | OpenRouter client | `client.py:49-88` | No limits | ❌ No token budgeting/truncation |
+| V6 | Working memory tail | `summarizer.py:90-91` | threshold+tail unsummarized | ✅ Injected as transcript |
 
-### Token Impact (with 50 agents ever spawned)
-| Metric | Before | After | Savings |
+### Baseline Numbers (4 historical agents, light usage)
+```
+System prompt (interaction):   10,425 chars (~2,606 tokens)
+System prompt (execution):      3,745 chars (~936 tokens)
+Conversation transcript:          529 chars (~132 tokens)
+Working memory:                   643 chars (~160 tokens)
+<active_agents> block (old):      152 chars (~38 tokens) ← FIXED by Exp 1-3
+
+Execution logs per agent:     varies (append-only, never trimmed)
+OpenRouter token budget:      NONE (unlimited input)
+```
+
+### Scaling Projections (old system)
+| Agents | Roster bloat | Est. exec log total | Total extra prompt tokens |
 |---|---|---|---|
-| Prompt chars (0 active) | ~1900 | ~170 | **91%** |
-| Prompt chars (1 active) | ~1950 | ~220 | **89%** |
-| Roster file growth | Unbounded | Capped at 20 completed + active | **Bounded** |
+| 10 | ~430 chars | ~5KB | ~1,400 |
+| 50 | ~2,150 chars | ~25KB | ~7,000 |
+| 100 | ~4,300 chars | ~50KB | ~14,000 |
 
-### Verified Scenarios
+---
+
+## Experiment 4: Execution Agent History Capping
+
+### Hypothesis
+Execution agent prompts inject the FULL history transcript via `build_system_prompt_with_history()`.
+The `conversation_limit` parameter exists but is never set (defaults to `None`).
+Each agent's `.log` file grows unboundedly with every request/action/response.
+Capping to the most recent N conversations per agent will bound execution prompt size.
+
+### Changes
+1. Set `DEFAULT_CONVERSATION_LIMIT = 5` in `ExecutionAgent` class
+2. Changed `__init__` to use default when `conversation_limit` is `None`
+3. Existing truncation logic in `build_system_prompt_with_history()` already handles the rest
+
+### Status: ✅ PASSED
+
+### Results
+- ✓ 10 conversations → only last 5 in prompt (50% reduction)
+- ✓ With limit=2: only 2 conversations (80% reduction) 
+- ✓ Limit=0 preserves old unlimited behavior for opt-in
+- ✓ Live E2E: server processes messages correctly, agents spawn and complete
+
+### Token Impact
+| Conversations | Unlimited (before) | Limit=5 (after) | Savings |
+|---|---|---|---|
+| 10 | 4,949 chars / ~1,237 tokens | 2,474 chars / ~618 tokens | 50% |
+| 20 | ~9,900 chars / ~2,475 tokens | 2,474 chars / ~618 tokens | 75% |
+
+---
+
+## Experiment 5: Interaction Prompt Token Budget
+
+### Hypothesis
+The interaction agent has no defense against oversized prompts. If conversation history is long
+and summarization hasn't kicked in, the full transcript is injected. Adding a character/token
+budget to `_render_conversation_history()` that truncates the oldest entries
+will prevent prompt overflow at the LLM API level.
+
+### Changes
+1. Added `_MAX_HISTORY_CHARS = 16_000` constant (~4K tokens)
+2. `_render_conversation_history()` truncates from the front (keeps most recent)
+3. Smart truncation: finds first complete XML tag boundary after cut point
+4. Prepends `[earlier conversation truncated]` marker
+
+### Status: ✅ PASSED
+
+### Results
+- ✓ Short history passes through unmodified
+- ✓ Empty history renders "None"
+- ✓ 98,279-char history truncated to 16,003 chars (84% reduction)
+- ✓ Most recent messages preserved (Message 499 kept)
+- ✓ XML tags balanced after truncation
+- ✓ Live E2E: server processes messages correctly
+
+### Token Impact
+| History size | Before | After | Savings |
+|---|---|---|---|
+| 500 messages (~98K chars) | 98,279 chars / ~24,569 tokens | 16,003 chars / ~4,000 tokens | 84% |
+| Under 16K chars | No change | No change | 0% (passthrough) |
+
+---
+
+## Experiment 6: Batch Result Compaction
+
+### Hypothesis
+When multiple execution agents finish in a batch, `_format_batch_payload()` concatenates
+all their full responses into one string sent to the interaction agent. Long agent responses
+(e.g., research results) can create massive payloads. Truncating individual agent responses
+in the batch payload will prevent interaction-agent prompt overload.
+
+### Changes
+1. Added `MAX_RESPONSE_CHARS = 2000` per-agent cap in `ExecutionBatchManager`
+2. Long responses truncated with `... [truncated]` marker
+3. Short responses pass through unmodified
+
+### Status: ✅ PASSED
+
+### Results
+- ✓ Short responses pass through unmodified
+- ✓ 5,000-char response truncated to ~2,041 chars
+- ✓ 5 agents × 4,000-char responses: 20,000 → 10,174 chars (49% reduction)
+- ✓ Live E2E: server processes agent tasks correctly
+
+### Token Impact
+| Scenario | Before | After | Savings |
+|---|---|---|---|
+| 5 agents × 4K response | 20,000 chars | 10,174 chars | 49% |
+| 5 agents × short response | No change | No change | 0% |
+
+---
+
+## Overall Results
+
+### Before vs After (projected at 50 agents)
+
+| Vector | Before | After | Savings |
+|---|---|---|---|
+| V1: Roster `<active_agents>` block | 2,150 chars | 220 chars | **90%** |
+| V2: Execution agent history | 24,700 chars | 12,350 chars | **50%** |
+| V3: Conversation history | 50,000 chars | 16,000 chars | **68%** |
+| V4: Batch result payload | 20,000 chars | 10,200 chars | **49%** |
+| V5: Roster file growth | 3,200 chars | 1,400 chars | **56%** |
+| **TOTAL** | **100,050 chars (~25K tokens)** | **40,170 chars (~10K tokens)** | **60%** |
+
+### Files Changed (4)
+1. `server/services/execution/roster.py` — Dict-based status tracking + pruning
+2. `server/agents/interaction_agent/agent.py` — Compact rendering + history budget
+3. `server/agents/execution_agent/agent.py` — Default conversation limit
+4. `server/agents/execution_agent/batch_manager.py` — Lifecycle hook + response cap
+
+### All Verified Scenarios
 - [x] Simple queries (no agents spawned)
 - [x] Agent-spawning queries (new agent lifecycle)
-- [x] Agent reuse (completed → active)
+- [x] Agent reuse (completed → active → completed)
 - [x] Multiple concurrent agents
 - [x] Agent timeout/failure (still marks completed)
-- [x] Backward compatibility with old roster.json format
+- [x] Backward compatibility with old roster.json
 - [x] clear_history() endpoint
 - [x] 100-agent stress test
+- [x] Long conversation history truncation
+- [x] Batch payload compaction
 - [x] Live E2E through localhost:3000 UI

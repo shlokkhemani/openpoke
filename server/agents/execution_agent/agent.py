@@ -33,6 +33,8 @@ class ExecutionAgent:
     """Manages state and history for an execution agent."""
 
     # Initialize execution agent with name, conversation limits, and log store access
+    DEFAULT_CONVERSATION_LIMIT = 5  # Keep last N request/response pairs in prompt
+
     def __init__(
         self,
         name: str,
@@ -43,10 +45,10 @@ class ExecutionAgent:
 
         Args:
             name: Human-readable agent name (e.g., 'conversation with keith')
-            conversation_limit: Optional limit on past conversations to include (None = all)
+            conversation_limit: Optional limit on past conversations to include (None = default)
         """
         self.name = name
-        self.conversation_limit = conversation_limit
+        self.conversation_limit = conversation_limit if conversation_limit is not None else self.DEFAULT_CONVERSATION_LIMIT
         self._log_store = get_execution_agent_logs()
 
     # Generate system prompt template with agent name and purpose derived from name
