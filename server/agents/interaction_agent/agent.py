@@ -13,6 +13,9 @@ SYSTEM_PROMPT = _prompt_path.read_text(encoding="utf-8").strip()
 # This is a safety cap — summarization should keep things smaller in practice.
 _MAX_HISTORY_CHARS = 16_000
 
+# Max active agents rendered individually before switching to summary mode.
+_MAX_ACTIVE_RENDERED = 25
+
 
 # Load and return the pre-defined system prompt from markdown file
 def build_system_prompt() -> str:
@@ -64,9 +67,23 @@ def _render_active_agents() -> str:
         return "None"
 
     rendered: List[str] = []
-    for agent_name in active:
-        name = escape(agent_name or "agent", quote=True)
-        rendered.append(f'<agent name="{name}" status="active" />')
+
+    if len(active) <= _MAX_ACTIVE_RENDERED:
+        # Under cap: render each individually
+        for agent_name in active:
+            name = escape(agent_name or "agent", quote=True)
+            rendered.append(f'<agent name="{name}" status="active" />')
+    else:
+        # Over cap: show most recent N individually + summary count
+        overflow = len(active) - _MAX_ACTIVE_RENDERED
+        rendered.append(
+            f'<active_summary count="{len(active)}" '
+            f'showing="most_recent_{_MAX_ACTIVE_RENDERED}" '
+            f'overflow="{overflow}" />'
+        )
+        for agent_name in active[-_MAX_ACTIVE_RENDERED:]:
+            name = escape(agent_name or "agent", quote=True)
+            rendered.append(f'<agent name="{name}" status="active" />')
 
     # Show recent completed agents compactly so the LLM can reuse them
     if completed:

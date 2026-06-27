@@ -82,6 +82,13 @@ class AgentRoster:
             self._agents[agent_name] = "active"
             self.save()
 
+    def reactivate_agent(self, agent_name: str) -> None:
+        """Re-activate a completed agent, moving it to most-recent position."""
+        if agent_name in self._agents:
+            del self._agents[agent_name]
+        self._agents[agent_name] = "active"
+        self.save()
+
     def complete_agent(self, agent_name: str) -> None:
         """Mark an agent as completed and prune oldest completed if over cap."""
         if agent_name in self._agents:
