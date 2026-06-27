@@ -269,3 +269,88 @@ Measured against the running system with 4 historical agents, light usage.
 - [x] Relevance-based selection (email/research/travel queries)
 - [x] Clustering regression (groups of 3+, singletons preserved)
 - [x] Agent reactivation position bumping
+
+---
+
+## Appendix: Prompt Snapshots (Evidence)
+
+### A.1 — BEFORE: `<active_agents>` at 50 agents (original code)
+
+Every agent rendered, no lifecycle, no cap. **534 tokens, 50 lines.**
+
+```xml
+<agent name="Email to Alice about Q3 Report" />
+<agent name="Email to Bob re: Project Delta" />
+<agent name="Email to CFO re: Budget Approval" />
+<agent name="Email to HR about PTO Request" />
+<agent name="Tokyo Restaurant Search" />
+... (40 more identical lines) ...
+<agent name="Home Renovation Quotes" />
+<agent name="Wedding Gift Registry" />
+<agent name="Subscription Audit Monthly" />
+<agent name="Password Manager Cleanup" />
+<agent name="Charity Donation Research" />
+```
+
+### A.2 — AFTER: Same 50 agents, query "check my emails"
+
+Relevance pulls email agents to top. Clustering compresses them. **363 tokens, 22 lines.**
+
+```xml
+<active_summary count="50" showing="25" overflow="25" selection="relevance+recency" />
+<agent_group prefix="Email" count="4" agents="to Alice about Q3 Report; to Bob re: Project Delta; to CFO re: Budget Approval; to HR about PTO Request" />
+<agent name="Weather Check San Francisco" status="active" />
+<agent name="Charity Donation Research" status="active" />
+<agent name="Password Manager Cleanup" status="active" />
+... (17 more recent agents fill remaining slots) ...
+```
+
+### A.3 — AFTER: Same 50 agents, query "book a flight to tokyo"
+
+Different query → different agents surfaced. Travel agents at top.
+
+```xml
+<active_summary count="50" showing="25" overflow="25" selection="relevance+recency" />
+<agent name="Hotel Booking Tokyo Shibuya" status="active" />
+<agent name="Flight Booking LAX to NRT" status="active" />
+<agent name="Tokyo Restaurant Search" status="active" />
+<agent name="Book Club Recommendations" status="active" />
+... (21 more recent agents fill remaining slots) ...
+```
+
+### A.4 — WHY EXP 1-2 WERE THROWN: Agent Reuse Regression
+
+System prompt instructs: *"Always prefer to send messages to a relevant existing agent rather than creating a new one."*
+
+**Scenario:** User previously created "Email to Alice about Q3 Report" (now completed). User says: "Send Alice the updated Q3 numbers."
+
+**Exp 1-2 (completed agents hidden):**
+```xml
+<active_agents>
+None
+</active_agents>
+```
+LLM response: `send_message_to_agent("Email to Alice Q3 Update", ...)` — **✗ new duplicate agent created**
+
+**Exp 3 (completed shown compactly):**
+```xml
+<active_agents>
+<completed_agents names="Email to Alice about Q3 Report" />
+</active_agents>
+```
+LLM response: `send_message_to_agent("Email to Alice about Q3 Report", ...)` — **✓ existing agent reused**
+
+### A.5 — WHY EXP 12 WAS THROWN: Category False Positives
+
+Query: "book a flight to Tokyo"
+
+Category rule: `"book" keyword → travel category`
+
+**False positive surfaced:** `Book Club Recommendations` (because "book" ∈ travel keywords)
+
+**Keyword relevance (without categories) correctly finds:**
+- `Flight Booking LAX to NRT` (matches "flight", "booking")
+- `Hotel Booking Tokyo Shibuya` (matches "tokyo", "booking")
+- `Tokyo Restaurant Search` (matches "tokyo")
+
+The category layer adds noise. The relevance scorer already finds the right agents via direct keyword matching.
