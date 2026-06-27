@@ -354,3 +354,68 @@ Category rule: `"book" keyword → travel category`
 - `Tokyo Restaurant Search` (matches "tokyo")
 
 The category layer adds noise. The relevance scorer already finds the right agents via direct keyword matching.
+
+---
+
+## 10. Retrospective: Why Agent Loops for an Optimization Problem
+
+### This is an optimization problem
+
+Fixing execution agent overload is fundamentally an optimization problem:
+- **Objective:** minimize prompt tokens while maximizing agent reuse quality
+- **Constraints:** LLM must still be able to discover and reuse existing agents
+- **Variables:** render cap, relevance scoring, history budget, concurrency limit, etc.
+
+There is no single "correct" solution — only tradeoffs between information density and token cost. Every cap we introduce is a knob that trades recall for efficiency.
+
+### Why agent loops (not upfront design)
+
+An optimization problem with **hidden constraints** can't be solved in one pass. You discover the constraint landscape by probing:
+
+| What we couldn't know upfront | How we discovered it |
+|---|---|
+| Hiding completed agents breaks reuse | Exp 1-2 failed (behavioral regression) |
+| Active agents grow O(N) unbounded | 100-agent stress test (Exp 9) |
+| Recency alone misses relevant agents | Tested with diverse agent pools (Exp 10) |
+| Stemming needed for plural/suffix matching | "emails" missed "Email" (Exp 11) |
+| Category filtering is circular logic | Tested false positive rate (Exp 12 thrown) |
+
+Each experiment reveals topology that's invisible from the starting position. This is why hill climbing works — you don't need a map, you need a compass (the baseline ratchet).
+
+### Could fewer experiments reach the same result?
+
+The 9 kept experiments decompose into **3 logical designs:**
+
+```
+DESIGN 1: Smart Roster (Exp 3 + 9 + 10 + 11)
+  lifecycle status + render cap + relevance + clustering
+  → One coherent feature if designed upfront
+
+DESIGN 2: Token Budgets (Exp 4 + 5 + 6)
+  exec_limit=5 + history_cap=16K + batch_cap=2K
+  → Same pattern applied to 3 locations
+
+DESIGN 3: Resource Caps (Exp 7 + 8)
+  log rotation + concurrency semaphore
+  → Standard infra bounds
+```
+
+| Path | Experiments | Prerequisite knowledge |
+|---|---|---|
+| Our path (iterative) | 12 (9 kept, 3 thrown) | None — fully discovery-driven |
+| Optimal with hindsight | 5 | Know the reuse constraint + full scale |
+| Theoretical minimum | 3 | Know everything (no failed probes needed) |
+
+**The lever for next time:** run the stress test FIRST. Had we started with the 100-agent load test before any fixes, we'd have seen all gaps simultaneously and designed one coherent solution per cluster.
+
+### Known regressions (accepted tradeoffs)
+
+| Regression | Severity | When it bites | Possible future fix |
+|---|---|---|---|
+| No "load more" for hidden agents | Medium | Vague query + old target agent | Add `list_agents` tool (hermes pattern) |
+| History truncation loses early context | Low | Long conversation pre-summarization | Lower summarization threshold |
+| Batch response cut at 2K | Low | Agent writes 5K+ analysis | Increase cap or summarize long responses |
+| Execution agent forgets early rounds | Low | Agent on 10th+ round (rare) | Increase limit for long-running agents |
+| Concurrency queuing latency | Low | 20+ simultaneous dispatches | Increase semaphore or use priority queue |
+
+These are conscious tradeoffs, not bugs. Each can be tuned by adjusting a single constant.
