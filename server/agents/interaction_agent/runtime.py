@@ -69,9 +69,14 @@ class InteractionAgentRuntime:
             transcript_before = self._load_conversation_transcript()
             self.conversation_log.record_user_message(user_message)
 
+            self._turn_type = "user"
+            turn_text = user_message
+            if self.settings.budgeted_context:
+                turn_text = self._bound_turn_text(user_message)
+
             system_prompt = build_system_prompt()
             messages = prepare_message_with_history(
-                user_message, transcript_before, message_type="user"
+                turn_text, transcript_before, message_type="user"
             )
 
             logger.info("Processing user message through interaction agent")
@@ -104,9 +109,14 @@ class InteractionAgentRuntime:
             transcript_before = self._load_conversation_transcript()
             self.conversation_log.record_agent_message(agent_message)
 
+            self._turn_type = "agent"
+            turn_text = agent_message
+            if self.settings.budgeted_context:
+                turn_text = self._bound_turn_text(agent_message)
+
             system_prompt = build_system_prompt()
             messages = prepare_message_with_history(
-                agent_message, transcript_before, message_type="agent"
+                turn_text, transcript_before, message_type="agent"
             )
 
             logger.info("Processing execution agent results")
@@ -131,6 +141,28 @@ class InteractionAgentRuntime:
                 error=str(exc),
             )
 
+    # Budgeted: the current-turn slot (a user paste or a merged worker batch) is the one prompt part the
+    # history budget does not govern. Bound it; the full text was just written to the log and is recallable.
+    def _bound_turn_text(self, text: str) -> str:
+        from .context.history import _preview
+        from ...utils.tokens import chars_for_tokens
+
+        cap = chars_for_tokens(self.settings.context_turn_max_tokens)
+        if len(text) <= cap:
+            return text
+        entry_id = sum(1 for _ in self.conversation_log.iter_entries()) - 1
+        logger.info("Budgeted turn text bounded", extra={"chars": len(text), "entry_id": entry_id})
+        return (f"[This message is {len(text):,} characters; shown as a head/tail preview. It is entry id={entry_id} "
+                f"in the conversation log: call recall_history with that id to read parts of it in full.]\n"
+                + _preview(text, cap))
+
+    def _worker_reported_draft(self) -> bool:
+        """True if any worker callback in the log mentions a draft (so showing/re-showing one is legitimate)."""
+        for tag, _, payload in self.conversation_log.iter_entries():
+            if tag == "agent_message" and "draft" in payload.lower():
+                return True
+        return False
+
     # Core interaction loop that handles LLM calls and tool executions until completion
     async def _run_interaction_loop(
         self,
@@ -140,6 +172,10 @@ class InteractionAgentRuntime:
         """Iteratively query the LLM until it issues a final response."""
 
         summary = _LoopSummary()
+        budgeted = self.settings.budgeted_context
+        dispatched_this_turn: set = set()
+        recalls_this_turn = 0
+        result_tokens_this_turn = 0
 
         for iteration in range(self.MAX_TOOL_ITERATIONS):
             response = await self._make_llm_call(system_prompt, messages)
@@ -163,6 +199,7 @@ class InteractionAgentRuntime:
             if not parsed_tool_calls:
                 break
 
+            round_names = [tc.name for tc in parsed_tool_calls]
             for tool_call in parsed_tool_calls:
                 summary.tool_names.append(tool_call.name)
 
@@ -170,18 +207,73 @@ class InteractionAgentRuntime:
                     agent_name = tool_call.arguments.get("agent_name")
                     if isinstance(agent_name, str) and agent_name:
                         summary.execution_agents.add(agent_name)
+                        if budgeted and agent_name in dispatched_this_turn:
+                            # Already running from this same turn: re-dispatching would start a second, competing
+                            # run and a second draft. Tell the model to let the callback arrive instead.
+                            result = ToolResult(success=False, payload={
+                                "error": f"'{agent_name}' was already dispatched in this turn and is still running; "
+                                         f"its result will arrive as a separate agent message. Do not dispatch it again now."})
+                            messages.append({"role": "tool", "tool_call_id": tool_call.identifier or tool_call.name,
+                                             "content": self._format_tool_result(tool_call, result)})
+                            continue
+                        dispatched_this_turn.add(agent_name)
 
-                result = self._execute_tool(tool_call)
+                if budgeted and tool_call.name == "recall_history" and recalls_this_turn >= self.settings.recall_calls_per_turn:
+                    result = ToolResult(success=False, payload={
+                        "error": (f"recall_history limit for this turn ({self.settings.recall_calls_per_turn}) reached. Paging cannot "
+                                  f"read a large entry within one context. For synthesis call digest_entry with the entry ids; for "
+                                  f"verbatim use, pass the entry id to a worker instead of reading it.")})
+                elif budgeted and tool_call.name == "digest_entry":
+                    from .tools import digest_entry
+
+                    self._log_tool_invocation(tool_call, stage="start")
+                    args = tool_call.arguments if isinstance(tool_call.arguments, dict) else {}
+                    result = await digest_entry(args.get("entry_ids"), args.get("question", ""), entry_id=args.get("entry_id"))
+                elif budgeted and tool_call.name == "send_draft" and getattr(self, "_turn_type", "user") == "user" \
+                        and not self._worker_reported_draft():
+                    # send_draft only displays; the draft itself must come from a worker. Composing one here would show
+                    # the user an email that does not exist in Gmail.
+                    result = ToolResult(success=False, payload={
+                        "error": "No worker has created a draft yet, so there is nothing to show. send_draft only displays a "
+                                 "draft a worker already created. Dispatch a worker with send_message_to_agent to create the "
+                                 "draft; it will report back with the draft id and text, and you show it then."})
+                else:
+                    result = self._execute_tool(tool_call)
 
                 if result.user_message:
                     summary.user_messages.append(result.user_message)
 
+                if budgeted and tool_call.name == "recall_history" and result.success:
+                    recalls_this_turn += 1
+                content = self._format_tool_result(tool_call, result)
+                if budgeted:
+                    from ...utils.tokens import estimate_tokens
+
+                    cost = estimate_tokens(content)
+                    if result_tokens_this_turn + cost > self.settings.turn_tool_result_budget_tokens:
+                        # Backstop only: with digest and by-reference passing this should not trigger in normal use.
+                        content = self._format_tool_result(tool_call, ToolResult(success=False, payload={
+                            "error": "turn tool-result budget exhausted; answer with what you have, or digest instead of reading"}))
+                        cost = estimate_tokens(content)
+                    result_tokens_this_turn += cost
                 tool_message = {
                     "role": "tool",
                     "tool_call_id": tool_call.identifier or tool_call.name,
-                    "content": self._format_tool_result(tool_call, result),
+                    "content": content,
                 }
                 messages.append(tool_message)
+
+            if budgeted:
+                # `wait` means "stay silent": the turn is over, there is nothing to re-plan after it.
+                if round_names and all(n == "wait" for n in round_names):
+                    break
+                # A dispatch has been handed off and the user has been told; the only thing another round
+                # could add is a redundant status line. Stop here (legacy spends one more call to say "submitted").
+                if "send_message_to_agent" in round_names and (
+                    summary.user_messages or assistant_content
+                    or any(n in ("send_message_to_user", "send_draft") for n in round_names)
+                ):
+                    break
         else:
             raise RuntimeError("Reached tool iteration limit without final response")
 
@@ -192,6 +284,20 @@ class InteractionAgentRuntime:
 
     # Load conversation history, preferring summarized version if available
     def _load_conversation_transcript(self) -> str:
+        if self.settings.budgeted_context:
+            from .context.history import build_history
+
+            built = build_history()
+            logger.info(
+                "Budgeted context assembled",
+                extra={
+                    "inline": built.inline_entries,
+                    "truncated": built.truncated_entries,
+                    "indexed": built.indexed_entries,
+                    "tokens": built.estimated_tokens,
+                },
+            )
+            return built.transcript
         if self.settings.summarization_enabled:
             rendered = self.working_memory_log.render_transcript()
             if rendered.strip():

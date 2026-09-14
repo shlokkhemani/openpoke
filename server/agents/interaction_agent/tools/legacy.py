@@ -1,26 +1,17 @@
-"""Tool definitions for interaction agent."""
+"""Legacy (always-on) interaction-agent tools."""
+
+from __future__ import annotations
 
 import asyncio
-import json
-from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
-from ...logging_config import logger
-from ...services.conversation import get_conversation_log
-from ...services.execution import get_agent_roster, get_execution_agent_logs
-from ..execution_agent.batch_manager import ExecutionBatchManager
+from ....config import get_settings
+from ....logging_config import logger
+from ....services.conversation import get_conversation_log
+from ....services.execution import get_agent_roster, get_execution_agent_logs
+from ...execution_agent.batch_manager import ExecutionBatchManager
+from .types import ToolResult
 
-
-@dataclass
-class ToolResult:
-    """Standardized payload returned by interaction-agent tools."""
-
-    success: bool
-    payload: Any = None
-    user_message: Optional[str] = None
-    recorded_reply: bool = False
-
-# Tool schemas for OpenRouter
 TOOL_SCHEMAS = [
     {
         "type": "function",
@@ -108,7 +99,21 @@ TOOL_SCHEMAS = [
 _EXECUTION_BATCH_MANAGER = ExecutionBatchManager()
 
 
-# Create or reuse execution agent and dispatch instructions asynchronously
+def get_execution_batch_manager() -> ExecutionBatchManager:
+    """Return the manager used for worker dispatches.
+
+    Keeping access behind functions lets evals replace the manager without
+    relying on assignment through a re-exported module attribute.
+    """
+    return _EXECUTION_BATCH_MANAGER
+
+
+def set_execution_batch_manager(manager: ExecutionBatchManager) -> None:
+    """Replace the worker-dispatch manager (primarily for isolated evals)."""
+    global _EXECUTION_BATCH_MANAGER
+    _EXECUTION_BATCH_MANAGER = manager
+
+
 def send_message_to_agent(agent_name: str, instructions: str) -> ToolResult:
     """Send instructions to an execution agent."""
     roster = get_agent_roster()
@@ -120,13 +125,17 @@ def send_message_to_agent(agent_name: str, instructions: str) -> ToolResult:
         roster.add_agent(agent_name)
 
     get_execution_agent_logs().record_request(agent_name, instructions)
+    if get_settings().budgeted_context:
+        from ....services.execution.roster_v2 import get_roster_meta
+
+        get_roster_meta().record_request(agent_name, instructions)
 
     action = "Created" if is_new else "Reused"
     logger.info(f"{action} agent: {agent_name}")
 
     async def _execute_async() -> None:
         try:
-            result = await _EXECUTION_BATCH_MANAGER.execute_agent(agent_name, instructions)
+            result = await get_execution_batch_manager().execute_agent(agent_name, instructions)
             status = "SUCCESS" if result.success else "FAILED"
             logger.info(f"Agent '{agent_name}' completed: {status}")
         except Exception as exc:  # pragma: no cover - defensive
@@ -140,22 +149,23 @@ def send_message_to_agent(agent_name: str, instructions: str) -> ToolResult:
 
     loop.create_task(_execute_async())
 
-    return ToolResult(
-        success=True,
-        payload={
-            "status": "submitted",
-            "agent_name": agent_name,
-            "new_agent_created": is_new,
-        },
-    )
+    payload = {
+        "status": "submitted",
+        "agent_name": agent_name,
+        "new_agent_created": is_new,
+    }
+    if get_settings().budgeted_context:
+        payload["note"] = (
+            "The worker is running in the background and has NOT finished. Its result will arrive later as a "
+            "separate agent message. Do not tell the user the task is done or sent; at most say what is in progress."
+        )
+    return ToolResult(success=True, payload=payload)
 
 
-# Send immediate message to user and record in conversation history
 def send_message_to_user(message: str) -> ToolResult:
     """Record a user-visible reply in the conversation log."""
     log = get_conversation_log()
     log.record_reply(message)
-
     return ToolResult(
         success=True,
         payload={"status": "delivered"},
@@ -164,82 +174,36 @@ def send_message_to_user(message: str) -> ToolResult:
     )
 
 
-# Format and record email draft for user review
-def send_draft(
-    to: str,
-    subject: str,
-    body: str,
-) -> ToolResult:
+def send_draft(to: str, subject: str, body: str) -> ToolResult:
     """Record a draft update in the conversation log for the interaction agent."""
     log = get_conversation_log()
-
     message = f"To: {to}\nSubject: {subject}\n\n{body}"
-
     log.record_reply(message)
     logger.info(f"Draft recorded for: {to}")
-
     return ToolResult(
         success=True,
-        payload={
-            "status": "draft_recorded",
-            "to": to,
-            "subject": subject,
-        },
+        payload={"status": "draft_recorded", "to": to, "subject": subject},
         recorded_reply=True,
     )
 
 
-# Record silent wait state to avoid duplicate responses
 def wait(reason: str) -> ToolResult:
     """Wait silently and add a wait log entry that is not visible to the user."""
     log = get_conversation_log()
-    
-    # Record a dedicated wait entry so the UI knows to ignore it
     log.record_wait(reason)
-    
-
     return ToolResult(
         success=True,
-        payload={
-            "status": "waiting",
-            "reason": reason,
-        },
+        payload={"status": "waiting", "reason": reason},
         recorded_reply=True,
     )
 
 
-# Return predefined tool schemas for LLM function calling
-def get_tool_schemas():
-    """Return OpenAI-compatible tool schemas."""
-    return TOOL_SCHEMAS
-
-
-# Route tool calls to appropriate handlers with argument validation and error handling
-def handle_tool_call(name: str, arguments: Any) -> ToolResult:
-    """Handle tool calls from interaction agent."""
-    try:
-        if isinstance(arguments, str):
-            args = json.loads(arguments) if arguments.strip() else {}
-        elif isinstance(arguments, dict):
-            args = arguments
-        else:
-            return ToolResult(success=False, payload={"error": "Invalid arguments format"})
-
-        if name == "send_message_to_agent":
-            return send_message_to_agent(**args)
-        if name == "send_message_to_user":
-            return send_message_to_user(**args)
-        if name == "send_draft":
-            return send_draft(**args)
-        if name == "wait":
-            return wait(**args)
-
-        logger.warning("unexpected tool", extra={"tool": name})
-        return ToolResult(success=False, payload={"error": f"Unknown tool: {name}"})
-    except json.JSONDecodeError:
-        return ToolResult(success=False, payload={"error": "Invalid JSON"})
-    except TypeError as exc:
-        return ToolResult(success=False, payload={"error": f"Missing required arguments: {exc}"})
-    except Exception as exc:  # pragma: no cover - defensive
-        logger.error("tool call failed", extra={"tool": name, "error": str(exc)})
-        return ToolResult(success=False, payload={"error": "Failed to execute"})
+__all__ = [
+    "TOOL_SCHEMAS",
+    "get_execution_batch_manager",
+    "send_draft",
+    "send_message_to_agent",
+    "send_message_to_user",
+    "set_execution_batch_manager",
+    "wait",
+]

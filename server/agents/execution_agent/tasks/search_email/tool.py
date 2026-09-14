@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from server.config import get_settings
@@ -17,6 +18,8 @@ from server.services.gmail import (
     parse_gmail_fetch_response,
 )
 from .gmail_internal import GMAIL_FETCH_EMAILS_SCHEMA
+from .....context.overflow import is_context_overflow, terminal_overflow_message
+from .....context.preview import preview_text
 from .schemas import (
     GmailSearchEmail,
     EmailSearchToolResult,
@@ -27,6 +30,9 @@ from .schemas import (
     get_completion_schema,
 )
 from .system_prompt import get_system_prompt
+
+_BUDGETED_ADDENDUM_PATH = Path(__file__).parent / "system_prompt.budgeted_addendum.md"
+_BUDGETED_ADDENDUM = _BUDGETED_ADDENDUM_PATH.read_text(encoding="utf-8").strip() if _BUDGETED_ADDENDUM_PATH.exists() else ""
 
 # Constants
 MAX_LLM_ITERATIONS = 8
@@ -121,6 +127,8 @@ async def task_email_search(search_query: str) -> Any:
         return result
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception(f"[EMAIL_SEARCH] Search failed: {exc}")
+        if get_settings().budgeted_context and is_context_overflow(exc):
+            return {"error": terminal_overflow_message("email search sub-agent's context")}
         return {"error": f"Email search failed: {exc}"}
 
 
@@ -139,8 +147,15 @@ async def _run_email_search(
     queries: List[str] = []
     emails: Dict[str, GmailSearchEmail] = {}
     selected_ids: Optional[List[str]] = None
+    budgeted = get_settings().budgeted_context
+    system_prompt = get_system_prompt()
+    max_iterations = MAX_LLM_ITERATIONS
+    if budgeted:
+        if _BUDGETED_ADDENDUM:
+            system_prompt = f"{system_prompt}\n\n{_BUDGETED_ADDENDUM}"
+        max_iterations = get_settings().search_max_iterations_budgeted
     
-    for iteration in range(MAX_LLM_ITERATIONS):
+    for iteration in range(max_iterations):
         logger.debug(
             "[task_email_search] LLM iteration",
             extra={"iteration": iteration + 1, "tool": TASK_TOOL_NAME},
@@ -150,7 +165,7 @@ async def _run_email_search(
         response = await request_chat_completion(
             model=model,
             messages=messages,
-            system=get_system_prompt(),
+            system=system_prompt,
             api_key=api_key,
             tools=[GMAIL_FETCH_EMAILS_SCHEMA, _COMPLETION_TOOL_SCHEMA],
         )
@@ -196,8 +211,12 @@ async def _run_email_search(
             selected_ids = completed_ids
             break
     else:
-        logger.error(f"[EMAIL_SEARCH] {ERROR_ITERATION_LIMIT}")
-        raise RuntimeError(ERROR_ITERATION_LIMIT)
+        if budgeted and emails:
+            logger.warning("[EMAIL_SEARCH] iteration cap reached; returning all fetched emails")
+            selected_ids = list(emails.keys())
+        else:
+            logger.error(f"[EMAIL_SEARCH] {ERROR_ITERATION_LIMIT}")
+            raise RuntimeError(ERROR_ITERATION_LIMIT)
     
     final_result = _build_response(queries, emails, selected_ids or [])
     unique_queries = list(dict.fromkeys(queries))
@@ -223,6 +242,7 @@ async def _execute_tool_calls(
 ) -> Tuple[List[Tuple[str, str]], Optional[List[str]]]:
     responses: List[Tuple[str, str]] = []
     completion_ids: Optional[List[str]] = None
+    seen_ids: set = set(emails.keys())   # emails already returned earlier in this search run
 
     for call in tool_calls:
         call_id = call.get("id") or SEARCH_TOOL_NAME
@@ -250,7 +270,7 @@ async def _execute_tool_calls(
             # Handle Gmail search tool
             search_query = arguments.get("query", "<unknown>")
             logger.info(f"[SEARCH_QUERY] LLM generated query: '{search_query}'")
-            
+
             result_model = await _perform_search(
                 arguments=arguments,
                 queries=queries,
@@ -258,6 +278,24 @@ async def _execute_tool_calls(
                 composio_user_id=composio_user_id,
             )
             response_data = result_model.model_dump(exclude_none=True)
+            if get_settings().budgeted_context and result_model.status == "success" and result_model.messages \
+                    and all(m.id in seen_ids for m in result_model.messages):
+                # Id-based cache: the fetch ran, but returned only emails already seen in this search run.
+                ids = [m.id for m in result_model.messages]
+                response_data = {"status": "success", "query": search_query, "result_count": len(ids), "message_ids": ids,
+                                 "note": "all of these matched an earlier query in this run; nothing new. Select with return_search_results."}
+                responses.append(_create_success_response(call_id, response_data))
+                continue
+            if result_model.status == "success":
+                seen_ids.update(m.id for m in result_model.messages)
+            if get_settings().budgeted_context and response_data.get("messages"):
+                # The sub-agent only selects; it sees previews, the worker gets the full emails via _build_response.
+                cap = get_settings().search_preview_tokens
+                for m in response_data["messages"]:
+                    text = m.get("clean_text") or ""
+                    if len(text) > cap * 4:
+                        m["clean_text"] = preview_text(text, cap, note="preview only; full text is returned to the caller on selection")
+                        m["clean_text_total_chars"] = len(text)
             
             if result_model.status == "success":
                 count = result_model.result_count or 0

@@ -1,0 +1,1574 @@
+{
+  "_doc": {
+    "purpose": "End-to-end hard-overload evals. One simulated context window (default 64k, --context-window). Each case is an overload scenario: it names which LLM call it targets and pins a `size` in filler tokens that pushes that call past the window on legacy. Each case is a real multi-agent run (interaction agent -> workers -> callbacks -> reply) against an in-memory Gmail. Pass/fail = outcome judge on the final mailbox + replies; the rubric judge grades the trajectory. Legacy is expected to fail every scenario (that is the baseline); budgeted must survive the window AND still do the job well. Sweep mode (--sizes a,b,c) still works for curves but is not the default.",
+    "fields": {
+      "history": "conversation log seed; an item {\"filler\": true} marks where the conversation filler is inserted",
+      "worker_logs": "per-agent execution-log seed; an item {\"filler\": true} marks where the worker filler is inserted",
+      "world": "fake Gmail seed: emails (days_ago is converted to a date), drafts, contacts",
+      "turns": "user messages sent in order; each is sent only after the previous turn and all its worker callbacks have settled",
+      "success": "mechanical checks on the final mailbox and replies; shown as hints to the outcome judge and in the UI, no longer the verdict",
+      "ideal_trajectory": "reference for the trajectory judge only; never used for pass/fail",
+      "extends": "copy another case by id and override the listed fields",
+      "filler_entry_tokens": "size of each conversation filler entry (default 2000). ~300 makes the legacy count-based compaction fire from 40k up",
+      "strip_worker_filler": "drop worker-log filler markers from the extended case so only conversation compaction is exercised",
+      "world.emails[].body": "either text or {\"generate\": \"contract_thread\", \"tokens\": \"size\"|\"size/3\"|N} for a long generated thread; \"size\" ties the thread length to the grid size",
+      "tier": "\"hard\" and \"disabled\" cases are skipped unless --include-hard / named with --case",
+      "expected": "rubric judge thresholds: dispatches_max (question 14) and ideal_calls (question 16, limit is 2x)",
+      "expected_outcome": "plain-language end state the outcome judge grades against (it decides pass/fail; the `success` block is run as mechanical hints only)",
+      "target": "which LLM call(s) the scenario overflows: interaction_agent | summarizer | execution_agent | email_search | batch_payload | recall",
+      "size": "default filler size in tokens for this scenario (overridden by --sizes)",
+      "baseline_note": "expected legacy failure mode, for the write-up; not shown to any judge",
+      "roster_generate": "seed N decoy workers: {count, seed}. Names are topic+counterpart style; several near-duplicates of the real worker's name are included on purpose",
+      "roster_age_days": "per-worker last-used age in days for the case's real workers (default: recent); decoys are spread over the last 300 days"
+    }
+  },
+  "cases": [
+    {
+      "id": "E2E-01",
+      "name": "fact_recall",
+      "axis": "soft overload: needle in conversation history",
+      "description": "A fact the user asked for earlier (Product X Q3 revenue = $2.4M) sits in the conversation log as a worker result, with near-miss distractors (Q2 figure, Product Y figure) right next to it. The user asks for the number again. Tests whether the agent can still surface the exact figure instead of re-deriving, guessing, or picking a distractor.",
+      "roster": [
+        "Finance Digest"
+      ],
+      "world": {
+        "emails": [
+          {
+            "id": "m-q3",
+            "thread_id": "thr-q3",
+            "from": "cfo@company.com",
+            "subject": "Q3 revenue report",
+            "days_ago": 12,
+            "body": "Team, Q3 actuals are final. Product X revenue: $2.4M. Product Y revenue: $1.1M. Total: $3.5M. Detail deck attached to the shared drive."
+          },
+          {
+            "id": "m-q2",
+            "thread_id": "thr-q2",
+            "from": "cfo@company.com",
+            "subject": "Q2 revenue report",
+            "days_ago": 100,
+            "body": "Q2 actuals: Product X revenue $1.9M, Product Y revenue $0.9M. Total $2.8M."
+          },
+          {
+            "id": "m-mkt",
+            "thread_id": "thr-mkt",
+            "from": "marketing@company.com",
+            "subject": "Q3 marketing spend",
+            "days_ago": 10,
+            "body": "Q3 marketing spend came in at $0.6M, mostly on the Product X launch campaign."
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "pull the Q3 revenue numbers from the CFO's report and give me a quick summary"
+        },
+        {
+          "role": "reply",
+          "content": "On it, checking the CFO's Q3 report now."
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Finance Digest: Found 'Q3 revenue report' from cfo@company.com (thread thr-q3). Q3 actuals: Product X revenue $2.4M, Product Y revenue $1.1M, total $3.5M. For comparison, the Q2 report shows Product X at $1.9M and Product Y at $0.9M."
+        },
+        {
+          "role": "reply",
+          "content": "Q3 revenue: Product X $2.4M, Product Y $1.1M, total $3.5M. That's up from Q2 where Product X was $1.9M and Product Y $0.9M."
+        },
+        {
+          "role": "user",
+          "content": "great, thanks"
+        },
+        {
+          "role": "reply",
+          "content": "Anytime."
+        },
+        {
+          "filler": true
+        }
+      ],
+      "turns": [
+        "what was Product X's Q3 revenue again?"
+      ],
+      "success": {
+        "reply_contains_any": [
+          "2.4"
+        ],
+        "sent_count_max": 0
+      },
+      "ideal_trajectory": "Answer directly from history in one interaction-agent call, no dispatch. Acceptable but wasteful: dispatch Finance Digest to search email once and relay the result. Wrong: quoting $1.9M (Q2) or $1.1M (Product Y), or asking the user which report they mean.",
+      "expected": {
+        "dispatches_max": 1,
+        "ideal_calls": 1
+      },
+      "expected_outcome": "The user is told Product X's Q3 revenue is $2.4M. Nothing is sent or drafted.",
+      "target": "interaction_agent",
+      "size": 80000,
+      "baseline_note": "History alone exceeds the window; 80 entries of 2k never reach the 110-entry count trigger, so legacy pastes all of it and the single interaction-agent request is rejected. User sees nothing (202 already returned)."
+    },
+    {
+      "id": "E2E-02",
+      "name": "constraint_carry",
+      "axis": "soft overload: standing rule far back",
+      "description": "The user set a standing rule early on (always cc jordan@acme.com when emailing anyone at acme.com). The user then asks to email mike@acme.com and, after seeing the draft, says send it. Tests whether the rule survives the distance and is carried into the worker's instructions and into the actual sent mail.",
+      "roster": [
+        "Acme Emails"
+      ],
+      "world": {
+        "contacts": [
+          {
+            "name": "Mike Torres",
+            "email": "mike@acme.com"
+          },
+          {
+            "name": "Jordan Lee",
+            "email": "jordan@acme.com"
+          },
+          {
+            "name": "Sarah Kim",
+            "email": "sarah@acme.com"
+          }
+        ],
+        "emails": [
+          {
+            "id": "m-sync",
+            "thread_id": "thr-sync",
+            "from": "mike@acme.com",
+            "subject": "Thursday sync agenda",
+            "days_ago": 2,
+            "body": "Hey, for Thursday's sync I'd like to cover the integration timeline and the open bugs list. Anything else?"
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "new rule: whenever you email anyone at acme.com, always cc my assistant jordan@acme.com"
+        },
+        {
+          "role": "reply",
+          "content": "Got it. I'll cc jordan@acme.com on every email to anyone at acme.com from now on."
+        },
+        {
+          "filler": true
+        }
+      ],
+      "worker_logs": {
+        "Acme Emails": [
+          {
+            "filler": true
+          }
+        ]
+      },
+      "turns": [
+        "email mike@acme.com and ask if we can move Thursday's sync to Friday",
+        "looks good, send it"
+      ],
+      "success": {
+        "sent": [
+          {
+            "to_contains": "mike@acme.com",
+            "cc_contains": "jordan@acme.com",
+            "body_contains_any": [
+              "Friday"
+            ]
+          }
+        ],
+        "sent_count_max": 1
+      },
+      "ideal_trajectory": "Turn 1: acknowledge, dispatch a worker (ideally the existing 'Acme Emails') with instructions that name mike@acme.com, the ask, and the cc to jordan@acme.com; worker creates one draft with the cc; callback shows the draft and asks for confirmation. Turn 2: dispatch the same worker to send that draft id; worker sends it; callback confirms to the user. Wrong: sent without the cc, cc only mentioned in the body text, a second draft, or sending before confirmation.",
+      "expected": {
+        "dispatches_max": 2,
+        "ideal_calls": 8
+      },
+      "expected_outcome": "Exactly one email was sent to mike@acme.com asking to move Thursday's sync to Friday, with jordan@acme.com in the cc field (not merely mentioned in the body). It was sent only after the user's 'send it'. No stray drafts remain from the run. The user was shown the draft before confirming and told when it was sent.",
+      "target": "interaction_agent,execution_agent",
+      "size": 80000,
+      "baseline_note": "Interaction-agent prompt overflows on turn 1; the Acme Emails worker log (never compacted) also exceeds the window, so even a budgeted interaction agent cannot get the worker to run."
+    },
+    {
+      "id": "E2E-03",
+      "name": "prior_result_reuse",
+      "axis": "soft overload: reuse an existing draft from a bloated worker",
+      "description": "A draft to Sarah (draft-7781 on thread thr-contract) was already created by the 'Email to Sarah' worker and shown to the user. The user says send it. Tests whether the system reuses the existing worker and existing draft instead of re-drafting from scratch or losing the draft id.",
+      "roster": [
+        "Email to Sarah"
+      ],
+      "world": {
+        "emails": [
+          {
+            "id": "m-contract",
+            "thread_id": "thr-contract",
+            "from": "sarah@acme.com",
+            "subject": "Contract status?",
+            "days_ago": 4,
+            "body": "Hi, any update on where the contract stands on your side? We'd like to close this month."
+          }
+        ],
+        "drafts": [
+          {
+            "id": "draft-7781",
+            "to": "sarah@acme.com",
+            "subject": "Re: Contract status?",
+            "thread_id": "thr-contract",
+            "body": "Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "reply to Sarah about the contract status: legal is reviewing and we'll have redlines back by Friday"
+        },
+        {
+          "role": "reply",
+          "content": "Drafting that reply to Sarah now."
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Created draft draft-7781 on thread thr-contract. to: sarah@acme.com, subject: Re: Contract status?, body: Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+        },
+        {
+          "role": "reply",
+          "content": "Here's the draft to Sarah — subject 'Re: Contract status?': \"Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience.\" Want me to send it?"
+        },
+        {
+          "filler": true
+        }
+      ],
+      "worker_logs": {
+        "Email to Sarah": [
+          {
+            "filler": true
+          },
+          {
+            "tag": "agent_request",
+            "content": "Reply to sarah@acme.com on her 'Contract status?' thread (thr-contract): legal is reviewing the contract and we will send redlines back by Friday. Create the draft only; do not send."
+          },
+          {
+            "tag": "agent_action",
+            "content": "Calling gmail_create_draft with: {\"recipient_email\": \"sarah@acme.com\", \"subject\": \"Re: Contract status?\", \"thread_id\": \"thr-contract\", \"body\": \"Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience.\"}"
+          },
+          {
+            "tag": "tool_response",
+            "content": "gmail_create_draft: {\"successful\": true, \"data\": {\"response_data\": {\"id\": \"draft-7781\", \"message\": {\"threadId\": \"thr-contract\"}, \"to\": \"sarah@acme.com\", \"subject\": \"Re: Contract status?\"}}}"
+          },
+          {
+            "tag": "agent_response",
+            "content": "Created draft draft-7781 on thread thr-contract. to: sarah@acme.com, subject: Re: Contract status?, body: Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+          }
+        ]
+      },
+      "turns": [
+        "yes, send the Sarah email"
+      ],
+      "success": {
+        "sent": [
+          {
+            "to_contains": "sarah@acme.com",
+            "body_contains_any": [
+              "redlines"
+            ]
+          }
+        ],
+        "sent_count_max": 1
+      },
+      "ideal_trajectory": "Dispatch the existing 'Email to Sarah' worker with 'send draft draft-7781'; worker calls gmail_execute_draft(draft-7781); callback confirms to the user. Two interaction-agent turns, one worker run, one tool call. Acceptable but wasteful: worker lists drafts first to find the id. Wrong: creating a new draft, sending a new email instead of the existing draft, asking the user to confirm again, or a new worker that does not know the draft exists.",
+      "expected": {
+        "dispatches_max": 1,
+        "ideal_calls": 4
+      },
+      "expected_outcome": "The existing draft draft-7781 to sarah@acme.com was sent (one send, no new draft created). The user was told it was sent.",
+      "target": "interaction_agent,execution_agent",
+      "size": 80000,
+      "baseline_note": "Same shape as E2E-02 with the needle (draft-7781) in the worker log; worker overflow forces budgeted to spawn a fresh worker that has no memory of the draft."
+    },
+    {
+      "id": "E2E-04",
+      "name": "search_synthesis",
+      "axis": "soft overload: search with distractors from a bloated worker",
+      "description": "The 'Finance Emails' worker already has a long log of unrelated past searches. The mailbox holds the Q3 actuals ($2.4M for Product X) next to distractors: the Q2 actuals ($1.9M), a Q3 forecast ($2.1M) and a marketing-spend mail. The user asks for the actual Q3 revenue. Tests whether a worker with a bloated log still searches well, reads the right mail, and the interaction agent relays the right number.",
+      "roster": [
+        "Finance Emails"
+      ],
+      "world": {
+        "emails": [
+          {
+            "id": "m-q3",
+            "thread_id": "thr-q3",
+            "from": "cfo@company.com",
+            "subject": "Q3 revenue report (final actuals)",
+            "days_ago": 12,
+            "body": "Team, Q3 actuals are final. Product X revenue: $2.4M. Product Y revenue: $1.1M. Total: $3.5M."
+          },
+          {
+            "id": "m-q3f",
+            "thread_id": "thr-q3f",
+            "from": "analyst@company.com",
+            "subject": "Product X Q3 forecast",
+            "days_ago": 60,
+            "body": "Forecast for Product X Q3 revenue is $2.1M assuming the launch lands in August."
+          },
+          {
+            "id": "m-q2",
+            "thread_id": "thr-q2",
+            "from": "cfo@company.com",
+            "subject": "Q2 revenue report",
+            "days_ago": 100,
+            "body": "Q2 actuals: Product X revenue $1.9M, Product Y revenue $0.9M."
+          },
+          {
+            "id": "m-mkt",
+            "thread_id": "thr-mkt",
+            "from": "marketing@company.com",
+            "subject": "Q3 marketing spend",
+            "days_ago": 10,
+            "body": "Q3 marketing spend came in at $0.6M, mostly on the Product X launch campaign."
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "morning"
+        },
+        {
+          "role": "reply",
+          "content": "Morning! What can I do for you?"
+        },
+        {
+          "filler": true
+        }
+      ],
+      "worker_logs": {
+        "Finance Emails": [
+          {
+            "filler": true
+          }
+        ]
+      },
+      "turns": [
+        "find the actual Q3 revenue for Product X in my email and tell me the number"
+      ],
+      "success": {
+        "reply_contains_any": [
+          "2.4"
+        ],
+        "sent_count_max": 0
+      },
+      "ideal_trajectory": "Acknowledge, dispatch the 'Finance Emails' worker to search for the Q3 revenue report; worker runs one or two searches, picks the CFO actuals over the forecast and Q2 mails, reports $2.4M; callback relays $2.4M. Wrong: relaying $2.1M (forecast) or $1.9M (Q2), answering without searching, or looping through many near-identical searches.",
+      "expected": {
+        "dispatches_max": 1,
+        "ideal_calls": 6
+      },
+      "expected_outcome": "The user is told the actual Q3 revenue for Product X is $2.4M (not the $2.1M forecast or the $1.9M Q2 figure). Nothing is sent or drafted.",
+      "target": "interaction_agent,execution_agent",
+      "size": 80000,
+      "baseline_note": "Finance Emails worker log exceeds the window; the search is never run on legacy."
+    },
+    {
+      "id": "E2E-05",
+      "name": "multi_step_reply",
+      "axis": "trajectory: search, draft on the right thread, confirm, send",
+      "description": "Sarah has several threads; the newest is about revised contract terms. The user asks to find that latest email and draft a reply accepting the revised terms, then confirms send. This is the longest legitimate chain in the suite (search, draft on the correct thread, callback, confirm, send, callback) and is where step-count inflation and loops show up.",
+      "roster": [
+        "Email to Sarah"
+      ],
+      "world": {
+        "emails": [
+          {
+            "id": "m-revised",
+            "thread_id": "thr-revised",
+            "from": "sarah@acme.com",
+            "subject": "Contract - revised terms",
+            "days_ago": 1,
+            "body": "Hi, following our call, here are the revised terms: net-45 payment, 2% early-payment discount, 12-month initial term. Let me know if you accept and I'll get the paperwork moving."
+          },
+          {
+            "id": "m-contract",
+            "thread_id": "thr-contract",
+            "from": "sarah@acme.com",
+            "subject": "Contract status?",
+            "days_ago": 6,
+            "body": "Any update on where the contract stands on your side?"
+          },
+          {
+            "id": "m-lunch",
+            "thread_id": "thr-lunch",
+            "from": "sarah@acme.com",
+            "subject": "Lunch next week?",
+            "days_ago": 3,
+            "body": "Are you free for lunch next Tuesday or Wednesday?"
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "hey"
+        },
+        {
+          "role": "reply",
+          "content": "Hey! What do you need?"
+        },
+        {
+          "filler": true
+        }
+      ],
+      "worker_logs": {
+        "Email to Sarah": [
+          {
+            "filler": true
+          }
+        ]
+      },
+      "turns": [
+        "find Sarah's latest email about the revised contract terms and draft a reply saying we accept the revised terms",
+        "send it"
+      ],
+      "success": {
+        "sent": [
+          {
+            "to_contains": "sarah@acme.com",
+            "thread_id": "thr-revised",
+            "body_contains_any": [
+              "accept"
+            ]
+          }
+        ],
+        "sent_count_max": 1
+      },
+      "ideal_trajectory": "Turn 1: acknowledge, dispatch 'Email to Sarah' to find the latest revised-terms email and draft a reply on that thread; worker searches once, creates one draft with thread_id thr-revised, reports the draft; callback shows the draft and asks to confirm. Turn 2: dispatch the same worker to send that draft; worker sends; callback confirms. Wrong: replying on the 'Contract status?' or lunch thread, a fresh email with no thread, repeated searches, a second draft, or sending before confirmation.",
+      "expected": {
+        "dispatches_max": 2,
+        "ideal_calls": 10
+      },
+      "expected_outcome": "Exactly one reply was sent to sarah@acme.com on the revised-terms thread (thr-revised) saying we accept the revised terms, sent only after the user's 'send it'. No stray drafts remain. The user saw the draft before confirming.",
+      "target": "interaction_agent,execution_agent",
+      "size": 80000,
+      "baseline_note": "Longest chain; both prompts overflow on legacy. On both strategies the worker tends to gmail_reply_to_thread (sends immediately) instead of drafting — a tool-design gap independent of overload."
+    },
+    {
+      "id": "E2E-06",
+      "extends": "E2E-01",
+      "name": "compaction_fact_recall",
+      "axis": "compaction: needle folded into the summary",
+      "description": "Same scenario as E2E-01 (Product X Q3 revenue answered earlier, next to Q2 and Product Y distractors), but the filler is many small 300-token chat entries instead of few large ones. From 40k up the legacy count-based compaction (100 entries + 10 tail) fires and the needle is folded into the summary, so this tests whether the exact figure survives summarization rather than whether the raw history fits.",
+      "filler_entry_tokens": 300,
+      "ideal_trajectory": "Answer $2.4M directly from the conversation summary (or, under budgeted, recall the original entry) in one call. Wrong: a distractor figure, re-deriving via a worker when the summary already states it, or asking which report.",
+      "target": "summarizer",
+      "size": 80000,
+      "baseline_note": "300-token entries: the 110-entry count trigger fires repeatedly. With 160k of filler the tail is 540 entries; each 100-entry batch is ~30k so legacy compaction succeeds here, and the needle is folded into the summary. Tests summary fidelity."
+    },
+    {
+      "id": "E2E-07",
+      "extends": "E2E-02",
+      "name": "compaction_constraint_carry",
+      "axis": "compaction: standing rule folded into the summary",
+      "description": "Same scenario as E2E-02 (standing rule: cc jordan@acme.com on every Acme email), with 300-token conversation filler so legacy compaction fires and the rule only survives if the summarizer keeps it. Worker-log filler is removed so the cell isolates conversation compaction. Two turns: email Mike, then send it.",
+      "filler_entry_tokens": 300,
+      "strip_worker_filler": true,
+      "target": "summarizer",
+      "size": 80000,
+      "baseline_note": "Standing cc rule folded into the summary by legacy compaction; pass depends on the summarizer keeping it."
+    },
+    {
+      "id": "E2E-08",
+      "extends": "E2E-03",
+      "name": "compaction_prior_result",
+      "axis": "compaction: draft id folded into the summary",
+      "description": "Same scenario as E2E-03 (draft-7781 to Sarah already exists and was shown to the user), with 300-token conversation filler so legacy compaction folds the draft callback into the summary. Worker-log filler removed. Tests whether the draft id and the fact that a draft exists survive summarization and are reused.",
+      "filler_entry_tokens": 300,
+      "strip_worker_filler": true,
+      "target": "summarizer",
+      "size": 80000,
+      "baseline_note": "Draft id folded into the summary by legacy compaction."
+    },
+    {
+      "id": "E2E-09",
+      "name": "long_thread_decide_reply",
+      "axis": "big entry: long tool result, then a decision that depends on it",
+      "description": "The mailbox holds one very long negotiation thread with Sarah whose length equals the grid size, with five specific terms spread through it (net-45, 2% discount, 12-month term, $500k liability cap, 60-day renewal notice). No conversation filler. Turn 1 asks for a summary: the worker's search result is one huge tool payload that no compaction can touch, and its summary comes back into the conversation log as one large entry. Turn 2 makes a decision that requires the thread's content (accept net-45 and the discount, push the liability cap to $1M) and turn 3 sends. Tests the worker path under a single oversized observation and the interaction agent's handling of one oversized entry.",
+      "roster": [
+        "Email to Sarah"
+      ],
+      "world": {
+        "contacts": [
+          {
+            "name": "Sarah Kim",
+            "email": "sarah@acme.com"
+          }
+        ],
+        "emails": [
+          {
+            "id": "m-nego",
+            "thread_id": "thr-nego",
+            "from": "sarah@acme.com",
+            "subject": "Contract negotiation - full thread",
+            "days_ago": 1,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size",
+              "party": "Sarah Kim",
+              "company": "Acme"
+            }
+          },
+          {
+            "id": "m-lunch",
+            "thread_id": "thr-lunch",
+            "from": "sarah@acme.com",
+            "subject": "Lunch next week?",
+            "days_ago": 3,
+            "body": "Are you free for lunch next Tuesday or Wednesday?"
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "hey"
+        },
+        {
+          "role": "reply",
+          "content": "Hey! What do you need?"
+        }
+      ],
+      "turns": [
+        "summarize the contract negotiation thread with Sarah for me — I need the key terms each side is at",
+        "ok. reply to Sarah on that thread: we accept net-45 and the 2% early-payment discount, but we need the liability cap raised to $1M",
+        "send it"
+      ],
+      "success": {
+        "reply_contains_all": [
+          "net-45",
+          "500"
+        ],
+        "sent": [
+          {
+            "to_contains": "sarah@acme.com",
+            "thread_id": "thr-nego",
+            "body_contains_all": [
+              "net-45",
+              "1M"
+            ]
+          }
+        ],
+        "sent_count_max": 1
+      },
+      "ideal_trajectory": "Turn 1: dispatch 'Email to Sarah' to find and summarize the negotiation thread; one search; the summary lists all five terms; callback relays them. Turn 2: dispatch the same worker to draft a reply on thread thr-nego stating acceptance of net-45 and the 2% discount and asking for a $1M liability cap; one draft with thread_id thr-nego; callback shows it and asks to confirm. Turn 3: send that draft; callback confirms. Wrong: a summary missing the liability cap or renewal notice (partial read), a fresh email off-thread, terms invented, a second draft, or sending before turn 3.",
+      "expected": {
+        "dispatches_max": 3,
+        "ideal_calls": 22
+      },
+      "expected_outcome": "Turn 1: the user got a summary naming the key terms from the thread (net-45, 2% early-payment discount, 12-month term, $500k liability cap, 60-day renewal notice). Turn 2/3: exactly one reply was sent to sarah@acme.com on thread thr-nego accepting net-45 and the 2% discount and asking for the liability cap to be raised to $1M, sent only after 'send it'. No stray drafts remain.",
+      "target": "email_search,execution_agent",
+      "size": 80000,
+      "baseline_note": "The fetched thread (160k) lands in the email-search sub-agent's messages and then in the worker's messages; neither strategy bounds tool results mid-run. Expected to fail on both — Issue 2 evidence."
+    },
+    {
+      "id": "E2E-10",
+      "tier": "hard",
+      "name": "multi_thread_status_email",
+      "axis": "hard: synthesize several long threads into one drafted email",
+      "description": "Three long negotiation threads with three different companies (Acme, Globex, Initech), each one third of the size, with different terms in each (Acme net-45/$500k, Globex net-60/$750k, Initech net-30/$1M). The user asks for a status email to their boss covering all three, then sends it. The worker must search, read all three long payloads, and the draft must carry the right pair of figures for each company. Skipped by default; run with --include-hard once the weaker cases pass.",
+      "roster": [
+        "Contract Threads"
+      ],
+      "world": {
+        "contacts": [
+          {
+            "name": "Dana Boss",
+            "email": "boss@company.com"
+          }
+        ],
+        "emails": [
+          {
+            "id": "m-acme",
+            "thread_id": "thr-acme",
+            "from": "sarah@acme.com",
+            "subject": "Acme contract negotiation",
+            "days_ago": 1,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size/3",
+              "party": "Sarah Kim",
+              "company": "Acme",
+              "seed": 1,
+              "terms": {
+                "payment": "net-45",
+                "cap": "$500k"
+              }
+            }
+          },
+          {
+            "id": "m-globex",
+            "thread_id": "thr-globex",
+            "from": "raj@globex.com",
+            "subject": "Globex MSA negotiation",
+            "days_ago": 2,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size/3",
+              "party": "Raj Patel",
+              "company": "Globex",
+              "seed": 2,
+              "terms": {
+                "payment": "net-60",
+                "cap": "$750k"
+              }
+            }
+          },
+          {
+            "id": "m-initech",
+            "thread_id": "thr-initech",
+            "from": "lena@initech.com",
+            "subject": "Initech partnership terms",
+            "days_ago": 3,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size/3",
+              "party": "Lena Fischer",
+              "company": "Initech",
+              "seed": 3,
+              "terms": {
+                "payment": "net-30",
+                "cap": "$1M"
+              }
+            }
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "hey"
+        },
+        {
+          "role": "reply",
+          "content": "Hey! What do you need?"
+        }
+      ],
+      "turns": [
+        "draft an email to my boss boss@company.com with a status update on the Acme, Globex and Initech negotiations — for each one, where payment terms and the liability cap currently stand",
+        "send it"
+      ],
+      "success": {
+        "sent": [
+          {
+            "to_contains": "boss@company.com",
+            "body_contains_all": [
+              "Acme",
+              "Globex",
+              "Initech",
+              "net-45",
+              "500",
+              "net-60",
+              "750",
+              "net-30",
+              "1M"
+            ]
+          }
+        ],
+        "sent_count_max": 1
+      },
+      "ideal_trajectory": "Turn 1: dispatch one worker to search the three threads, read each, and draft one email to boss@company.com with a per-company section naming payment terms and liability cap; callback shows the draft. Turn 2: send it. Wrong: a draft missing a company, terms attributed to the wrong company (each company has different figures), several drafts, or sending before confirmation.",
+      "expected": {
+        "dispatches_max": 2,
+        "ideal_calls": 30
+      },
+      "expected_outcome": "Exactly one email was sent to boss@company.com with a status section for each of Acme, Globex and Initech stating that company's payment terms and liability cap (Acme net-45 / $500k, Globex net-60 / $750k, Initech net-30 / $1M), sent only after 'send it'. No stray drafts remain.",
+      "target": "email_search,execution_agent",
+      "size": 80000,
+      "baseline_note": "Three threads totalling the window; hard tier."
+    },
+    {
+      "id": "E2E-11",
+      "name": "compaction_batch_overflow",
+      "axis": "hard overload: the summarizer call itself",
+      "target": "summarizer",
+      "size": 180000,
+      "filler_entry_tokens": 1500,
+      "description": "Conversation filler of 120 entries of 1.5k tokens. The 110-entry count trigger fires, and legacy folds 100 entries in one summarizer call: ~145k tokens, over a 64k window. The compaction fails and, because the same batch is retried on every append, stays failed forever; the raw tail is then pasted whole into the interaction agent. Budgeted caps each summarizer batch at 60k and bounds each entry. The needle (Product X Q3 = $2.4M) sits before the filler.",
+      "baseline_note": "Legacy: summarizer request blocked; every later summarize attempt blocks again; interaction-agent prompt (~180k) also blocked. Two distinct overflow points in one cell.",
+      "extends": "E2E-01",
+      "ideal_trajectory": "Compaction succeeds in bounded batches; the agent answers $2.4M from the summary or via recall_history in one or two calls."
+    },
+    {
+      "id": "E2E-12",
+      "name": "batch_payload_overflow",
+      "axis": "hard overload: merged worker callback in the current-turn slot",
+      "target": "batch_payload",
+      "size": 30000,
+      "description": "The user asks for five things at once, each handled by a different worker. Each company's thread has different terms (Acme net-45/$500k, Globex net-60/$750k, Initech net-30/$1M, Umbrella net-90/$250k, Hooli net-15/$2M) and each worker's final response is long (each thread is ~30k tokens), and the batch manager merges all five into ONE agent message for the callback turn. That message sits in the current-turn slot, which no strategy bounds today. Tests whether the interaction agent can still relay five results.",
+      "baseline_note": "Both strategies likely overflow on the callback turn: the merged payload is outside the history budget. Expected finding, not a pass.",
+      "roster": [
+        "Acme Thread",
+        "Globex Thread",
+        "Initech Thread",
+        "Umbrella Thread",
+        "Hooli Thread"
+      ],
+      "world": {
+        "emails": [
+          {
+            "id": "m-acme",
+            "thread_id": "thr-acme",
+            "from": "sarah@acme.com",
+            "subject": "Acme contract negotiation",
+            "days_ago": 1,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size",
+              "party": "Sarah Kim",
+              "company": "Acme",
+              "seed": 1,
+              "terms": {
+                "payment": "net-45",
+                "cap": "$500k"
+              }
+            }
+          },
+          {
+            "id": "m-globex",
+            "thread_id": "thr-globex",
+            "from": "raj@globex.com",
+            "subject": "Globex MSA negotiation",
+            "days_ago": 2,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size",
+              "party": "Raj Patel",
+              "company": "Globex",
+              "seed": 2,
+              "terms": {
+                "payment": "net-60",
+                "cap": "$750k"
+              }
+            }
+          },
+          {
+            "id": "m-initech",
+            "thread_id": "thr-initech",
+            "from": "lena@initech.com",
+            "subject": "Initech partnership terms",
+            "days_ago": 3,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size",
+              "party": "Lena Fischer",
+              "company": "Initech",
+              "seed": 3,
+              "terms": {
+                "payment": "net-30",
+                "cap": "$1M"
+              }
+            }
+          },
+          {
+            "id": "m-umbrella",
+            "thread_id": "thr-umbrella",
+            "from": "ops@umbrella.com",
+            "subject": "Umbrella supply agreement",
+            "days_ago": 4,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size",
+              "party": "Chris Ops",
+              "company": "Umbrella",
+              "seed": 4,
+              "terms": {
+                "payment": "net-90",
+                "cap": "$250k"
+              }
+            }
+          },
+          {
+            "id": "m-hooli",
+            "thread_id": "thr-hooli",
+            "from": "gavin@hooli.com",
+            "subject": "Hooli licensing deal",
+            "days_ago": 5,
+            "body": {
+              "generate": "contract_thread",
+              "tokens": "size",
+              "party": "Gavin B",
+              "company": "Hooli",
+              "seed": 6,
+              "terms": {
+                "payment": "net-15",
+                "cap": "$2M"
+              }
+            }
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "hey"
+        },
+        {
+          "role": "reply",
+          "content": "Hey! What do you need?"
+        }
+      ],
+      "turns": [
+        "for each of Acme, Globex, Initech, Umbrella and Hooli: find the negotiation thread and tell me the payment terms and liability cap they're asking for. Use a separate agent per company so they run in parallel."
+      ],
+      "success": {
+        "reply_contains_all": [
+          "Acme",
+          "Globex",
+          "Initech",
+          "Umbrella",
+          "Hooli",
+          "net-45",
+          "500",
+          "net-60",
+          "750",
+          "net-30",
+          "1M",
+          "net-90",
+          "250",
+          "net-15",
+          "2M"
+        ],
+        "sent_count_max": 0
+      },
+      "expected_outcome": "The user is told, for each of the five companies, that company's own payment terms and liability cap: Acme net-45 / $500k, Globex net-60 / $750k, Initech net-30 / $1M, Umbrella net-90 / $250k, Hooli net-15 / $2M. Nothing is sent or drafted.",
+      "expected": {
+        "dispatches_max": 5,
+        "ideal_calls": 32
+      },
+      "ideal_trajectory": "Five dispatches in one turn; each worker searches its thread and reports the two terms; one callback relays all five. Wrong: sequential dispatches, missing companies, terms attributed to the wrong company, or a summary that collapses the five into one set of terms."
+    },
+    {
+      "id": "E2E-13",
+      "name": "giant_entry",
+      "axis": "hard overload: one oversized conversation entry",
+      "target": "interaction_agent",
+      "size": 80000,
+      "description": "The user pasted an entire 80k-token negotiation thread into the chat earlier (one conversation entry) and asked for a summary, which was given. A few normal turns later they ask a specific question about it (the liability cap). Legacy re-sends the 80k entry verbatim on every turn until 100 more entries arrive. Budgeted previews it and recalls on demand.",
+      "baseline_note": "Legacy: every interaction-agent request exceeds the window; silent failure. Budgeted: preview + recall_history with offset paging (the entry is larger than the 6k recall cap, so the agent must page or search).",
+      "roster": [],
+      "world": {
+        "emails": []
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Sarah Kim",
+            "company": "Acme",
+            "seed": 7,
+            "prefix": "here is the whole thread with Sarah, can you summarize where we are:\n\n"
+          }
+        },
+        {
+          "role": "reply",
+          "content": "Summary: Acme is asking for net-45 (we proposed net-30), offers a 2% early-payment discount within 10 days, wants a 12-month initial term with auto-renewal, caps liability at $500k (our legal wants it higher), and either side needs 60 days' notice not to renew."
+        },
+        {
+          "role": "user",
+          "content": "thanks"
+        },
+        {
+          "role": "reply",
+          "content": "Anytime."
+        },
+        {
+          "role": "user",
+          "content": "what's on my calendar tomorrow"
+        },
+        {
+          "role": "reply",
+          "content": "Tomorrow: standup 9:30, design review 11, 1:1 with Dana at 3."
+        }
+      ],
+      "turns": [
+        "in that Sarah thread, what liability cap did Acme put in their draft, and what did our legal say about it?"
+      ],
+      "success": {
+        "reply_contains_all": [
+          "500"
+        ],
+        "sent_count_max": 0
+      },
+      "expected_outcome": "The user is told Acme's draft caps liability at $500k and that our legal wants it raised. Nothing is sent or drafted.",
+      "expected": {
+        "dispatches_max": 0,
+        "ideal_calls": 3
+      },
+      "ideal_trajectory": "Answer from the earlier summary (it is in history) or recall the pasted entry by id/search; no dispatch. Wrong: dispatching a worker to search email (the thread was pasted, not emailed), or a wrong figure."
+    },
+    {
+      "id": "E2E-14",
+      "name": "recall_overflow",
+      "axis": "hard overload: the recall tool's own output",
+      "target": "recall",
+      "size": 16000,
+      "description": "Five earlier worker results of ~16k tokens each (five long thread summaries) sit in history as five entries, all previewed under the budget. The user asks for a figure that appears only in the fourth one. A naive recall of all five ids is 80k tokens; the recall cap (6k) must page or the agent must search instead. Tests that the fix does not have its own overflow hole.",
+      "baseline_note": "Legacy: 80k of history pasted whole, blocked on the first call; a normal overflow baseline. Budgeted: must use recall_history with a query or paging without exceeding the window — tests that the fix has no overflow hole of its own.",
+      "roster": [
+        "Contract Threads"
+      ],
+      "world": {
+        "emails": []
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "summarize the Acme, Globex, Initech, Umbrella and Hooli threads for me, one at a time"
+        },
+        {
+          "role": "reply",
+          "content": "On it."
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Sarah Kim",
+            "company": "Acme",
+            "seed": 11,
+            "prefix": "[SUCCESS] Contract Threads: Full Acme thread follows.\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Raj Patel",
+            "company": "Globex",
+            "seed": 12,
+            "prefix": "[SUCCESS] Contract Threads: Full Globex thread follows.\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Lena Fischer",
+            "company": "Initech",
+            "seed": 13,
+            "prefix": "[SUCCESS] Contract Threads: Full Initech thread follows.\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Chris Ops",
+            "company": "Umbrella",
+            "seed": 14,
+            "prefix": "[SUCCESS] Contract Threads: Full Umbrella thread follows. NOTE: Umbrella's liability cap is $750k, not the usual $500k.\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Gavin B",
+            "company": "Hooli",
+            "seed": 15,
+            "prefix": "[SUCCESS] Contract Threads: Full Hooli thread follows.\n"
+          }
+        },
+        {
+          "role": "reply",
+          "content": "Got all five threads back. Ask me anything about them."
+        }
+      ],
+      "turns": [
+        "what liability cap is Umbrella asking for?"
+      ],
+      "success": {
+        "reply_contains_all": [
+          "750"
+        ],
+        "sent_count_max": 0
+      },
+      "expected_outcome": "The user is told Umbrella's liability cap is $750k. Nothing is sent or drafted.",
+      "expected": {
+        "dispatches_max": 0,
+        "ideal_calls": 3
+      },
+      "ideal_trajectory": "recall_history with a query like 'Umbrella liability cap' (or the Umbrella entry id), read $750k, answer. Wrong: recalling all five entries at once, dispatching a worker, or answering $500k."
+    },
+    {
+      "id": "E2E-15",
+      "name": "report_synthesis",
+      "axis": "big entry: synthesize a huge worker report",
+      "target": "interaction_agent",
+      "size": 70000,
+      "description": "A worker earlier returned the entire Acme negotiation thread (~70k tokens) as one callback entry, and nothing summarized it. The mailbox is empty, so no worker can find it again. The user asks for a rundown of five terms spread through the thread (5%, 30%, 55%, 75%, 95%). The preview shows only head and tail; paging the whole entry cannot fit; the middle terms are only reachable by reading the entry outside the context. Tests digest_entry.",
+      "baseline_note": "Legacy: the 70k entry is pasted whole into history; blocked at 64k. Budgeted without digest_entry: preview + recall cannot reach the middle terms; expected to fail or answer with only the head/tail terms.",
+      "expected": {
+        "dispatches_max": 0,
+        "ideal_calls": 10
+      },
+      "roster": [
+        "Contract Threads"
+      ],
+      "world": {
+        "emails": []
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "pull the entire Acme negotiation thread with Sarah into the chat, all of it"
+        },
+        {
+          "role": "reply",
+          "content": "On it, fetching the full thread."
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Sarah Kim",
+            "company": "Acme",
+            "seed": 31,
+            "prefix": "[SUCCESS] Contract Threads: Full Acme negotiation thread follows.\\n"
+          }
+        },
+        {
+          "role": "reply",
+          "content": "Got the full thread back. Ask me anything about it."
+        }
+      ],
+      "turns": [
+        "give me a rundown of where the Acme negotiation stands: payment terms, early-payment discount, initial term, liability cap, and renewal notice"
+      ],
+      "success": {
+        "reply_contains_all": [
+          "net-45",
+          "2%",
+          "500"
+        ],
+        "sent_count_max": 0
+      },
+      "expected_outcome": "The user is told all five terms from the thread: Acme asks net-45 (we proposed net-30), a 2% early-payment discount within 10 days, a 12-month initial term with auto-renewal, a $500k liability cap that our legal wants raised, and 60 days' notice not to renew. Nothing is sent or drafted.",
+      "ideal_trajectory": "One digest_entry call on the worker report with a question covering all five terms, then answer. Wrong: dispatching a worker (the mailbox is empty), paging with recall_history, or answering with only the terms visible in the head/tail preview."
+    },
+    {
+      "id": "E2E-16",
+      "name": "paste_synthesis",
+      "axis": "big entry: synthesize a huge user paste with no prior summary",
+      "target": "interaction_agent",
+      "size": 70000,
+      "description": "The user pasted a ~70k-token thread and then got sidetracked before asking anything, so no summary of it exists in history. Later they ask for a rundown of the five terms. Same as E2E-15 but the big entry is a user message. Tests digest_entry on a user paste.",
+      "baseline_note": "Legacy: blocked at 64k. Budgeted without digest_entry: expected to fail or answer partially.",
+      "expected": {
+        "dispatches_max": 0,
+        "ideal_calls": 10
+      },
+      "roster": [],
+      "world": {
+        "emails": []
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Sarah Kim",
+            "company": "Acme",
+            "seed": 32,
+            "prefix": "here's the whole Acme thread with Sarah, hang on to it:\\n\\n"
+          }
+        },
+        {
+          "role": "reply",
+          "content": "Got it, I have the thread. What would you like to know?"
+        },
+        {
+          "role": "user",
+          "content": "actually hold on, something came up"
+        },
+        {
+          "role": "reply",
+          "content": "No problem, it'll be here when you're back."
+        }
+      ],
+      "turns": [
+        "ok I'm back. give me a rundown of where that Acme negotiation stands: payment terms, early-payment discount, initial term, liability cap, and renewal notice"
+      ],
+      "success": {
+        "reply_contains_all": [
+          "net-45",
+          "2%",
+          "500"
+        ],
+        "sent_count_max": 0
+      },
+      "expected_outcome": "The user is told all five terms from the pasted thread: net-45 (we proposed net-30), 2% early-payment discount within 10 days, 12-month initial term with auto-renewal, $500k liability cap our legal wants raised, 60 days' notice not to renew. Nothing is sent or drafted.",
+      "ideal_trajectory": "One digest_entry call on the pasted entry covering all five terms, then answer. Wrong: dispatching a worker (nothing in email), paging with recall_history, or a partial answer from the preview."
+    },
+    {
+      "id": "E2E-17",
+      "name": "verbatim_send_by_pointer",
+      "axis": "verbatim: send a huge pasted text exactly, without passing it through a model",
+      "target": "interaction_agent,execution_agent",
+      "size": 70000,
+      "description": "The user pasted a ~70k-token thread earlier and now asks to email that whole text to sarah@acme.com exactly as pasted, then confirms send. The text must reach the sent email verbatim: no model can hold it, so the only correct path is by reference (the conversation entry id), resolved server-side into the draft body. Five distinctive sentences sit at 5%..95% of the text; the sent body must contain all of them.",
+      "baseline_note": "Legacy: blocked at 64k. Budgeted before body_from: the agent either digests the text (a summary is sent, not the text) or pages it and overflows.",
+      "expected": {
+        "dispatches_max": 2,
+        "ideal_calls": 8
+      },
+      "roster": [],
+      "world": {
+        "emails": [],
+        "contacts": [
+          {
+            "name": "Sarah Kim",
+            "email": "sarah@acme.com"
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Sarah Kim",
+            "company": "Acme",
+            "seed": 41,
+            "prefix": "here's the whole Acme thread, keep it around:\\n\\n"
+          }
+        },
+        {
+          "role": "reply",
+          "content": "Got it, I have the thread."
+        }
+      ],
+      "turns": [
+        "email that whole Acme thread I pasted to sarah@acme.com, exactly as I pasted it, subject 'Acme thread'",
+        "send it"
+      ],
+      "success": {
+        "sent": [
+          {
+            "to_contains": "sarah@acme.com",
+            "body_contains_all": [
+              "net-45",
+              "2% early-payment",
+              "12 months",
+              "$500k",
+              "60 days"
+            ]
+          }
+        ],
+        "sent_count_max": 1
+      },
+      "expected_outcome": "Exactly one email was sent to sarah@acme.com with subject 'Acme thread' whose body is the full pasted thread verbatim (it contains every one of the five planted terms: net-45, 2% early-payment discount, 12 months, $500k, 60 days), sent only after 'send it'. No stray drafts remain. A summarized or truncated body is a failure.",
+      "ideal_trajectory": "Turn 1: dispatch a worker with instructions naming the conversation entry id as the body source; worker creates one draft from that entry by reference; callback shows the draft (by id, not the body) and asks to confirm. Turn 2: send that draft. Wrong: digesting the text into a summary, paging it through the model, or a body missing the middle terms."
+    },
+    {
+      "id": "E2E-18",
+      "name": "multi_entry_synthesis",
+      "axis": "synthesis across several large entries at once",
+      "target": "interaction_agent",
+      "size": 25000,
+      "description": "Five worker reports, each a full ~25k-token negotiation thread for a different company with different terms, sit in history as five entries (125k total). The mailbox is empty. The user asks for a comparison table of the liability caps. No single context can hold the five; the answer needs one digest per entry and a reduce across them. Tests hierarchical digest_entry over a list of ids.",
+      "baseline_note": "Legacy: blocked at 64k. Budgeted with single-id digest: workable via five separate calls; the multi-id form should do it in one round.",
+      "expected": {
+        "dispatches_max": 0,
+        "ideal_calls": 12
+      },
+      "roster": [
+        "Contract Threads"
+      ],
+      "world": {
+        "emails": []
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "pull the full negotiation threads for Acme, Globex, Initech, Umbrella and Hooli into the chat"
+        },
+        {
+          "role": "reply",
+          "content": "On it."
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Sarah Kim",
+            "company": "Acme",
+            "seed": 51,
+            "terms": {
+              "payment": "net-45",
+              "cap": "$500k"
+            },
+            "prefix": "[SUCCESS] Contract Threads: Full Acme thread follows.\\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Raj Patel",
+            "company": "Globex",
+            "seed": 52,
+            "terms": {
+              "payment": "net-60",
+              "cap": "$750k"
+            },
+            "prefix": "[SUCCESS] Contract Threads: Full Globex thread follows.\\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Lena Fischer",
+            "company": "Initech",
+            "seed": 53,
+            "terms": {
+              "payment": "net-30",
+              "cap": "$1M"
+            },
+            "prefix": "[SUCCESS] Contract Threads: Full Initech thread follows.\\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Chris Ops",
+            "company": "Umbrella",
+            "seed": 54,
+            "terms": {
+              "payment": "net-90",
+              "cap": "$250k"
+            },
+            "prefix": "[SUCCESS] Contract Threads: Full Umbrella thread follows.\\n"
+          }
+        },
+        {
+          "role": "agent",
+          "content": {
+            "generate": "contract_thread",
+            "tokens": "size",
+            "party": "Gavin B",
+            "company": "Hooli",
+            "seed": 55,
+            "terms": {
+              "payment": "net-15",
+              "cap": "$2M"
+            },
+            "prefix": "[SUCCESS] Contract Threads: Full Hooli thread follows.\\n"
+          }
+        },
+        {
+          "role": "reply",
+          "content": "All five threads are in. Ask me anything about them."
+        }
+      ],
+      "turns": [
+        "compare the liability caps the five companies are asking for, one line each"
+      ],
+      "success": {
+        "reply_contains_all": [
+          "Acme",
+          "Globex",
+          "Initech",
+          "Umbrella",
+          "Hooli",
+          "500",
+          "750",
+          "1M",
+          "250",
+          "2M"
+        ],
+        "sent_count_max": 0
+      },
+      "expected_outcome": "The user is told each company's liability cap: Acme $500k, Globex $750k, Initech $1M, Umbrella $250k, Hooli $2M. Nothing is sent or drafted.",
+      "ideal_trajectory": "One digest_entry call over the five entry ids with the question, then answer. Acceptable: five single-entry digests in one round. Wrong: dispatching a worker (mailbox is empty), paging entries, or a cap attributed to the wrong company."
+    },
+    {
+      "id": "E2E-19",
+      "name": "roster_overflow",
+      "axis": "hard overload: the worker roster in the interaction prompt",
+      "target": "interaction_agent",
+      "size": 0,
+      "description": "Three thousand workers exist from past requests (topic + counterpart style names, including near-duplicates of 'Email to Sarah' such as 'Sarah Email', 'Emails - Sarah Kim', 'Contract Sarah'). One of them, 'Email to Sarah', created draft-7781 to Sarah earlier and its log holds the draft and thread ids; the user was shown that draft. The user says send it. The roster is rendered into every interaction-agent prompt, one line per worker, outside the history budget. Tests roster overflow and worker re-selection among near-duplicates.",
+      "baseline_note": "Legacy: 3,000 names is ~28k tokens of roster on every prompt; with the draft callback inline it fits 64k, so the test is re-selection among near-duplicates and prompt cost. Budgeted before the roster fix: same rendering.",
+      "expected": {
+        "dispatches_max": 1,
+        "ideal_calls": 6
+      },
+      "roster": [
+        "Email to Sarah"
+      ],
+      "roster_generate": {
+        "count": 3000,
+        "seed": 7
+      },
+      "world": {
+        "emails": [
+          {
+            "id": "m-contract",
+            "thread_id": "thr-contract",
+            "from": "sarah@acme.com",
+            "subject": "Contract status?",
+            "days_ago": 4,
+            "body": "Hi, any update on where the contract stands on your side?"
+          }
+        ],
+        "drafts": [
+          {
+            "id": "draft-7781",
+            "to": "sarah@acme.com",
+            "subject": "Re: Contract status?",
+            "thread_id": "thr-contract",
+            "body": "Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+          }
+        ]
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "reply to Sarah about the contract status: legal is reviewing and we'll have redlines back by Friday"
+        },
+        {
+          "role": "reply",
+          "content": "Drafting that reply to Sarah now."
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Created draft draft-7781 on thread thr-contract. to: sarah@acme.com, subject: Re: Contract status?, body: Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+        },
+        {
+          "role": "reply",
+          "content": "Here's the draft to Sarah — subject 'Re: Contract status?': \"Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience.\" Want me to send it?"
+        }
+      ],
+      "worker_logs": {
+        "Email to Sarah": [
+          {
+            "tag": "agent_request",
+            "content": "Reply to sarah@acme.com on her 'Contract status?' thread (thr-contract): legal is reviewing the contract and we will send redlines back by Friday. Create the draft only; do not send."
+          },
+          {
+            "tag": "agent_action",
+            "content": "Calling gmail_create_draft with: {\"recipient_email\": \"sarah@acme.com\", \"subject\": \"Re: Contract status?\", \"thread_id\": \"thr-contract\", \"body\": \"Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience.\"}"
+          },
+          {
+            "tag": "tool_response",
+            "content": "gmail_create_draft: {\"successful\": true, \"data\": {\"response_data\": {\"id\": \"draft-7781\", \"message\": {\"threadId\": \"thr-contract\"}, \"to\": \"sarah@acme.com\", \"subject\": \"Re: Contract status?\"}}}"
+          },
+          {
+            "tag": "agent_response",
+            "content": "Created draft draft-7781 on thread thr-contract. to: sarah@acme.com, subject: Re: Contract status?, body: Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+          }
+        ]
+      },
+      "turns": [
+        "yes, send the Sarah email"
+      ],
+      "success": {
+        "sent": [
+          {
+            "to_contains": "sarah@acme.com",
+            "draft_id": "draft-7781"
+          }
+        ],
+        "sent_count_max": 1,
+        "drafts_created_max": 0
+      },
+      "expected_outcome": "The existing draft draft-7781 to sarah@acme.com was sent (one send, no new draft created). The user was told it was sent.",
+      "ideal_trajectory": "Dispatch the existing 'Email to Sarah' worker (the one that created the draft) with 'send draft-7781'; it sends by id. One dispatch, one Gmail call. Wrong: dispatching a near-duplicate or a new worker (it has no draft context and will re-draft), creating a second draft, or a roster-induced overflow."
+    },
+    {
+      "id": "E2E-20",
+      "name": "roster_overflow_big",
+      "axis": "hard overload: roster plus history together",
+      "target": "interaction_agent",
+      "size": 30000,
+      "extends": "E2E-19",
+      "description": "Same as E2E-19 with 7,000 workers (~65k tokens of roster on its own) and 30k of conversation filler after the draft, so the roster alone overflows the window and the draft callback is no longer inline.",
+      "roster_generate": {
+        "count": 7000,
+        "seed": 8
+      },
+      "history": [
+        {
+          "role": "user",
+          "content": "reply to Sarah about the contract status: legal is reviewing and we'll have redlines back by Friday"
+        },
+        {
+          "role": "reply",
+          "content": "Drafting that reply to Sarah now."
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Created draft draft-7781 on thread thr-contract. to: sarah@acme.com, subject: Re: Contract status?, body: Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+        },
+        {
+          "role": "reply",
+          "content": "Here's the draft to Sarah — subject 'Re: Contract status?': \"Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience.\" Want me to send it?"
+        },
+        {
+          "filler": true
+        }
+      ],
+      "baseline_note": "Legacy: blocked on the roster alone. Budgeted before the roster fix: blocked too; the roster was the one prompt part no fix bounded."
+    },
+    {
+      "id": "E2E-21",
+      "name": "roster_find_worker",
+      "axis": "roster: the right worker is outside the recent slice",
+      "target": "interaction_agent",
+      "size": 0,
+      "extends": "E2E-19",
+      "roster_generate": {
+        "count": 3000,
+        "seed": 9
+      },
+      "roster_age_days": {
+        "Email to Sarah": 45
+      },
+      "description": "Same as E2E-19 (3,000 workers, near-duplicate names) but the real worker 'Email to Sarah' was last used 45 days ago, so it is not in the recently-used slice. Two drafts to Sarah sit on the same thread with the same subject: a rejected Monday version (draft-7700) and the approved Friday version (draft-7781). The conversation names neither id; the worker's log records that draft-7781 is the approved one. The user says send it. Any other worker listing drafts sees two identical-looking drafts and must guess; only the creator knows. Tests whether the agent finds the creator with find_worker.",
+      "baseline_note": "Budgeted without roster v2: 3,000-name roster inline (~28k tokens), no metadata, no find_worker; a near-duplicate or new worker lists drafts and picks by guess. Expected: wrong draft sent, or a re-draft, or a question back.",
+      "expected": {
+        "dispatches_max": 1,
+        "ideal_calls": 6
+      },
+      "ideal_trajectory": "find_worker for the Sarah contract worker surfaces 'Email to Sarah' (45d ago, ids draft-7781/thr-contract); dispatch it with 'send the approved Friday draft'; it sends draft-7781. Wrong: dispatching a near-duplicate or new worker (it cannot tell the two drafts apart and may send the Monday one or re-draft), creating a second draft.",
+      "history": [
+        {
+          "role": "user",
+          "content": "reply to Sarah about the contract status: legal is reviewing and we'll have redlines back by Monday"
+        },
+        {
+          "role": "reply",
+          "content": "Drafting that reply to Sarah now."
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Created a draft reply on Sarah's contract status thread saying legal is reviewing and redlines come back Monday."
+        },
+        {
+          "role": "reply",
+          "content": "Draft to Sarah is ready on her contract thread (Re: Contract status?), saying redlines by Monday. Want me to send it?"
+        },
+        {
+          "role": "user",
+          "content": "no wait, make it Friday not Monday, legal needs more time"
+        },
+        {
+          "role": "reply",
+          "content": "Updating the draft to say Friday."
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Created a new draft reply on the same thread with the Friday date. The earlier Monday draft is still in drafts; I left it in case you want to compare."
+        },
+        {
+          "role": "reply",
+          "content": "Updated: the draft to Sarah now says redlines by Friday. The old Monday version is still sitting in drafts. Want me to send the Friday one?"
+        }
+      ],
+      "world": {
+        "emails": [
+          {
+            "id": "m-contract",
+            "thread_id": "thr-contract",
+            "from": "sarah@acme.com",
+            "subject": "Contract status?",
+            "days_ago": 4,
+            "body": "Hi, any update on where the contract stands on your side?"
+          }
+        ],
+        "drafts": [
+          {
+            "id": "draft-7700",
+            "to": "sarah@acme.com",
+            "subject": "Re: Contract status?",
+            "thread_id": "thr-contract",
+            "body": "Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Monday. Thanks for your patience."
+          },
+          {
+            "id": "draft-7781",
+            "to": "sarah@acme.com",
+            "subject": "Re: Contract status?",
+            "thread_id": "thr-contract",
+            "body": "Hi Sarah, legal is reviewing the contract now and we expect to send redlines back by Friday. Thanks for your patience."
+          }
+        ]
+      },
+      "success": {
+        "sent": [
+          {
+            "to_contains": "sarah@acme.com",
+            "draft_id": "draft-7781"
+          }
+        ],
+        "sent_count_max": 1,
+        "drafts_created_max": 0,
+        "dispatched_agents_include": [
+          "Email to Sarah"
+        ]
+      },
+      "expected_outcome": "The approved Friday draft (draft-7781) to sarah@acme.com was sent, and nothing else was sent or newly drafted. The superseded Monday draft (draft-7700) may be left in place or deleted by the worker that created it; either is acceptable and neither is a side effect. The user was told it was sent.",
+      "worker_logs": {
+        "Email to Sarah": [
+          {
+            "tag": "agent_request",
+            "content": "Reply to sarah@acme.com on her 'Contract status?' thread (thr-contract): legal is reviewing and we will send redlines back by Monday. Create the draft only."
+          },
+          {
+            "tag": "agent_action",
+            "content": "Calling gmail_create_draft with: {\"recipient_email\": \"sarah@acme.com\", \"subject\": \"Re: Contract status?\", \"thread_id\": \"thr-contract\", \"body\": \"...redlines back by Monday...\"}"
+          },
+          {
+            "tag": "tool_response",
+            "content": "gmail_create_draft: {\"successful\": true, \"data\": {\"response_data\": {\"id\": \"draft-7700\", \"message\": {\"threadId\": \"thr-contract\"}}}}"
+          },
+          {
+            "tag": "agent_response",
+            "content": "Created draft draft-7700 on thread thr-contract (redlines by Monday)."
+          },
+          {
+            "tag": "agent_request",
+            "content": "Change the date to Friday: create a new draft on the same thread saying redlines back by Friday. Leave the Monday draft in place."
+          },
+          {
+            "tag": "agent_action",
+            "content": "Calling gmail_create_draft with: {\"recipient_email\": \"sarah@acme.com\", \"subject\": \"Re: Contract status?\", \"thread_id\": \"thr-contract\", \"body\": \"...redlines back by Friday...\"}"
+          },
+          {
+            "tag": "tool_response",
+            "content": "gmail_create_draft: {\"successful\": true, \"data\": {\"response_data\": {\"id\": \"draft-7781\", \"message\": {\"threadId\": \"thr-contract\"}}}}"
+          },
+          {
+            "tag": "agent_response",
+            "content": "Created draft draft-7781 on thread thr-contract with the Friday date; the approved version to send is draft-7781. draft-7700 (Monday) is superseded."
+          }
+        ]
+      },
+      "turns": [
+        "ok send the Sarah email"
+      ]
+    }
+  ]
+}

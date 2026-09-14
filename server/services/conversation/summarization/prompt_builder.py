@@ -63,11 +63,23 @@ def _format_existing_summary(previous_summary: str) -> str:
     return summary if summary else "None"
 
 
-def _format_log_entries(entries: List[LogEntry]) -> str:
+def _bound(payload: str, max_tokens: int) -> str:
+    """Head/tail preview for oversized entries so one entry cannot blow up the summariser prompt."""
+    if max_tokens <= 0:
+        return payload
+    max_chars = max_tokens * 4
+    if len(payload) <= max_chars:
+        return payload
+    head = int(max_chars * 0.7)
+    tail = max_chars - head
+    return f"{payload[:head]}\n[... {len(payload) - head - tail:,} characters omitted ...]\n{payload[-tail:]}"
+
+
+def _format_log_entries(entries: List[LogEntry], entry_max_tokens: int = 0) -> str:
     lines: List[str] = []
     for entry in entries:
         label = entry.tag.replace("_", " ")
-        payload = entry.payload.strip()
+        payload = _bound(entry.payload.strip(), entry_max_tokens)
         index = entry.index if entry.index >= 0 else "?"
         if payload:
             lines.append(f"[{index}] {label}: {payload}")
@@ -76,14 +88,16 @@ def _format_log_entries(entries: List[LogEntry]) -> str:
     return "\n".join(lines) if lines else "(no new logs)"
 
 
-def build_summarization_prompt(previous_summary: str, entries: List[LogEntry]) -> SummaryPrompt:
+def build_summarization_prompt(
+    previous_summary: str, entries: List[LogEntry], entry_max_tokens: int = 0
+) -> SummaryPrompt:
     content = dedent(
         f"""
         Existing memory summary:
         {_format_existing_summary(previous_summary)}
 
         New conversation logs to merge:
-        {_format_log_entries(entries)}
+        {_format_log_entries(entries, entry_max_tokens)}
         """
     ).strip()
 

@@ -1,0 +1,891 @@
+{
+  "$schema_notes": {
+    "history": "Seeded conversation log entries, oldest first. role is one of user | reply | agent, matching the log tags <user_message>, <poke_reply>, <agent_message>.",
+    "filler": "Optional. `\"filler\": true` inserts N short chat entries (N from sweep filler_count). `\"filler\": {\"count\": N, \"entry_tokens\": T}` inserts N entries each padded to ~T tokens, so count (drives compaction at 110) and token volume (drives context load) can be set independently. A sweep may target filler_count or filler_entry_tokens.",
+    "roster": "Agent names pre-seeded in roster.json before the probe.",
+    "probe": "The single new user message under test.",
+    "assert.must_call": "Tool names that must appear at least once in the turn.",
+    "assert.must_not_call": "Tool names that must not appear.",
+    "assert.dispatch": "Checks on the send_message_to_agent call(s). agent_name_in: chosen name must be one of these. agent_name_new: true means a name not in the roster is acceptable. instructions_contains_all / instructions_contains_any: case-insensitive substring checks on the instructions argument. max_dispatches: upper bound on dispatch calls.",
+    "metrics": "Always captured regardless of asserts: llm_rounds, input_tokens, output_tokens, wall_ms, full trace.",
+    "probe_role": "Optional. 'user' (default) sends the probe through execute(); 'agent' sends it through handle_agent_message() as a worker result or watcher notice, i.e. the callback turn.",
+    "gate": "The harness blocks any LLM request whose estimated input exceeds --max-input-tokens (default 150k) before it reaches OpenRouter, so overflow cases are never billed. A blocked turn fails.",
+    "baseline_note": "Optional. Prediction of how the untouched code behaves. Shown in viewer/report only; never given to the judge."
+  },
+  "cases": [
+    {
+      "id": "IA-01",
+      "type": "cold_start",
+      "description": "Empty history, simple actionable request. Sanity check that the agent acknowledges the user and dispatches a worker whose instructions carry the request. Establishes the token and round baseline for a minimal turn.",
+      "expected_result": "One send_message_to_user acknowledgement and one send_message_to_agent with a new agent name. Instructions mention Sarah and the contract. No wait, no draft.",
+      "history": [],
+      "roster": [],
+      "probe": "send Sarah an email asking if she has signed the contract yet",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "must_not_call": [
+          "wait",
+          "send_draft"
+        ],
+        "dispatch": {
+          "agent_name_new": true,
+          "instructions_contains_all": [
+            "sarah",
+            "contract"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-02",
+      "type": "cold_start",
+      "description": "Empty history, request that naturally splits into independent tasks. Checks that the agent fans out in parallel within one turn rather than serializing, and does not over-fan-out.",
+      "expected_result": "Two dispatches in the same turn: one about the dentist reminder, one about the flight confirmation email. Not more than two.",
+      "history": [],
+      "roster": [],
+      "probe": "remind me tomorrow at 9am to call the dentist, and find the flight confirmation email from last week",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "must_not_call": [
+          "wait"
+        ],
+        "dispatch": {
+          "agent_name_new": true,
+          "min_dispatches": 2,
+          "max_dispatches": 2
+        }
+      }
+    },
+    {
+      "id": "IA-03",
+      "type": "follow_up",
+      "description": "History contains a completed dispatch whose worker reported a draft. Probe is a bare confirmation. Tests that the agent routes the follow-up to the same worker and tells it to send, instead of creating a new agent that has no thread context.",
+      "expected_result": "Dispatch to the existing agent 'Email to Sarah'. Instructions say to send the draft. No new agent name.",
+      "history": [
+        {
+          "role": "user",
+          "content": "send Sarah an email asking if she has signed the contract yet"
+        },
+        {
+          "role": "reply",
+          "content": "on it, drafting that now"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Draft created (draft id r-7781, thread 18c4a2f). To: sarah@acme.com Subject: Contract status Body: Hi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "To: sarah@acme.com\nSubject: Contract status\n\nHi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "want me to send it?"
+        }
+      ],
+      "roster": [
+        "Email to Sarah"
+      ],
+      "probe": "yes send it",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "must_not_call": [
+          "send_draft"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Email to Sarah"
+          ],
+          "instructions_contains_any": [
+            "send",
+            "execute"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-04",
+      "type": "follow_up",
+      "description": "History contains a worker result with a found email and its thread. Probe asks to reply on it. Tests reuse of the worker that holds the thread, and that the instruction carries the reply content.",
+      "expected_result": "Dispatch to 'Flight Confirmation' with instructions to reply on that thread saying the dates work.",
+      "history": [
+        {
+          "role": "user",
+          "content": "find the flight confirmation email from last week"
+        },
+        {
+          "role": "reply",
+          "content": "looking for it"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Flight Confirmation: Found 1 email. From: bookings@skyway.com Subject: Your itinerary SFO-JFK 14 Sep (thread 9be1c07). Depart 14 Sep 08:10, return 18 Sep 17:45. Sender asked to confirm dates by replying."
+        },
+        {
+          "role": "reply",
+          "content": "found it — SFO to JFK, out 14 Sep 8:10am, back 18 Sep 5:45pm. they want you to confirm the dates by reply"
+        }
+      ],
+      "roster": [
+        "Flight Confirmation"
+      ],
+      "probe": "reply and tell them the dates work",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Flight Confirmation"
+          ],
+          "instructions_contains_any": [
+            "reply",
+            "respond"
+          ],
+          "instructions_contains_all": [
+            "dates"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-05",
+      "type": "rule_enforcement",
+      "description": "User states a standing rule early in history. Probe is a later request the rule applies to. Tests that the rule is carried into the worker instructions, since the worker has no other way to learn it.",
+      "expected_result": "Dispatch instructions mention cc'ing jordan@acme.com (or 'assistant').",
+      "history": [
+        {
+          "role": "user",
+          "content": "from now on, whenever you email anyone at acme, always cc my assistant jordan@acme.com"
+        },
+        {
+          "role": "reply",
+          "content": "got it, jordan gets cc'd on every acme email"
+        },
+        {
+          "role": "user",
+          "content": "thanks"
+        },
+        {
+          "role": "reply",
+          "content": "👍"
+        }
+      ],
+      "roster": [],
+      "probe": "email mike@acme.com and ask him to move our thursday sync to friday",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_new": true,
+          "instructions_contains_all": [
+            "mike@acme.com"
+          ],
+          "instructions_contains_any": [
+            "jordan@acme.com",
+            "cc"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-06",
+      "type": "rule_enforcement",
+      "description": "Negative rule: user forbids an action. Probe tempts the agent to do it. Tests that a prohibition survives in context and changes the dispatch, not just the reply wording.",
+      "expected_result": "Either no dispatch at all with a reply explaining the rule, or a dispatch whose instructions say draft only / do not send. Never an instruction to send directly.",
+      "history": [
+        {
+          "role": "user",
+          "content": "rule: never send any email without showing me the draft first, even if I say send it"
+        },
+        {
+          "role": "reply",
+          "content": "understood, you'll always see the draft before anything goes out"
+        }
+      ],
+      "roster": [],
+      "probe": "just send Tom a quick email saying I'll be 10 minutes late, no need to show me",
+      "assert": {
+        "must_call": [
+          "send_message_to_user"
+        ],
+        "dispatch": {
+          "agent_name_new": true,
+          "instructions_contains_any": [
+            "draft",
+            "do not send",
+            "don't send",
+            "confirm"
+          ],
+          "instructions_not_contains_all": [
+            "send immediately",
+            "send it directly"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-07",
+      "type": "distance_sweep",
+      "description": "Same as IA-03 (send the draft) but with N filler entries between the worker's draft result and the probe. Run at N = 20, 60, 100, 150, 300. N >= 110 crosses the summarization threshold, so the draft result lives only in the compacted briefing. Produces the quality-vs-distance curve for follow-ups.",
+      "expected_result": "At every N: dispatch to 'Email to Sarah' with a send instruction.",
+      "history": [
+        {
+          "role": "user",
+          "content": "send Sarah an email asking if she has signed the contract yet"
+        },
+        {
+          "role": "reply",
+          "content": "on it, drafting that now"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Draft created (draft id r-7781, thread 18c4a2f). To: sarah@acme.com Subject: Contract status Body: Hi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "To: sarah@acme.com\nSubject: Contract status\n\nHi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "want me to send it?"
+        },
+        {
+          "role": "user",
+          "content": "hold on, let me think about the wording"
+        },
+        {
+          "role": "reply",
+          "content": "no rush"
+        },
+        {
+          "filler": true
+        }
+      ],
+      "sweep": {
+        "param": "filler_count",
+        "values": [
+          20,
+          60,
+          100,
+          150,
+          300
+        ]
+      },
+      "roster": [
+        "Email to Sarah"
+      ],
+      "probe": "ok go ahead and send the Sarah email",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Email to Sarah"
+          ],
+          "instructions_contains_any": [
+            "send",
+            "execute"
+          ],
+          "max_dispatches": 1
+        }
+      },
+      "baseline_note": "Expected to degrade at N >= 110 on the untouched code."
+    },
+    {
+      "id": "IA-08",
+      "type": "distance_sweep",
+      "description": "Same as IA-05 (cc rule) with N filler entries between the rule and the probe. Run at N = 20, 60, 100, 150, 300. Tests whether a standing rule survives compaction into the briefing. Rules are exactly what the summarizer prompt says to keep, so this should hold better than IA-07; the gap between the two curves is informative.",
+      "expected_result": "At every N: dispatch instructions mention jordan@acme.com or cc.",
+      "history": [
+        {
+          "role": "user",
+          "content": "from now on, whenever you email anyone at acme, always cc my assistant jordan@acme.com"
+        },
+        {
+          "role": "reply",
+          "content": "got it, jordan gets cc'd on every acme email"
+        },
+        {
+          "filler": true
+        }
+      ],
+      "sweep": {
+        "param": "filler_count",
+        "values": [
+          20,
+          60,
+          100,
+          150,
+          300
+        ]
+      },
+      "roster": [],
+      "probe": "email mike@acme.com and ask him to move our thursday sync to friday",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "instructions_contains_all": [
+            "mike@acme.com"
+          ],
+          "instructions_contains_any": [
+            "jordan@acme.com",
+            "cc"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-09",
+      "type": "roster_pressure",
+      "description": "Roster seeded with many names, several similar to the correct one. History holds one relevant worker result. Probe is a follow-up. Tests whether the agent picks the right existing worker from a crowded, undifferentiated list of names.",
+      "expected_result": "Dispatch to exactly 'Email to Sarah Chen', not 'Email to Sarah Park', 'Sarah Contract', or a new name.",
+      "history": [
+        {
+          "role": "user",
+          "content": "email Sarah Chen and ask if she signed the contract"
+        },
+        {
+          "role": "reply",
+          "content": "on it"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah Chen: Draft created (draft id r-3310, thread 7a0f1e2). To: sarah.chen@acme.com Subject: Contract status Body: Hi Sarah, have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "To: sarah.chen@acme.com\nSubject: Contract status\n\nHi Sarah, have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "send it?"
+        }
+      ],
+      "roster": [
+        "Email to Sarah Park",
+        "Sarah Contract",
+        "Email to Sarah Chen",
+        "Contract Renewal",
+        "Email to Sam",
+        "Dentist Reminder",
+        "Flight Confirmation",
+        "Vercel Job Offer",
+        "Email to Mike",
+        "Weekly Standup Notes",
+        "Gym Reminder",
+        "Email to Sara",
+        "Invoice Follow-up",
+        "Lease Renewal",
+        "Email to Sarah",
+        "Conference Travel",
+        "Email to Jordan",
+        "Birthday Reminder",
+        "Tax Documents",
+        "Email to Sarah C"
+      ],
+      "probe": "yes send it",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Email to Sarah Chen"
+          ],
+          "instructions_contains_any": [
+            "send",
+            "execute"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-10",
+      "type": "roster_pressure",
+      "description": "Same as IA-09 but the roster is generated with 100 names by the harness (roster_generate) plus the correct one. Stress version to see where name selection breaks down.",
+      "expected_result": "Dispatch to 'Email to Sarah Chen'. Tokens per turn recorded to show roster cost.",
+      "history": [
+        {
+          "role": "user",
+          "content": "email Sarah Chen and ask if she signed the contract"
+        },
+        {
+          "role": "reply",
+          "content": "on it"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah Chen: Draft created (draft id r-3310, thread 7a0f1e2). To: sarah.chen@acme.com Subject: Contract status Body: Hi Sarah, have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "To: sarah.chen@acme.com\nSubject: Contract status\n\nHi Sarah, have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "send it?"
+        }
+      ],
+      "roster": [
+        "Email to Sarah Chen"
+      ],
+      "roster_generate": {
+        "count": 100,
+        "pattern": "Email to {first_name}|{topic} Reminder|{topic} Follow-up"
+      },
+      "probe": "yes send it",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Email to Sarah Chen"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-11",
+      "type": "big_entry",
+      "description": "History contains one oversized user message (a pasted email thread of roughly 8k tokens, generated by the harness) followed by a short exchange. Probe is unrelated. Tests that normal behavior holds and records how much the single entry inflates every subsequent turn's prompt.",
+      "expected_result": "Normal dispatch for the dentist reminder. input_tokens for this turn expected to be dominated by the pasted entry; this number is the headline for the per-entry size gap.",
+      "history": [
+        {
+          "role": "user",
+          "content": "here's the whole thread with the vendor, can you keep it for reference",
+          "generate": {
+            "kind": "email_thread",
+            "approx_tokens": 8000
+          }
+        },
+        {
+          "role": "reply",
+          "content": "saved, I've got the vendor thread"
+        },
+        {
+          "role": "user",
+          "content": "cool"
+        },
+        {
+          "role": "reply",
+          "content": "👍"
+        }
+      ],
+      "roster": [],
+      "probe": "remind me tomorrow at 9am to call the dentist",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_new": true,
+          "instructions_contains_all": [
+            "dentist"
+          ],
+          "max_dispatches": 1
+        }
+      }
+    },
+    {
+      "id": "IA-12",
+      "type": "chat_only",
+      "description": "Probe is small talk that needs no worker. Tests that the agent replies directly and does not fan out. Guards against over-eager dispatch, which would be an unnecessary worker run and LLM calls.",
+      "expected_result": "send_message_to_user only. No send_message_to_agent.",
+      "history": [
+        {
+          "role": "user",
+          "content": "hey"
+        },
+        {
+          "role": "reply",
+          "content": "hey, what's up"
+        }
+      ],
+      "roster": [],
+      "probe": "not much, long day. how are you",
+      "assert": {
+        "must_call": [
+          "send_message_to_user"
+        ],
+        "must_not_call": [
+          "send_message_to_agent",
+          "send_draft"
+        ],
+        "dispatch": {
+          "max_dispatches": 0
+        }
+      }
+    },
+    {
+      "id": "IA-13",
+      "type": "chat_only",
+      "description": "Probe asks a question whose answer is already in history. Tests that the agent answers from context instead of re-dispatching a worker to fetch what it already has.",
+      "expected_result": "send_message_to_user containing '8:10' or '14 Sep'. No dispatch.",
+      "history": [
+        {
+          "role": "user",
+          "content": "find the flight confirmation email from last week"
+        },
+        {
+          "role": "reply",
+          "content": "looking for it"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Flight Confirmation: Found 1 email. From: bookings@skyway.com Subject: Your itinerary SFO-JFK 14 Sep (thread 9be1c07). Depart 14 Sep 08:10, return 18 Sep 17:45."
+        },
+        {
+          "role": "reply",
+          "content": "found it — SFO to JFK, out 14 Sep 8:10am, back 18 Sep 5:45pm"
+        }
+      ],
+      "roster": [
+        "Flight Confirmation"
+      ],
+      "probe": "what time does the flight leave again",
+      "assert": {
+        "must_call": [
+          "send_message_to_user"
+        ],
+        "must_not_call": [
+          "send_message_to_agent"
+        ],
+        "reply_contains_any": [
+          "8:10",
+          "8.10",
+          "14 sep",
+          "sep 14"
+        ],
+        "dispatch": {
+          "max_dispatches": 0
+        }
+      }
+    },
+    {
+      "id": "IA-14",
+      "type": "overflow",
+      "description": "History contains one user entry far larger than the model's context window (harness generates a ~220k-token pasted thread). Probe is a normal request. Tests the hard-failure tier: nothing in the system truncates or offloads oversized entries, so the turn cannot even reach the model. The harness token gate blocks the request locally so it is never billed; a real deployment would get a 400 from the provider instead.",
+      "expected_result": "Dispatch to a new worker with instructions mentioning the dentist, and an acknowledgement to the user.",
+      "history": [
+        {
+          "role": "user",
+          "content": "keeping the entire vendor thread here for reference",
+          "generate": {
+            "kind": "email_thread",
+            "approx_tokens": 220000
+          }
+        },
+        {
+          "role": "reply",
+          "content": "saved"
+        }
+      ],
+      "roster": [],
+      "probe": "remind me tomorrow at 9am to call the dentist",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_new": true,
+          "instructions_contains_all": [
+            "dentist"
+          ],
+          "max_dispatches": 1
+        }
+      },
+      "baseline_note": "On the untouched code the turn fails before any tool call and the user receives no reply and no error (silent hang). A fix that bounds per-entry size or offloads big entries should make this dispatch normally."
+    },
+    {
+      "id": "IA-15",
+      "type": "agent_callback",
+      "probe_role": "agent",
+      "description": "The callback turn. History shows the user asked for an email and the agent dispatched; the probe is the worker's result containing a finished draft, delivered via handle_agent_message. Tests that the agent relays the draft to the user for review and asks how to proceed, without re-dispatching.",
+      "expected_result": "send_draft with Sarah's address and the draft body, followed by send_message_to_user asking to confirm. No send_message_to_agent.",
+      "history": [
+        {
+          "role": "user",
+          "content": "send Sarah an email asking if she has signed the contract yet"
+        },
+        {
+          "role": "reply",
+          "content": "on it, drafting that now"
+        }
+      ],
+      "roster": [
+        "Email to Sarah"
+      ],
+      "probe": "[SUCCESS] Email to Sarah: Draft created (draft id r-7781, thread 18c4a2f). To: sarah@acme.com Subject: Contract status Body: Hi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex",
+      "assert": {
+        "must_call": [
+          "send_draft",
+          "send_message_to_user"
+        ],
+        "must_not_call": [
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "max_dispatches": 0
+        }
+      }
+    },
+    {
+      "id": "IA-16",
+      "type": "agent_callback",
+      "probe_role": "agent",
+      "description": "Proactive notification path. No pending request; the probe is an important-email watcher notice delivered via handle_agent_message. Tests that the agent surfaces it to the user in its own words and does not dispatch a worker or draft anything unasked.",
+      "expected_result": "One send_message_to_user mentioning the manager and the meeting move or the noon deadline. No dispatch, no draft.",
+      "history": [
+        {
+          "role": "user",
+          "content": "morning"
+        },
+        {
+          "role": "reply",
+          "content": "morning. coffee first?"
+        }
+      ],
+      "roster": [],
+      "probe": "Important email watcher notification:\nYour manager (dana@acme.com) asks to move today's 2pm sync to 1pm and needs your answer before noon.",
+      "assert": {
+        "must_call": [
+          "send_message_to_user"
+        ],
+        "must_not_call": [
+          "send_message_to_agent",
+          "send_draft"
+        ],
+        "reply_contains_any": [
+          "1pm",
+          "1 pm",
+          "noon",
+          "manager",
+          "dana"
+        ],
+        "dispatch": {
+          "max_dispatches": 0
+        }
+      }
+    },
+    {
+      "id": "IA-17",
+      "type": "long_context",
+      "description": "Long context WITHOUT compaction: 40 filler entries each padded to ~2k tokens (~80k tokens total) between the planted draft result and the probe. Stays under the 110-entry compaction threshold, so the entire history is sent raw on every LLM call. Tests recall of the draft at the far end of a large prompt, and records the cost of a turn at this size.",
+      "expected_result": "Dispatch to 'Email to Sarah' with a send instruction.",
+      "history": [
+        {
+          "role": "user",
+          "content": "send Sarah an email asking if she has signed the contract yet"
+        },
+        {
+          "role": "reply",
+          "content": "on it, drafting that now"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Draft created (draft id r-7781, thread 18c4a2f). To: sarah@acme.com Subject: Contract status Body: Hi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "To: sarah@acme.com\nSubject: Contract status\n\nHi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "want me to send it?"
+        },
+        {
+          "role": "user",
+          "content": "hold on, let me think about the wording"
+        },
+        {
+          "role": "reply",
+          "content": "no rush"
+        },
+        {
+          "filler": {
+            "count": 40,
+            "entry_tokens": 2000
+          }
+        }
+      ],
+      "roster": [
+        "Email to Sarah"
+      ],
+      "probe": "ok go ahead and send the Sarah email",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Email to Sarah"
+          ],
+          "instructions_contains_any": [
+            "send",
+            "execute"
+          ],
+          "max_dispatches": 1
+        }
+      },
+      "baseline_note": "Expected to pass on the untouched code, at roughly 80k input tokens per round."
+    },
+    {
+      "id": "IA-18",
+      "type": "long_context",
+      "description": "Compaction under volume: 150 filler entries each padded to ~1k tokens (~150k tokens). Crosses the 110-entry threshold, so the summarizer runs during seeding with ~100 large entries in a single summarizer prompt. Tests whether compaction itself survives bulk and whether the draft ID survives into the briefing.",
+      "expected_result": "Dispatch to 'Email to Sarah' with a send instruction.",
+      "history": [
+        {
+          "role": "user",
+          "content": "send Sarah an email asking if she has signed the contract yet"
+        },
+        {
+          "role": "reply",
+          "content": "on it, drafting that now"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Draft created (draft id r-7781, thread 18c4a2f). To: sarah@acme.com Subject: Contract status Body: Hi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "To: sarah@acme.com\nSubject: Contract status\n\nHi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "want me to send it?"
+        },
+        {
+          "role": "user",
+          "content": "hold on, let me think about the wording"
+        },
+        {
+          "role": "reply",
+          "content": "no rush"
+        },
+        {
+          "filler": {
+            "count": 150,
+            "entry_tokens": 1000
+          }
+        }
+      ],
+      "roster": [
+        "Email to Sarah"
+      ],
+      "probe": "ok go ahead and send the Sarah email",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Email to Sarah"
+          ],
+          "instructions_contains_any": [
+            "send",
+            "execute"
+          ],
+          "max_dispatches": 1
+        }
+      },
+      "baseline_note": "Uncertain on the untouched code. Either the summarizer call succeeds and the outcome depends on what the briefing kept, or the summarizer prompt itself is too large and seeding fails. Both outcomes are informative."
+    },
+    {
+      "id": "IA-19",
+      "type": "overflow",
+      "description": "Overflow WITHOUT compaction: 60 filler entries each padded to ~4k tokens (~240k tokens). Under the 110-entry threshold, so compaction never triggers even though the history exceeds the model's context window. Demonstrates gap 1: compaction keys on entry count, not tokens. The harness token gate blocks the request locally (never billed).",
+      "expected_result": "Dispatch to 'Email to Sarah' with a send instruction.",
+      "history": [
+        {
+          "role": "user",
+          "content": "send Sarah an email asking if she has signed the contract yet"
+        },
+        {
+          "role": "reply",
+          "content": "on it, drafting that now"
+        },
+        {
+          "role": "agent",
+          "content": "[SUCCESS] Email to Sarah: Draft created (draft id r-7781, thread 18c4a2f). To: sarah@acme.com Subject: Contract status Body: Hi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "To: sarah@acme.com\nSubject: Contract status\n\nHi Sarah, quick check — have you had a chance to sign the contract? Thanks, Alex"
+        },
+        {
+          "role": "reply",
+          "content": "want me to send it?"
+        },
+        {
+          "role": "user",
+          "content": "hold on, let me think about the wording"
+        },
+        {
+          "role": "reply",
+          "content": "no rush"
+        },
+        {
+          "filler": {
+            "count": 60,
+            "entry_tokens": 4000
+          }
+        }
+      ],
+      "roster": [
+        "Email to Sarah"
+      ],
+      "probe": "ok go ahead and send the Sarah email",
+      "assert": {
+        "must_call": [
+          "send_message_to_user",
+          "send_message_to_agent"
+        ],
+        "dispatch": {
+          "agent_name_in": [
+            "Email to Sarah"
+          ],
+          "instructions_contains_any": [
+            "send",
+            "execute"
+          ],
+          "max_dispatches": 1
+        }
+      },
+      "baseline_note": "Turn fails before any tool call; no reply reaches the user. Expected to fail on the untouched code and to pass once compaction or per-entry bounding is token-aware."
+    }
+  ]
+}

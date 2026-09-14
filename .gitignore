@@ -44,3 +44,15 @@ server/venv/
 # Generated documentation / analysis artifacts
 server/repomix-output.txt
 server/plans/
+
+# eval outputs
+evals/**/results/
+docs/
+!docs/
+docs/*
+!docs/openpoke-budgeted-tools-flow.json
+!docs/openpoke-budgeted-tools-flow.html
+!docs/openpoke-budgeted-tools-flow.visual-check.2048x1320.light.png
+!docs/eval-ui-budgeted-vs-legacy.png
+evals/ui/dist/
+evals/ui/node_modules/

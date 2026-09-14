@@ -6,6 +6,7 @@ from typing import List, Optional, TYPE_CHECKING
 from ....config import get_settings
 from ....logging_config import logger
 from ....openrouter_client import OpenRouterError, request_chat_completion
+from ....utils.tokens import estimate_tokens
 from .prompt_builder import SummaryPrompt, build_summarization_prompt
 from .state import LogEntry, SummaryState
 from .working_memory_log import get_working_memory_log
@@ -88,13 +89,39 @@ async def summarize_conversation() -> bool:
         return False
 
     unsummarized_entries = [entry for entry in entries if entry.index > state.last_index]
-    if len(unsummarized_entries) < threshold + tail_size:
+
+    budgeted = settings.budgeted_context
+    tail_tokens = sum(estimate_tokens(e.payload) for e in unsummarized_entries)
+    count_trigger = len(unsummarized_entries) >= threshold + tail_size
+    token_trigger = (
+        budgeted
+        and settings.conversation_summary_token_threshold > 0
+        and tail_tokens >= settings.conversation_summary_token_threshold
+        and len(unsummarized_entries) > tail_size
+    )
+    if not (count_trigger or token_trigger):
         return False
 
-    batch = unsummarized_entries[:threshold]
+    if budgeted:
+        # Fold the oldest entries, but never more than `threshold` of them, never more than
+        # summarizer_batch_max_tokens worth, and always leave the newest tail_size untouched.
+        foldable = unsummarized_entries[: max(0, len(unsummarized_entries) - tail_size)]
+        batch: List[LogEntry] = []
+        spent = 0
+        for e in foldable:
+            cost = estimate_tokens(e.payload)
+            if batch and (len(batch) >= threshold or spent + cost > settings.summarizer_batch_max_tokens):
+                break
+            batch.append(e)
+            spent += cost
+        if not batch:
+            return False
+    else:
+        batch = unsummarized_entries[:threshold]
     cutoff_index = batch[-1].index
 
-    prompt = build_summarization_prompt(state.summary_text, batch)
+    entry_cap = settings.context_entry_max_tokens * 4 if budgeted else 0
+    prompt = build_summarization_prompt(state.summary_text, batch, entry_max_tokens=entry_cap)
 
     logger.info(
         "conversation summarization started",

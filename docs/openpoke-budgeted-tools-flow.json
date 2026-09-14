@@ -1,0 +1,99 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "OpenPoke Budgeted Tools — Context-Safe Flow",
+    "quality_profile": "showcase",
+    "output": "docs/openpoke-budgeted-tools-flow.html",
+    "views": [
+      {
+        "id": "interaction-flow",
+        "label": "Interaction tools",
+        "focus": ["bound_turn", "recall_history_tool", "find_worker_tool", "digest_and_guards"],
+        "note": "Bound the turn, recover a precise entry or worker, then digest only when synthesis is required."
+      },
+      {
+        "id": "worker-flow",
+        "label": "Worker memory and search",
+        "focus": ["bound_worker", "recall_worker_tool", "email_search", "result_store"],
+        "note": "Worker history is bounded; selected full emails move into a per-run store instead of the prompt."
+      },
+      {
+        "id": "email-flow",
+        "label": "Stateful email tools",
+        "focus": ["result_store", "read_email_tool", "digest_email_tool", "draft_by_reference", "safe_report"],
+        "note": "Page, digest, or copy by stable message/entry id; exact content never needs model reproduction."
+      },
+      {
+        "id": "guard-flow",
+        "label": "Budgets and termination",
+        "focus": ["digest_and_guards", "email_search", "result_store", "read_email_tool", "safe_report"],
+        "note": "Recall, page, search-iteration, tool-result, run, and dispatch caps stop impossible retries."
+      }
+    ]
+  },
+  "lanes": [
+    { "id": "interaction_lane", "label": "Interaction Retrieval" },
+    { "id": "worker_lane", "label": "Worker Memory + Search" },
+    { "id": "email_lane", "label": "Stateful Email Actions" }
+  ],
+  "phases": [
+    { "id": "bound_phase", "label": "Bound", "fromCol": 0, "toCol": 0 },
+    { "id": "recover_phase", "label": "Recover", "fromCol": 1, "toCol": 2, "variant": "emphasis" },
+    { "id": "act_phase", "label": "Digest or act", "fromCol": 3, "toCol": 3, "variant": "dashed" }
+  ],
+  "groups": [
+    { "id": "interaction_tools", "label": "Budgeted interaction tools", "lane": "interaction_lane", "fromCol": 1, "toCol": 3, "variant": "emphasis" },
+    { "id": "worker_tools", "label": "Budgeted execution context", "lane": "worker_lane", "fromCol": 0, "toCol": 3, "variant": "dashed" },
+    { "id": "stateful_tools", "label": "Full source remains outside the prompt", "lane": "email_lane", "fromCol": 0, "toCol": 3, "variant": "emphasis" }
+  ],
+  "mainPath": ["bound_turn", "recall_history_tool", "find_worker_tool", "digest_and_guards"],
+  "nodes": [
+    { "id": "bound_turn", "lane": "interaction_lane", "col": 0, "type": "backend", "label": "Bound Turn", "sublabel": "newest-first + current cap", "tag": "summary • preview • older index", "width": 136 },
+    { "id": "recall_history_tool", "lane": "interaction_lane", "col": 1, "type": "database", "label": "recall_history", "sublabel": "entry id or ranked query", "tag": "bounded page + offset", "width": 148 },
+    { "id": "find_worker_tool", "lane": "interaction_lane", "col": 2, "type": "database", "label": "find_worker", "sublabel": "purpose • task • identifier", "tag": "compact roster metadata", "width": 148 },
+    { "id": "digest_and_guards", "lane": "interaction_lane", "col": 3, "type": "security", "label": "Digest + Guards", "sublabel": "digest_entry", "tag": "budgets • dedupe • wait ends turn", "width": 154 },
+
+    { "id": "bound_worker", "lane": "worker_lane", "col": 0, "type": "backend", "label": "Bound Worker", "sublabel": "recent + older index", "tag": "persistent log stays complete", "width": 136 },
+    { "id": "recall_worker_tool", "lane": "worker_lane", "col": 1, "type": "database", "label": "Worker Recall", "sublabel": "recall_worker_history", "tag": "id/query • page + offset", "width": 148 },
+    { "id": "email_search", "lane": "worker_lane", "col": 2, "type": "messagebus", "label": "Email Search", "sublabel": "previews in search prompt", "tag": "cache • 3 iterations • terminal overflow", "width": 158 },
+    { "id": "result_store", "lane": "worker_lane", "col": 3, "type": "database", "label": "ResultStore", "sublabel": "full selected email bodies", "tag": "email • result • run budgets", "width": 154 },
+
+    { "id": "read_email_tool", "lane": "email_lane", "col": 0, "type": "database", "label": "read_email", "sublabel": "message id + offset", "tag": "page cap; digest when long", "width": 136 },
+    { "id": "digest_email_tool", "lane": "email_lane", "col": 1, "type": "cloud", "label": "digest_email", "sublabel": "parallel map → reduce", "tag": "figures • 45s retry • fallback", "width": 148 },
+    { "id": "draft_by_reference", "lane": "email_lane", "col": 2, "type": "backend", "label": "Draft by Reference", "sublabel": "gmail_create_draft_v2", "tag": "body_from • exact server-side copy", "width": 158 },
+    { "id": "safe_report", "lane": "email_lane", "col": 3, "type": "backend", "label": "Show Draft / Report", "sublabel": "send_draft_v2", "tag": "id + preview • bounded callback", "width": 154 }
+  ],
+  "edges": [
+    { "id": "bound_to_recall", "from": "bound_turn", "to": "recall_history_tool", "label": "missing exact detail", "variant": "emphasis", "role": "main" },
+    { "id": "recall_to_worker", "from": "recall_history_tool", "to": "find_worker_tool", "label": "reuse existing worker", "variant": "default", "role": "main" },
+    { "id": "worker_to_digest", "from": "find_worker_tool", "to": "digest_and_guards", "label": "synthesize if large", "variant": "security", "role": "main" },
+
+    { "id": "worker_bound_to_recall", "from": "bound_worker", "to": "recall_worker_tool", "label": "older task needed", "variant": "default", "role": "branch" },
+    { "id": "worker_recall_to_search", "from": "recall_worker_tool", "to": "email_search", "label": "search with recovered context", "variant": "default", "role": "branch" },
+    { "id": "search_to_store", "from": "email_search", "to": "result_store", "label": "store full; return preview", "variant": "emphasis", "role": "branch" },
+
+    { "id": "store_to_page", "from": "result_store", "to": "read_email_tool", "label": "inspect one page", "variant": "dashed", "role": "return" },
+    { "id": "page_to_digest", "from": "read_email_tool", "to": "digest_email_tool", "label": "too long to page", "variant": "default", "role": "branch" },
+    { "id": "digest_to_reference", "from": "digest_email_tool", "to": "draft_by_reference", "label": "compact facts or exact id", "variant": "default", "role": "branch" },
+    { "id": "reference_to_report", "from": "draft_by_reference", "to": "safe_report", "label": "create exact draft; report id", "variant": "emphasis", "role": "return" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Fidelity Choice",
+      "items": [
+        "Recall exact local detail; digest an entire long source; reference exact content for actions",
+        "The prompt carries a bounded working set while logs and ResultStore retain the complete source"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Loop Prevention",
+      "items": [
+        "Recall, page, search-iteration, tool-result, run, and turn budgets are independent backstops",
+        "Cache hits, terminal overflow guidance, dispatch dedupe, and wait termination prevent retry storms"
+      ]
+    }
+  ]
+}

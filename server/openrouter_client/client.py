@@ -54,6 +54,8 @@ async def request_chat_completion(
     api_key: Optional[str] = None,
     tools: Optional[List[Dict[str, Any]]] = None,
     base_url: str = OpenRouterBaseURL,
+    max_tokens: Optional[int] = None,
+    reasoning: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Request a chat completion and return the raw JSON payload."""
 
@@ -64,6 +66,13 @@ async def request_chat_completion(
     }
     if tools:
         payload["tools"] = tools
+    if max_tokens:
+        # Without this OpenRouter reserves the model's full output window (64k on Claude) against the
+        # key's credit limit before the call, so short calls fail with 402 near the limit.
+        payload["max_tokens"] = max_tokens
+    if reasoning is not None:
+        # OpenRouter reasoning controls, e.g. {"enabled": False} for extraction calls that do not need it.
+        payload["reasoning"] = reasoning
 
     url = f"{base_url.rstrip('/')}/chat/completions"
 

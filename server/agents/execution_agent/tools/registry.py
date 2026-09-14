@@ -1,32 +1,34 @@
-"""Aggregate execution agent tool schemas and registries."""
+"""Aggregate execution agent tool schemas and registries.
+
+Legacy tools always load via `legacy.py`. Budgeted-only tools are appended when
+`settings.budgeted_context` is true.
+"""
 
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, List
 
-from . import gmail, triggers
-from ..tasks import get_task_registry, get_task_schemas
+from . import legacy
+from ....config import get_settings
 
 
-# Return OpenAI/OpenRouter-compatible tool schemas
 def get_tool_schemas() -> List[Dict[str, Any]]:
     """Return OpenAI/OpenRouter-compatible tool schemas."""
+    schemas = list(legacy.get_schemas())
+    if get_settings().budgeted_context:
+        from . import budgeted
 
-    return [
-        *gmail.get_schemas(),
-        *get_task_schemas(),
-        *triggers.get_schemas(),
-    ]
+        schemas.extend(budgeted.get_schemas())
+    return schemas
 
 
-# Return Python callables for executing tools by name
 def get_tool_registry(agent_name: str) -> Dict[str, Callable[..., Any]]:
     """Return Python callables for executing tools by name."""
+    registry = legacy.build_registry(agent_name)
+    if get_settings().budgeted_context:
+        from . import budgeted
 
-    registry: Dict[str, Callable[..., Any]] = {}
-    registry.update(gmail.build_registry(agent_name))
-    registry.update(get_task_registry(agent_name))
-    registry.update(triggers.build_registry(agent_name))
+        budgeted.extend_registry(registry, agent_name)
     return registry
 
 

@@ -3,8 +3,12 @@
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
+from ...config import get_settings
 from ...services.execution import get_execution_agent_logs
 from ...logging_config import logger
+
+_BUDGETED_ADDENDUM_PATH = Path(__file__).parent / "system_prompt.budgeted_addendum.md"
+BUDGETED_ADDENDUM = _BUDGETED_ADDENDUM_PATH.read_text(encoding="utf-8").strip() if _BUDGETED_ADDENDUM_PATH.exists() else ""
 
 
 # Load system prompt template from file
@@ -68,6 +72,19 @@ class ExecutionAgent:
             System prompt with embedded history transcript
         """
         base_prompt = self.build_system_prompt()
+
+        if get_settings().budgeted_context:
+            # Budgeted strategy: bounded history + recall tool. Legacy path below is untouched.
+            from .context.history import build_worker_history
+
+            built = build_worker_history(self.name)
+            logger.info("Budgeted worker history assembled", extra={
+                "agent": self.name, "inline": built.inline_entries, "truncated": built.truncated_entries,
+                "indexed": built.indexed_entries, "tokens": built.estimated_tokens})
+            prompt = f"{base_prompt}\n\n{BUDGETED_ADDENDUM}" if BUDGETED_ADDENDUM else base_prompt
+            if built.transcript:
+                return f"{prompt}\n\n# Execution History\n\n{built.transcript}"
+            return prompt
 
         # Load history transcript
         transcript = self._log_store.load_transcript(self.name)

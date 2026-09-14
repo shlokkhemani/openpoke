@@ -7,6 +7,8 @@ from dataclasses import dataclass
 
 from .agent import ExecutionAgent
 from .tools import get_tool_schemas, get_tool_registry
+from ...context.overflow import is_context_overflow, terminal_overflow_message
+from .context.results import ResultStore, resolve_body_from
 from ...config import get_settings
 from ...openrouter_client import request_chat_completion
 from ...logging_config import logger
@@ -35,6 +37,11 @@ class ExecutionAgentRuntime:
         self.model = settings.execution_agent_model
         self.tool_registry = get_tool_registry(agent_name=agent_name)
         self.tool_schemas = get_tool_schemas()
+        # Budgeted strategy: per-run store of full tool results + paging/digest tools. Legacy: None.
+        self.budgeted = settings.budgeted_context
+        self._results: Optional[ResultStore] = ResultStore() if self.budgeted else None
+        if self.budgeted:
+            self._search_model = settings.execution_agent_search_model
 
         if not self.api_key:
             raise ValueError("OpenRouter API key not configured. Set OPENROUTER_API_KEY environment variable.")
@@ -113,10 +120,27 @@ class ExecutionAgentRuntime:
                         record_payload
                     )
 
+                    if self._results is not None and success:
+                        settings = get_settings()
+                        if self._results.nothing_new(result):
+                            # Id-based cache: the search ran, but every email it returned is already in this run's
+                            # store. Do not put the bodies back into context; say so in one line.
+                            ids = [str(e.get("id")) for e in result]
+                            result_for_prompt = {"note": (f"{len(ids)} email(s) matched, all already returned by an earlier search "
+                                                          f"in this run ({', '.join(ids[:8])}). Nothing new. Use read_email / "
+                                                          f"digest_email on them instead of searching again."),
+                                                 "message_ids": ids}
+                        else:
+                            self._results.remember(call_id or tool_name, result)
+                            result_for_prompt = self._results.bound(
+                                result, per_email_tokens=settings.tool_result_email_tokens,
+                                total_tokens=settings.tool_result_max_tokens)
+                    else:
+                        result_for_prompt = result
                     tool_message = {
                         "role": "tool",
                         "tool_call_id": call_id or tool_name,
-                        "content": self._format_tool_result(tool_name, success, result, tool_args),
+                        "content": self._format_tool_result(tool_name, success, result_for_prompt, tool_args),
                     }
                     messages.append(tool_message)
 
@@ -138,6 +162,8 @@ class ExecutionAgentRuntime:
         except Exception as e:
             logger.error(f"[{self.agent.name}] Execution failed: {e}")
             error_msg = str(e)
+            if self.budgeted and is_context_overflow(e):
+                error_msg = terminal_overflow_message("execution agent's prompt")
             failure_text = f"Failed to complete task: {error_msg}"
             self.agent.record_response(f"Error: {error_msg}")
 
@@ -223,6 +249,29 @@ class ExecutionAgentRuntime:
     # Execute tool function from registry with error handling and async support
     async def _execute_tool(self, tool_name: str, arguments: Dict) -> Tuple[bool, Any]:
         """Execute a tool. Returns (success, result)."""
+        if self._results is not None:
+            try:
+                if tool_name == "gmail_create_draft_v2":
+                    body, err = resolve_body_from(arguments.get("body_from") or {}, self._results)
+                    if err:
+                        return False, {"error": err}
+                    body = f"{arguments.get('body_prefix') or ''}{body}{arguments.get('body_suffix') or ''}"
+                    create = self.tool_registry.get("gmail_create_draft")
+                    out = create(recipient_email=arguments.get("recipient_email"), subject=arguments.get("subject"),
+                                 body=body, cc=arguments.get("cc"), bcc=arguments.get("bcc"), thread_id=arguments.get("thread_id"))
+                    if inspect.isawaitable(out):
+                        out = await out
+                    if isinstance(out, dict):
+                        out = {**out, "body_chars": len(body), "body_preview": body[:200]}
+                    return (not (isinstance(out, dict) and out.get("error"))), out
+                if tool_name == "read_email":
+                    return True, self._results.read_email(arguments.get("message_id", ""), int(arguments.get("offset_chars") or 0))
+                if tool_name == "digest_email":
+                    out = await self._results.digest_email(arguments.get("message_id", ""), arguments.get("question", ""),
+                                                           model=self._search_model, api_key=self.api_key)
+                    return (not out.get("error")), out
+            except Exception as e:
+                return False, {"error": str(e)}
         tool_func = self.tool_registry.get(tool_name)
         if not tool_func:
             return False, {"error": f"Unknown tool: {tool_name}"}
@@ -231,6 +280,10 @@ class ExecutionAgentRuntime:
             result = tool_func(**arguments)
             if inspect.isawaitable(result):
                 result = await result
+            if self.budgeted and isinstance(result, dict) and result.get("error") and is_context_overflow(result["error"]):
+                return False, {"error": terminal_overflow_message(f"{tool_name} result")}
             return True, result
         except Exception as e:
+            if self.budgeted and is_context_overflow(e):
+                return False, {"error": terminal_overflow_message(f"{tool_name} call")}
             return False, {"error": str(e)}

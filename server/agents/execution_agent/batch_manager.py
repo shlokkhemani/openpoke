@@ -133,6 +133,13 @@ class ExecutionBatchManager:
 
             state.results.append(result)
             state.pending -= 1
+            try:
+                from ...config import get_settings
+                if get_settings().budgeted_context:
+                    from ...services.execution.roster_v2 import get_roster_meta
+                    get_roster_meta().record_report(agent_name, result.response or "")
+            except Exception:  # pragma: no cover - metadata is best effort
+                pass
 
             if state.pending == 0:
                 dispatch_payload = self._format_batch_payload(state.results)
