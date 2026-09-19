@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  server-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      # requirements-dev.txt deliberately omits Composio: its transitive
+      # `pysher` dependency needs a compiler, and nothing in the unit suite
+      # touches Composio.
+      - run: pip install -r server/requirements-dev.txt
+      - run: python -m pytest -q

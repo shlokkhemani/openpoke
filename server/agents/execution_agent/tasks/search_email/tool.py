@@ -6,6 +6,7 @@ import json
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from server.config import get_settings
+from server.jev import filter_search_results
 from server.logging_config import logger
 from server.openrouter_client import request_chat_completion
 from server.services.execution import get_execution_agent_logs
@@ -199,7 +200,13 @@ async def _run_email_search(
         logger.error(f"[EMAIL_SEARCH] {ERROR_ITERATION_LIMIT}")
         raise RuntimeError(ERROR_ITERATION_LIMIT)
     
-    final_result = _build_response(queries, emails, selected_ids or [])
+    verified_ids = await _verify_selection(
+        search_query=search_query,
+        emails=emails,
+        selected_ids=selected_ids or [],
+    )
+
+    final_result = _build_response(queries, emails, verified_ids)
     unique_queries = list(dict.fromkeys(queries))
     logger.info(f"[EMAIL_SEARCH] Completed - {len(unique_queries)} queries executed, {len(final_result)} emails selected")
     return final_result
@@ -344,6 +351,37 @@ async def _perform_search(
         next_page_token=next_page_token,
         messages=parsed_emails,
     )
+
+
+# Drop selected emails a typed decision is confident do not answer the request
+async def _verify_selection(
+    *,
+    search_query: str,
+    emails: Dict[str, GmailSearchEmail],
+    selected_ids: Sequence[str],
+) -> List[str]:
+    """Return the selection after the Jev relevance filter, if it is available."""
+
+    candidates = {
+        message_id: {
+            "from": email.sender,
+            "subject": email.subject,
+            "body": email.clean_text,
+        }
+        for message_id, email in emails.items()
+    }
+
+    outcome = await filter_search_results(
+        request=search_query,
+        selected_ids=list(selected_ids),
+        candidates=candidates,
+    )
+    if outcome.dropped:
+        logger.info(
+            f"[EMAIL_SEARCH] Relevance filter dropped {len(outcome.dropped)} of "
+            f"{len(selected_ids)} selected emails"
+        )
+    return outcome.kept
 
 
 # Build final response with selected emails and logging

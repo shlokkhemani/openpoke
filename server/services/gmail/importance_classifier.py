@@ -1,4 +1,10 @@
-"""LLM-powered classifier for determining important Gmail emails."""
+"""Classifier for determining important Gmail emails.
+
+Two stages. A Jev typed decision screens every email first: confidently
+unimportant mail never reaches an LLM, and confidently important mail skips
+straight to summarisation. Only the uncertain middle band pays for the full
+LLM judgement, which is also the whole behaviour when Jev is not configured.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +13,7 @@ from typing import Any, Dict, Optional
 
 from .processing import ProcessedEmail
 from ...config import get_settings
+from ...jev import QUARANTINE, SKIP, SURFACE, record_screening, screen_email
 from ...logging_config import logger
 from ...openrouter_client import OpenRouterError, request_chat_completion
 
@@ -55,6 +62,14 @@ _SYSTEM_PROMPT = (
 )
 
 
+_SUMMARY_SYSTEM_PROMPT = (
+    "You write the one-notification summary of an email that has already been judged "
+    "worth surfacing to the user. Reply with 2-3 sentences naming the sender, the topic, "
+    "and the specific action or urgency for the user. Do not add a preamble, a greeting, "
+    "or any commentary about the email's importance."
+)
+
+
 def _format_email_payload(email: ProcessedEmail) -> str:
     attachments = ", ".join(email.attachment_filenames) if email.attachment_filenames else "None"
     labels = ", ".join(email.label_ids) if email.label_ids else "None"
@@ -79,6 +94,126 @@ def _format_email_payload(email: ProcessedEmail) -> str:
 
 async def classify_email_importance(email: ProcessedEmail) -> Optional[str]:
     """Return summary text when email should be surfaced; otherwise None."""
+
+    screening = await screen_email(
+        sender=email.sender,
+        recipient=email.recipient,
+        subject=email.subject,
+        body=email.clean_text,
+        labels=email.label_ids,
+        has_attachments=email.has_attachments,
+        attachment_filenames=email.attachment_filenames,
+    )
+
+    record_screening(
+        screening,
+        message_id=email.id,
+        sender=email.sender,
+        subject=email.subject,
+    )
+
+    if screening.verdict == QUARANTINE:
+        logger.warning(
+            "Email quarantined by typed screening",
+            extra={
+                "message_id": email.id,
+                "reason": screening.reason,
+                "probabilities": screening.probabilities,
+            },
+        )
+        return _quarantine_notice(email)
+
+    if screening.verdict == SKIP:
+        logger.debug(
+            "Email skipped by typed screening",
+            extra={
+                "message_id": email.id,
+                "reason": screening.reason,
+                "probabilities": screening.probabilities,
+            },
+        )
+        return None
+
+    if screening.verdict == SURFACE:
+        logger.debug(
+            "Email surfaced by typed screening",
+            extra={
+                "message_id": email.id,
+                "reason": screening.reason,
+                "probabilities": screening.probabilities,
+            },
+        )
+        summary = await _summarize_email(email)
+        if summary:
+            return summary
+        # Summarisation failed; fall through to the full LLM judgement rather
+        # than dropping an email the screen already flagged as important.
+
+    return await _classify_with_llm(email)
+
+
+def _quarantine_notice(email: ProcessedEmail) -> str:
+    """Return the fixed notice shown when a body is withheld.
+
+    Assembled in code, never by a model, and it carries no body. Sender and
+    subject are attacker-controlled for external mail, so both are clipped and
+    labelled as unverified; the point is that the user learns a message exists
+    rather than that they learn what it says.
+    """
+
+    sender = (email.sender or "unknown sender")[:120]
+    subject = (email.subject or "(no subject)")[:120]
+    return (
+        "A message was withheld because its body reads as an attempt to give "
+        "instructions to an assistant rather than to you. Its contents have not "
+        f"been read to me. Unverified sender: {sender}. Unverified subject: "
+        f"{subject}. Open it yourself if you were expecting it."
+    )
+
+
+async def _summarize_email(email: ProcessedEmail) -> Optional[str]:
+    """Return a notification summary for an email already judged important."""
+
+    settings = get_settings()
+    api_key = settings.openrouter_api_key
+    if not api_key:
+        logger.warning("Skipping importance summary; OpenRouter API key missing")
+        return None
+
+    try:
+        response = await request_chat_completion(
+            model=settings.email_classifier_model,
+            messages=[{"role": "user", "content": _format_email_payload(email)}],
+            system=_SUMMARY_SYSTEM_PROMPT,
+            api_key=api_key,
+        )
+    except OpenRouterError as exc:
+        logger.error(
+            "Importance summary failed",
+            extra={"message_id": email.id, "error": str(exc)},
+        )
+        return None
+    except Exception:  # pragma: no cover - defensive
+        logger.exception(
+            "Unexpected error while summarizing an important email",
+            extra={"message_id": email.id},
+        )
+        return None
+
+    message = (response.get("choices") or [{}])[0].get("message") or {}
+    content = message.get("content")
+    if isinstance(content, str) and content.strip():
+        return content.strip()
+
+    logger.warning(
+        "Importance summary returned no content",
+        extra={"message_id": email.id},
+    )
+    return None
+
+
+async def _classify_with_llm(email: ProcessedEmail) -> Optional[str]:
+    """Decide importance and write a summary in a single tool-calling LLM call."""
 
     settings = get_settings()
     api_key = settings.openrouter_api_key
