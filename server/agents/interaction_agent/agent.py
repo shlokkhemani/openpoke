@@ -2,17 +2,22 @@
 
 from html import escape
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
+from ...config import get_settings
 from ...services.execution import get_agent_roster
 
 _prompt_path = Path(__file__).parent / "system_prompt.md"
 SYSTEM_PROMPT = _prompt_path.read_text(encoding="utf-8").strip()
+# LTM paragraph (C7): lives next to the memory package and is appended at runtime only when LTM is on.
+_LTM_ADDENDUM_PATH = Path(__file__).resolve().parent.parent.parent / "services" / "memory" / "prompt_addendum.md"
 
 
 # Load and return the pre-defined system prompt from markdown file
 def build_system_prompt() -> str:
     """Return the static system prompt for the interaction agent."""
+    if get_settings().ltm_enabled:
+        return SYSTEM_PROMPT + "\n\n" + _LTM_ADDENDUM_PATH.read_text(encoding="utf-8").strip()
     return SYSTEM_PROMPT
 
 
@@ -21,11 +26,17 @@ def prepare_message_with_history(
     latest_text: str,
     transcript: str,
     message_type: str = "user",
+    long_term_memory: Optional[str] = None,
+    memory_notices: Optional[List[str]] = None,
 ) -> List[Dict[str, str]]:
     """Compose a message that bundles history, roster, and the latest turn."""
     sections: List[str] = []
 
     sections.append(_render_conversation_history(transcript))
+    if long_term_memory:  # already-escaped <long_term_memory> block (LTM render.py)
+        sections.append(long_term_memory)
+    for notice in memory_notices or []:
+        sections.append(f"<memory_notice>{escape(notice, quote=False)}</memory_notice>")
     sections.append(f"<active_agents>\n{_render_active_agents()}\n</active_agents>")
     sections.append(_render_current_turn(latest_text, message_type))
 

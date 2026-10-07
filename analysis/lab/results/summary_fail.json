@@ -1,0 +1,81 @@
+{
+  "summarizer_mode": "fail",
+  "env": {
+    "LAB_SUMMARY_THRESHOLD": "10",
+    "LAB_SUMMARY_TAIL": "2"
+  },
+  "first_summarizer_call": {
+    "turn": 5,
+    "conversation_entries": 12
+  },
+  "summarizer_calls": 26,
+  "summarizer_input_entry_indices": [
+    0,
+    9
+  ],
+  "summarizer_input_entry_count": 10,
+  "summarizer_input_head": "Existing memory summary:\n        None\n\n        New conversation logs to merge:\n        [0] user message: My dentist is Dr. Alpha Synthetic.\n[1] poke reply: Noted.\n[2] user message: My locker code is LOCKER-OLD-1111.\n[3] poke reply: Noted.\n[4] user message: Fil",
+  "summarizer_input_tags": [
+    "poke reply",
+    "user message"
+  ],
+  "probe_history_has_summary_block": false,
+  "probe_history_raw_entries": 24,
+  "fact_visible_to_llm_on_probe": {
+    "Dr. Alpha Synthetic": true,
+    "Dr. Beta Synthetic": false,
+    "LOCKER-OLD-1111": true,
+    "LOCKER-NEW-2222": false
+  },
+  "fact_in_working_memory_file": {
+    "Dr. Alpha Synthetic": true,
+    "Dr. Beta Synthetic": false,
+    "LOCKER-OLD-1111": true,
+    "LOCKER-NEW-2222": false
+  },
+  "fact_in_conversation_log_file": {
+    "Dr. Alpha Synthetic": true,
+    "Dr. Beta Synthetic": false,
+    "LOCKER-OLD-1111": true,
+    "LOCKER-NEW-2222": false
+  },
+  "fact_in_history_api": {
+    "Dr. Alpha Synthetic": true,
+    "Dr. Beta Synthetic": false,
+    "LOCKER-OLD-1111": true,
+    "LOCKER-NEW-2222": false
+  },
+  "conversation_log_lines": 26,
+  "working_memory_summary_info": "<summary_info>{\"last_index\": -1, \"updated_at\": null}</summary_info>",
+  "working_memory_lines": 28,
+  "summary_block_in_working_memory": "<conversation_summary></conversation_summary>",
+  "summarizer_payload_chars": [
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875,
+    2875
+  ],
+  "_elapsed_s": 12.8
+}

@@ -1,8 +1,11 @@
 """Interaction Agent Runtime - handles LLM calls for user and agent turns."""
 
 import json
+import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from datetime import datetime, timezone
+from html import unescape
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .agent import build_system_prompt, prepare_message_with_history
 from .tools import ToolResult, get_tool_schemas, handle_tool_call
@@ -65,14 +68,22 @@ class InteractionAgentRuntime:
     async def execute(self, user_message: str) -> InteractionResult:
         """Handle a user-authored message."""
 
+        # I1 (LTM design §8.9): ingress scrub first; nothing below may touch the raw string.
+        observed_at = datetime.now(timezone.utc)
+        text, ingress_findings = self._ingress_scrub(user_message)
+        del user_message
+
         try:
             transcript_before = self._load_conversation_transcript()
-            self.conversation_log.record_user_message(user_message)
+            self.conversation_log.record_user_message(text)
 
+            prepared = self._prepare_memory(text, "user_message", ingress_findings, observed_at)
             system_prompt = build_system_prompt()
             messages = prepare_message_with_history(
-                user_message, transcript_before, message_type="user"
+                text, transcript_before, message_type="user", **_memory_sections(prepared)
             )
+            if prepared is not None:
+                self._schedule_memory_ingest(prepared, _last_reply(transcript_before))
 
             logger.info("Processing user message through interaction agent")
             summary = await self._run_interaction_loop(system_prompt, messages)
@@ -100,13 +111,19 @@ class InteractionAgentRuntime:
     async def handle_agent_message(self, agent_message: str) -> InteractionResult:
         """Process a status update emitted by an execution agent."""
 
+        # I1: same ingress boundary for execution-agent / watcher messages. Agent turns never ingest (D6).
+        observed_at = datetime.now(timezone.utc)
+        text, ingress_findings = self._ingress_scrub(agent_message)
+        del agent_message
+
         try:
             transcript_before = self._load_conversation_transcript()
-            self.conversation_log.record_agent_message(agent_message)
+            self.conversation_log.record_agent_message(text)
 
+            prepared = self._prepare_memory(text, "agent_message", ingress_findings, observed_at)
             system_prompt = build_system_prompt()
             messages = prepare_message_with_history(
-                agent_message, transcript_before, message_type="agent"
+                text, transcript_before, message_type="agent", **_memory_sections(prepared)
             )
 
             logger.info("Processing execution agent results")
@@ -191,6 +208,33 @@ class InteractionAgentRuntime:
         return summary
 
     # Load conversation history, preferring summarized version if available
+    def _ingress_scrub(self, text: str) -> Tuple[str, List[Any]]:
+        if not self.settings.ingress_scrub_enabled:
+            return text, []
+        from ...services.memory.privacy import ingress_scrub
+
+        return ingress_scrub(text)
+
+    def _prepare_memory(self, text: str, source_kind: str, ingress_findings: List[Any], observed_at: datetime) -> Any:
+        """LTM prepare_turn (sync: P0, forget, retrieval). Fails open for chat: any error means no memory block."""
+        if not self.settings.ltm_enabled:
+            return None
+        try:
+            from ...services.memory import get_memory_service
+
+            return get_memory_service().prepare_turn(text, source_kind, ingress_findings, observed_at)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error("ltm prepare_turn failed", extra={"error": type(exc).__name__})
+            return None
+
+    def _schedule_memory_ingest(self, prepared: Any, prev_reply: Optional[str]) -> None:
+        try:
+            from ...services.memory import get_memory_service
+
+            get_memory_service().schedule_ingest(prepared, prev_reply=prev_reply)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error("ltm schedule_ingest failed", extra={"error": type(exc).__name__})
+
     def _load_conversation_transcript(self) -> str:
         if self.settings.summarization_enabled:
             rendered = self.working_memory_log.render_transcript()
@@ -402,3 +446,19 @@ class InteractionAgentRuntime:
             return summary.user_messages[-1]
 
         return summary.last_assistant_text
+
+
+def _memory_sections(prepared: Any) -> Dict[str, Any]:
+    """Extra prepare_message_with_history kwargs; empty when LTM is off, so the call is unchanged."""
+    if prepared is None:
+        return {}
+    return {"long_term_memory": prepared.ltm_block or None, "memory_notices": list(prepared.notices) or None}
+
+
+_REPLY_RX = re.compile(r"<poke_reply(?: [^>]*)?>(.*?)</poke_reply>", re.S)
+
+
+def _last_reply(transcript: str) -> Optional[str]:
+    """Previous assistant reply (context for the extractor, never a source)."""
+    replies = _REPLY_RX.findall(transcript or "")
+    return unescape(replies[-1]) if replies else None

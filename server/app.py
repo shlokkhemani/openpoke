@@ -72,6 +72,10 @@ async def _start_trigger_scheduler() -> None:
     await scheduler.start()
     watcher = get_important_email_watcher()
     await watcher.start()
+    if _settings.ltm_enabled:  # LTM: open (or reopen) ltm.db and run the TTL sweep once
+        from .services.memory import get_memory_service
+
+        get_memory_service().sweep()
 
 
 @app.on_event("shutdown")

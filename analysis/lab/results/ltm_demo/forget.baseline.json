@@ -1,0 +1,1216 @@
+{
+  "assertions": [
+    {
+      "actual": true,
+      "evidence": {
+        "probe": "same_session"
+      },
+      "expected": true,
+      "id": "baseline.preference_still_in_context_after_forget_request",
+      "name": "the baseline has no forget: the preference is still in the model context after the request",
+      "passed": true
+    },
+    {
+      "actual": [
+        "d89d3676196edcd517f2bb34f9dad2f74b7176897638a74622410129a841f6f8"
+      ],
+      "evidence": {
+        "method": "sha256(system message) == sha256(system_prompt.md stripped)",
+        "n_calls": 8
+      },
+      "expected": "d89d3676196edcd517f2bb34f9dad2f74b7176897638a74622410129a841f6f8",
+      "id": "flag_off.system_prompt_identical",
+      "name": "flags off: every interaction call used system_prompt.md byte for byte",
+      "passed": true
+    },
+    {
+      "actual": 0,
+      "evidence": {
+        "n_payloads": 8
+      },
+      "expected": 0,
+      "id": "flag_off.no_ltm_sections_in_payloads",
+      "name": "flags off: no <long_term_memory> or <memory_notice> in any payload",
+      "passed": true
+    },
+    {
+      "actual": false,
+      "evidence": {
+        "path": "server/data/memory/"
+      },
+      "expected": false,
+      "id": "baseline.no_ltm_db",
+      "name": "flags off: server/data/memory/ was never created",
+      "passed": true
+    },
+    {
+      "actual": [],
+      "evidence": {
+        "schema": "openpoke.ltm.demo_trace.v1"
+      },
+      "expected": [],
+      "id": "contract.valid",
+      "name": "validate_trace() passes",
+      "passed": true
+    },
+    {
+      "actual": [],
+      "evidence": {
+        "method": "ingress detectors over the serialised file (§24.1)"
+      },
+      "expected": [],
+      "id": "contract.leak_free",
+      "name": "no prohibited-class pattern anywhere in this file",
+      "passed": true
+    }
+  ],
+  "baseline_observations": [
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "raw_persistence",
+      "store": "poke_conversation.log",
+      "turn_index": 1
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "working_memory",
+      "store": "poke_working_memory.log",
+      "turn_index": 1
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "broad_context",
+      "store": "interaction_payload",
+      "turn_index": 1
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "raw_persistence",
+      "store": "poke_conversation.log",
+      "turn_index": 2
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "working_memory",
+      "store": "poke_working_memory.log",
+      "turn_index": 2
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "broad_context",
+      "store": "interaction_payload",
+      "turn_index": 2
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "raw_persistence",
+      "store": "poke_conversation.log",
+      "turn_index": 3
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "working_memory",
+      "store": "poke_working_memory.log",
+      "turn_index": 3
+    },
+    {
+      "contains": {
+        "preference": true
+      },
+      "node": "broad_context",
+      "store": "interaction_payload",
+      "turn_index": 3
+    },
+    {
+      "contains": {
+        "preference": false
+      },
+      "node": "raw_persistence",
+      "store": "poke_conversation.log",
+      "turn_index": 6
+    },
+    {
+      "contains": {
+        "preference": false
+      },
+      "node": "working_memory",
+      "store": "poke_working_memory.log",
+      "turn_index": 6
+    },
+    {
+      "contains": {
+        "preference": false
+      },
+      "node": "broad_context",
+      "store": "interaction_payload",
+      "turn_index": 6
+    }
+  ],
+  "canary_scan": {
+    "canaries": [
+      "FORGOTTEN:meeting_pref_text",
+      "FORGOTTEN:meeting_pref_value",
+      "FORGOTTEN:meeting_pref_value_json",
+      "FORGOTTEN:meeting_pref_hhmm",
+      "FORGOTTEN:meeting_pref_phrase"
+    ],
+    "sinks": [
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-wal"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-shm"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memories_fts*"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memory_events"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "events_jsonl"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 0,
+        "sink": "llm:memory_extractor"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 8,
+        "sink": "llm:interaction_agent"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:same_session:3"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:new_conversation:6"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_conversation.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_working_memory.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "server_stdout"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_text",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "trace_file"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-wal"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-shm"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memories_fts*"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memory_events"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "events_jsonl"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 0,
+        "sink": "llm:memory_extractor"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 8,
+        "sink": "llm:interaction_agent"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:same_session:3"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:new_conversation:6"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_conversation.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_working_memory.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "server_stdout"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "trace_file"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-wal"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-shm"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memories_fts*"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memory_events"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "events_jsonl"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 0,
+        "sink": "llm:memory_extractor"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 8,
+        "sink": "llm:interaction_agent"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:same_session:3"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:new_conversation:6"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_conversation.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_working_memory.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "server_stdout"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_value_json",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "trace_file"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-wal"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-shm"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memories_fts*"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memory_events"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "events_jsonl"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 0,
+        "sink": "llm:memory_extractor"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 8,
+        "sink": "llm:interaction_agent"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:same_session:3"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:new_conversation:6"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_conversation.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "file:poke_working_memory.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "server_stdout"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_hhmm",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "trace_file"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-wal"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-shm"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memories_fts*"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "sql:memory_events"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "present": false,
+        "sink": "events_jsonl"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "n_captures": 0,
+        "sink": "llm:memory_extractor"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 6,
+        "n_captures": 8,
+        "sink": "llm:interaction_agent"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:same_session:3"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "ltm_block:new_conversation:6"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 1,
+        "sink": "file:poke_conversation.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 1,
+        "sink": "file:poke_working_memory.log"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 0,
+        "sink": "server_stdout"
+      },
+      {
+        "canary": "FORGOTTEN:meeting_pref_phrase",
+        "expected": "observed",
+        "hits": 1,
+        "sink": "trace_file"
+      }
+    ]
+  },
+  "flow_graph": {
+    "edges": [
+      [
+        "conversation",
+        "raw_persistence"
+      ],
+      [
+        "raw_persistence",
+        "working_memory"
+      ],
+      [
+        "working_memory",
+        "broad_context"
+      ],
+      [
+        "broad_context",
+        "agent"
+      ]
+    ],
+    "lane": "baseline",
+    "nodes": [
+      "conversation",
+      "raw_persistence",
+      "working_memory",
+      "broad_context",
+      "agent"
+    ]
+  },
+  "memory_state": [],
+  "meta": {
+    "extractor": null,
+    "flags": {
+      "OPENPOKE_INGRESS_SCRUB": false,
+      "OPENPOKE_LTM_DEBUG": false,
+      "OPENPOKE_LTM_DEBUG_EVENTS": false,
+      "OPENPOKE_LTM_ENABLED": false,
+      "OPENPOKE_LTM_EXTRACTOR": null,
+      "OPENPOKE_LTM_TEST_HOOKS": false
+    },
+    "generated_at": "2026-10-07T18:48:42Z",
+    "git_commit": "a989a16d3dc593cd281736293c2f0600258d58ca",
+    "git_dirty": true,
+    "headline_probe": "new_conversation",
+    "llm": "mock",
+    "policy": null,
+    "python": "3.13.5",
+    "run_id": "run_01M4BV30HQ978V2V5VCMKSSWG8",
+    "sqlite": "3.53.4"
+  },
+  "mode": "baseline",
+  "model_context": {
+    "contains_preference": false,
+    "probe": "new_conversation",
+    "sections": {
+      "active_agents": {
+        "contains_preference": false,
+        "present": true
+      },
+      "conversation_history": {
+        "contains_preference": false,
+        "present": true
+      },
+      "new_user_message": {
+        "contains_preference": false,
+        "present": true
+      }
+    },
+    "turn_index": 6
+  },
+  "pipeline": [
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "poke_conversation.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "raw_persistence",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "harness_observation",
+      "stage": "raw_persistence",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "poke_working_memory.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "working_memory",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "harness_observation",
+      "stage": "working_memory",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "interaction_payload"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "broad_context",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "harness_observation",
+      "stage": "broad_context",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "replied": true
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "agent",
+      "output_safe": "reply received",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "harness_observation",
+      "stage": "agent",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "poke_conversation.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "raw_persistence",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "harness_observation",
+      "stage": "raw_persistence",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "poke_working_memory.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "working_memory",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "harness_observation",
+      "stage": "working_memory",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "interaction_payload"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "broad_context",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "harness_observation",
+      "stage": "broad_context",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "replied": true
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "agent",
+      "output_safe": "reply received",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "harness_observation",
+      "stage": "agent",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "poke_conversation.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "raw_persistence",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "harness_observation",
+      "stage": "raw_persistence",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "poke_working_memory.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "working_memory",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "harness_observation",
+      "stage": "working_memory",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": true
+        },
+        "store": "interaction_payload"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "broad_context",
+      "output_safe": "contains: preference",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "harness_observation",
+      "stage": "broad_context",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "replied": true
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "agent",
+      "output_safe": "reply received",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "harness_observation",
+      "stage": "agent",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": false
+        },
+        "store": "poke_conversation.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "raw_persistence",
+      "output_safe": "contains: none",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "harness_observation",
+      "stage": "raw_persistence",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 6
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": false
+        },
+        "store": "poke_working_memory.log"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "working_memory",
+      "output_safe": "contains: none",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "harness_observation",
+      "stage": "working_memory",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 6
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "contains": {
+          "preference": false
+        },
+        "store": "interaction_payload"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "broad_context",
+      "output_safe": "contains: none",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "harness_observation",
+      "stage": "broad_context",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 6
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "replied": true
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "agent",
+      "output_safe": "reply received",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "harness_observation",
+      "stage": "agent",
+      "trace_id": null,
+      "ts": null,
+      "turn_index": 6
+    }
+  ],
+  "probes": [
+    {
+      "label": "same_session",
+      "model_context": {
+        "contains_preference": true,
+        "sections": {
+          "active_agents": {
+            "contains_preference": false,
+            "present": true
+          },
+          "conversation_history": {
+            "contains_preference": true,
+            "present": true
+          },
+          "new_user_message": {
+            "contains_preference": false,
+            "present": true
+          }
+        }
+      },
+      "probe": "same_session",
+      "turn_index": 3
+    },
+    {
+      "label": "new_conversation",
+      "model_context": {
+        "contains_preference": false,
+        "sections": {
+          "active_agents": {
+            "contains_preference": false,
+            "present": true
+          },
+          "conversation_history": {
+            "contains_preference": false,
+            "present": true
+          },
+          "new_user_message": {
+            "contains_preference": false,
+            "present": true
+          }
+        }
+      },
+      "probe": "new_conversation",
+      "turn_index": 6
+    }
+  ],
+  "retrieval": [],
+  "retrieved": [],
+  "scenario": "forget",
+  "schema": "openpoke.ltm.demo_trace.v1",
+  "turns": [
+    {
+      "kind": "hook",
+      "outcomes": [],
+      "path": [],
+      "session": "s1",
+      "skipped": "baseline has no test hooks",
+      "text_safe": null,
+      "turn_index": 0
+    },
+    {
+      "kind": "setup",
+      "outcomes": [],
+      "path": [
+        "conversation",
+        "raw_persistence",
+        "working_memory",
+        "broad_context",
+        "agent"
+      ],
+      "session": "s1",
+      "text_safe": "I prefer meetings after 10 AM.",
+      "turn_index": 1
+    },
+    {
+      "kind": "setup",
+      "outcomes": [],
+      "path": [
+        "conversation",
+        "raw_persistence",
+        "working_memory",
+        "broad_context",
+        "agent"
+      ],
+      "session": "s1",
+      "text_safe": "Forget my meeting preference.",
+      "turn_index": 2
+    },
+    {
+      "kind": "probe",
+      "label": "same_session",
+      "outcomes": [],
+      "path": [
+        "conversation",
+        "raw_persistence",
+        "working_memory",
+        "broad_context",
+        "agent"
+      ],
+      "probe": "same_session",
+      "session": "s1",
+      "text_safe": "When do I prefer meetings?",
+      "turn_index": 3
+    },
+    {
+      "kind": "wait_duplicate",
+      "outcomes": [],
+      "path": [],
+      "session": "s1",
+      "text_safe": null,
+      "turn_index": 4
+    },
+    {
+      "kind": "new_conversation",
+      "outcomes": [],
+      "path": [],
+      "session": "s2",
+      "text_safe": null,
+      "turn_index": 5
+    },
+    {
+      "kind": "probe",
+      "label": "new_conversation",
+      "outcomes": [],
+      "path": [
+        "conversation",
+        "raw_persistence",
+        "working_memory",
+        "broad_context",
+        "agent"
+      ],
+      "probe": "new_conversation",
+      "session": "s2",
+      "text_safe": "When do I prefer meetings?",
+      "turn_index": 6
+    }
+  ]
+}

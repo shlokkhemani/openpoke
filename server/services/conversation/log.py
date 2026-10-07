@@ -46,6 +46,15 @@ def _resolve_working_memory_log() -> "WorkingMemoryLog":
     return get_working_memory_log()
 
 
+def _persist_safe(content: str) -> str:
+    """Prohibited classes (secrets, regulated ids) to placeholders when the ingress scrub is on; else unchanged."""
+    if not get_settings().ingress_scrub_enabled:
+        return content
+    from ..memory.privacy import ingress_scrub
+
+    return ingress_scrub(content)[0]
+
+
 _ATTR_PATTERN = re.compile(r"(\w+)\s*=\s*\"([^\"]*)\"")
 
 
@@ -133,20 +142,25 @@ class ConversationLog:
                 parts.append(f"<{tag}>{safe_payload}</{tag}>")
         return "\n".join(parts)
 
+    # I2 (LTM design §8.9): one ingress scrub per entry, and the SAME string goes to both durable copies.
     def record_user_message(self, content: str) -> None:
+        content = _persist_safe(content)
         timestamp = self._append("user_message", content)
         self._working_memory_log.append_entry("user_message", content, timestamp)
 
     def record_agent_message(self, content: str) -> None:
+        content = _persist_safe(content)
         timestamp = self._append("agent_message", content)
         self._working_memory_log.append_entry("agent_message", content, timestamp)
 
     def record_reply(self, content: str) -> None:
+        content = _persist_safe(content)
         timestamp = self._append("poke_reply", content)
         self._working_memory_log.append_entry("poke_reply", content, timestamp)
 
     def record_wait(self, reason: str) -> None:
         """Record a wait marker that should not reach the user-facing chat history."""
+        reason = _persist_safe(reason)
         timestamp = self._append("wait", reason)
         self._working_memory_log.append_entry("wait", reason, timestamp)
 

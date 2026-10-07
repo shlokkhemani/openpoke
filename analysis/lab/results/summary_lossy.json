@@ -1,0 +1,53 @@
+{
+  "summarizer_mode": "lossy",
+  "env": {},
+  "first_summarizer_call": {
+    "turn": 54,
+    "conversation_entries": 110
+  },
+  "summarizer_calls": 1,
+  "summarizer_input_entry_indices": [
+    0,
+    99
+  ],
+  "summarizer_input_entry_count": 100,
+  "summarizer_input_head": "Existing memory summary:\n        None\n\n        New conversation logs to merge:\n        [0] user message: My dentist is Dr. Alpha Synthetic.\n[1] poke reply: Noted.\n[2] user message: My locker code is LOCKER-OLD-1111.\n[3] poke reply: Noted.\n[4] user message: Fil",
+  "summarizer_input_tags": [
+    "poke reply",
+    "user message"
+  ],
+  "probe_history_has_summary_block": true,
+  "probe_history_raw_entries": 12,
+  "fact_visible_to_llm_on_probe": {
+    "Dr. Alpha Synthetic": false,
+    "Dr. Beta Synthetic": false,
+    "LOCKER-OLD-1111": false,
+    "LOCKER-NEW-2222": false
+  },
+  "fact_in_working_memory_file": {
+    "Dr. Alpha Synthetic": false,
+    "Dr. Beta Synthetic": false,
+    "LOCKER-OLD-1111": false,
+    "LOCKER-NEW-2222": false
+  },
+  "fact_in_conversation_log_file": {
+    "Dr. Alpha Synthetic": true,
+    "Dr. Beta Synthetic": true,
+    "LOCKER-OLD-1111": true,
+    "LOCKER-NEW-2222": true
+  },
+  "fact_in_history_api": {
+    "Dr. Alpha Synthetic": true,
+    "Dr. Beta Synthetic": true,
+    "LOCKER-OLD-1111": true,
+    "LOCKER-NEW-2222": true
+  },
+  "conversation_log_lines": 114,
+  "working_memory_summary_info": "<summary_info>{\"last_index\": 99, \"updated_at\": \"2026-10-07T15:08:20.697190+00:00\"}</summary_info>",
+  "working_memory_lines": 16,
+  "summary_block_in_working_memory": "<conversation_summary>Summary generated: 2026-10-07 12:00 (user timezone)\\n\\nTimeline &amp; Commitments:\\n- No items.\\n\\nPending &amp; Follow-ups:\\n- No items.\\n\\nRoutines &amp; Recurring:\\n- No items.\\n\\nPreferences &amp; Profile:\\n- No items.\\n\\nContext &amp; Notes:\\n- No items.</conversation_summary>",
+  "summarizer_payload_chars": [
+    6106
+  ],
+  "_elapsed_s": 42.2
+}

@@ -1,0 +1,21 @@
+{
+  "bonus_files": [],
+  "extractor": "rules",
+  "failed": [],
+  "files": [
+    "conflict.baseline.json",
+    "conflict.ltm.json",
+    "privacy.baseline.json",
+    "privacy.ltm.json",
+    "selective.baseline.json",
+    "selective.ltm.json",
+    "forget.baseline.json",
+    "forget.ltm.json"
+  ],
+  "gate_passed": true,
+  "generated_at": "2026-10-07T18:48:55Z",
+  "git_commit": "a989a16d3dc593cd281736293c2f0600258d58ca",
+  "git_dirty": true,
+  "run_id": "run_01M4BV30HQ978V2V5VCMKSSWG8",
+  "schema": "openpoke.ltm.demo_trace.index.v1"
+}

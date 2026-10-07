@@ -1,0 +1,43 @@
+{
+  "locations_before_delete": {
+    "race": [
+      "server/data/execution_agents/synthetic-lab-agent.log",
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent",
+      "LLM:execution_agent"
+    ]
+  },
+  "locations_immediately_after_delete": {
+    "race": [
+      "LLM:interaction_agent",
+      "LLM:execution_agent"
+    ]
+  },
+  "locations_after_inflight_work_finished": {
+    "race": [
+      "server/data/execution_agents/synthetic-lab-agent.log",
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent",
+      "LLM:execution_agent"
+    ]
+  },
+  "history_after": [
+    {
+      "role": "assistant",
+      "content": "Update: [SUCCESS] Synthetic Lab Agent: Done: note RACE-MARKER-9090",
+      "timestamp": "2026-10-07 15:06:55"
+    }
+  ],
+  "data_files_after": {
+    "server/data/conversation/poke_conversation.log": 246,
+    "server/data/conversation/poke_working_memory.log": 360,
+    "server/data/execution_agents/roster.json": 2,
+    "server/data/execution_agents/synthetic-lab-agent.log": 93,
+    "server/data/triggers.db": 16384,
+    "server/data/triggers.db-shm": 32768,
+    "server/data/triggers.db-wal": 8272
+  },
+  "_elapsed_s": 8.6
+}

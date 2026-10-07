@@ -39,6 +39,13 @@ def _env_int(name: str, fallback: int) -> int:
         return fallback
 
 
+def _env_bool(name: str, fallback: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return fallback
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class Settings(BaseModel):
     """Application settings with lightweight env fallbacks."""
 
@@ -70,6 +77,22 @@ class Settings(BaseModel):
     # Summarisation controls
     conversation_summary_threshold: int = Field(default=100)
     conversation_summary_tail_size: int = Field(default=10)
+
+    # Long-term memory (all off by default; flags off reproduce the baseline byte for byte)
+    ltm_enabled: bool = Field(default=_env_bool("OPENPOKE_LTM_ENABLED"))
+    ingress_scrub_enabled: bool = Field(
+        default=_env_bool("OPENPOKE_INGRESS_SCRUB", _env_bool("OPENPOKE_LTM_ENABLED"))
+    )
+    ltm_debug: bool = Field(default=_env_bool("OPENPOKE_LTM_DEBUG"))
+    ltm_debug_events: bool = Field(default=_env_bool("OPENPOKE_LTM_DEBUG_EVENTS"))
+    ltm_test_hooks: bool = Field(default=_env_bool("OPENPOKE_LTM_TEST_HOOKS"))
+    ltm_extractor: str = Field(default=os.getenv("OPENPOKE_LTM_EXTRACTOR", "rules"))
+    memory_extractor_model: Optional[str] = Field(default=os.getenv("OPENPOKE_MEMORY_EXTRACTOR_MODEL"))
+    ltm_user: str = Field(default=os.getenv("OPENPOKE_LTM_USER", "local-user"))
+
+    def model_post_init(self, __context: object) -> None:
+        if not self.memory_extractor_model:
+            self.memory_extractor_model = self.summarizer_model
 
     @property
     def cors_allow_origins(self) -> List[str]:

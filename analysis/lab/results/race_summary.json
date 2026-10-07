@@ -1,0 +1,12 @@
+{
+  "summarizer_in_flight_at_delete": true,
+  "marker_locations_immediately_after_delete": [
+    "LLM:interaction_agent",
+    "LLM:summarizer"
+  ],
+  "working_memory_after_summarizer_finished_first_line": "<summary_info>{\"last_index\": 9, \"updated_at\": \"2026-10-07T15:08:45.598663+00:00\"}</summary_info>",
+  "marker_in_working_memory_after_delete": true,
+  "marker_sent_to_llm_on_next_turn_after_delete": true,
+  "conversation_log_after_delete_lines": 2,
+  "_elapsed_s": 10.7
+}

@@ -24,7 +24,14 @@ def chat_history() -> ChatHistoryResponse:
 
 @router.delete("/history", response_model=ChatHistoryClearResponse)
 def clear_history() -> ChatHistoryClearResponse:
+    from ..config import get_settings
     from ..services import get_execution_agent_logs, get_agent_roster
+
+    # LTM (D21): clear chat fences in-flight extraction from this chat but keeps existing memories.
+    if get_settings().ltm_enabled:
+        from ..services.memory import get_memory_service, resolve_memory_scope
+
+        get_memory_service().bump_epoch(resolve_memory_scope())
 
     # Clear conversation log
     log = get_conversation_log()

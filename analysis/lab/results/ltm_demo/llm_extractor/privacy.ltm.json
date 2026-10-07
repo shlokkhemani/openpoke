@@ -1,0 +1,1990 @@
+{
+  "assertions": [
+    {
+      "actual": {
+        "events_jsonl": 0,
+        "file:poke_conversation.log": 0,
+        "file:poke_working_memory.log": 0,
+        "llm:interaction_agent": 0,
+        "llm:memory_extractor": 0,
+        "ltm.db": 0,
+        "ltm.db-shm": 0,
+        "ltm.db-wal": 0,
+        "ltm_block:new_conversation:5": 0,
+        "ltm_block:same_session:3": 0,
+        "server_stdout": 0,
+        "sql:memories_fts*": 0,
+        "sql:memory_events": 0,
+        "trace_file": 0
+      },
+      "evidence": {
+        "sinks": [
+          "events_jsonl",
+          "file:poke_conversation.log",
+          "file:poke_working_memory.log",
+          "llm:interaction_agent",
+          "llm:memory_extractor",
+          "ltm.db",
+          "ltm.db-shm",
+          "ltm.db-wal",
+          "ltm_block:new_conversation:5",
+          "ltm_block:same_session:3",
+          "server_stdout",
+          "sql:memories_fts*",
+          "sql:memory_events",
+          "trace_file"
+        ]
+      },
+      "expected": 0,
+      "id": "privacy.secret_zero_hits_all_sinks",
+      "name": "the synthetic API key has 0 hits in every sink of deep dive §29.4",
+      "passed": true
+    },
+    {
+      "actual": {
+        "file:poke_conversation.log": 0,
+        "file:poke_working_memory.log": 0
+      },
+      "evidence": {
+        "placeholder_present": true
+      },
+      "expected": 0,
+      "id": "privacy.ingress_no_verbatim_secret_in_new_log_lines",
+      "name": "ingress: no verbatim key in conversation-log / working-memory lines written with the flag on",
+      "passed": true
+    },
+    {
+      "actual": 0,
+      "evidence": {
+        "n_payloads": 10
+      },
+      "expected": 0,
+      "id": "privacy.no_secret_in_any_interaction_payload",
+      "name": "the interaction LLM never received the key (any turn)",
+      "passed": true
+    },
+    {
+      "actual": [],
+      "evidence": {
+        "turns": []
+      },
+      "expected": "REJECT CONTACT_IDENTIFIER_NOT_NEEDED",
+      "id": "privacy.email_classified_contact",
+      "name": "email classified CONTACT:EMAIL and REJECTed for LTM",
+      "passed": false
+    },
+    {
+      "actual": {
+        "events_jsonl": 0,
+        "llm:memory_extractor": 0,
+        "ltm.db": 0,
+        "ltm.db-shm": 0,
+        "ltm.db-wal": 0,
+        "sql:memories_fts*": 0,
+        "sql:memory_events": 0,
+        "trace_file": 0
+      },
+      "evidence": {},
+      "expected": 0,
+      "id": "privacy.email_not_in_ltm",
+      "name": "email absent from ltm.db*, FTS, events, extractor captures, LTM blocks, trace",
+      "passed": true
+    },
+    {
+      "actual": {
+        "file:poke_conversation.log": 2,
+        "file:poke_working_memory.log": 2,
+        "llm:interaction_agent": 12
+      },
+      "evidence": {
+        "decision": "D24"
+      },
+      "expected": ">0 (by design)",
+      "id": "privacy.email_in_short_term_history_by_design",
+      "name": "caveat §24.1 #3 / C15: contact PII is NOT ingress-scrubbed; it stays in short-term history and payloads",
+      "passed": true
+    },
+    {
+      "actual": [],
+      "evidence": {},
+      "expected": [
+        "User prefers concise emails."
+      ],
+      "id": "privacy.useful_fact_stored",
+      "name": "concise-email preference from the mixed message is ACTIVE",
+      "passed": false
+    },
+    {
+      "actual": 0,
+      "evidence": {},
+      "expected": 2,
+      "id": "privacy.useful_fact_retrieved",
+      "name": "the draft probe's LTM block carries the preference (and nothing else)",
+      "passed": false
+    },
+    {
+      "actual": {
+        "email:trace_file": 0,
+        "trace_file": 0
+      },
+      "evidence": {},
+      "expected": 0,
+      "id": "privacy.trace_file_leak_free",
+      "name": "this trace file contains neither the key nor the email",
+      "passed": true
+    },
+    {
+      "actual": 5,
+      "evidence": {},
+      "expected": ">0",
+      "id": "llm_extractor.extractor_called",
+      "name": "the LLMExtractor really called the (mock) model",
+      "passed": true
+    },
+    {
+      "actual": 0,
+      "evidence": {},
+      "expected": 0,
+      "id": "llm_extractor.zero_secret_in_extractor_captures",
+      "name": "extractor captures hold no secret (LLM_SAFE only)",
+      "passed": true
+    },
+    {
+      "actual": [],
+      "evidence": {
+        "schema": "openpoke.ltm.demo_trace.v1"
+      },
+      "expected": [],
+      "id": "contract.valid",
+      "name": "validate_trace() passes",
+      "passed": true
+    },
+    {
+      "actual": [],
+      "evidence": {
+        "method": "ingress detectors over the serialised file (§24.1)"
+      },
+      "expected": [],
+      "id": "contract.leak_free",
+      "name": "no prohibited-class pattern anywhere in this file",
+      "passed": true
+    }
+  ],
+  "baseline_observations": [],
+  "canary_scan": {
+    "canaries": [
+      "SECRET:API_KEY",
+      "CONTACT:EMAIL"
+    ],
+    "sinks": [
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "present": true,
+        "sink": "ltm.db"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-wal"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-shm"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "present": true,
+        "sink": "sql:memories_fts*"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "present": true,
+        "sink": "sql:memory_events"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "present": false,
+        "sink": "events_jsonl"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "n_captures": 5,
+        "sink": "llm:memory_extractor"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "n_captures": 10,
+        "sink": "llm:interaction_agent"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "ltm_block:same_session:3"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "ltm_block:new_conversation:5"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "file:poke_conversation.log"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "file:poke_working_memory.log"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "server_stdout"
+      },
+      {
+        "canary": "SECRET:API_KEY",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "trace_file"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "present": true,
+        "sink": "ltm.db"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-wal"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "present": false,
+        "sink": "ltm.db-shm"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "present": true,
+        "sink": "sql:memories_fts*"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "present": true,
+        "sink": "sql:memory_events"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "present": false,
+        "sink": "events_jsonl"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "n_captures": 5,
+        "sink": "llm:memory_extractor"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "by_design",
+        "hits": 12,
+        "n_captures": 10,
+        "sink": "llm:interaction_agent"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "ltm_block:same_session:3"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "ltm_block:new_conversation:5"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "by_design",
+        "hits": 2,
+        "sink": "file:poke_conversation.log"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "by_design",
+        "hits": 2,
+        "sink": "file:poke_working_memory.log"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "server_stdout"
+      },
+      {
+        "canary": "CONTACT:EMAIL",
+        "expected": "zero",
+        "hits": 0,
+        "sink": "trace_file"
+      }
+    ]
+  },
+  "flow_graph": {
+    "edges": [
+      [
+        "conversation",
+        "ingress_scrub"
+      ],
+      [
+        "ingress_scrub",
+        "privacy"
+      ],
+      [
+        "privacy",
+        "extract"
+      ],
+      [
+        "extract",
+        "policy"
+      ],
+      [
+        "policy",
+        "consolidate"
+      ],
+      [
+        "policy",
+        "ignore"
+      ],
+      [
+        "policy",
+        "reject"
+      ],
+      [
+        "consolidate",
+        "store"
+      ],
+      [
+        "consolidate",
+        "supersede"
+      ],
+      [
+        "consolidate",
+        "fence_drop"
+      ],
+      [
+        "store",
+        "retrieve"
+      ],
+      [
+        "retrieve",
+        "agent"
+      ],
+      [
+        "conversation",
+        "delete"
+      ]
+    ],
+    "lane": "ltm",
+    "nodes": [
+      "conversation",
+      "ingress_scrub",
+      "privacy",
+      "extract",
+      "policy",
+      "consolidate",
+      "store",
+      "ignore",
+      "reject",
+      "supersede",
+      "delete",
+      "fence_drop",
+      "retrieve",
+      "agent"
+    ]
+  },
+  "memory_state": [
+    {
+      "after_turn": 0,
+      "deleted": [],
+      "edges": [],
+      "memories": [],
+      "tombstones": []
+    },
+    {
+      "after_turn": 1,
+      "deleted": [],
+      "edges": [],
+      "memories": [],
+      "tombstones": []
+    },
+    {
+      "after_turn": 2,
+      "deleted": [],
+      "edges": [],
+      "memories": [],
+      "tombstones": []
+    },
+    {
+      "after_turn": 3,
+      "deleted": [],
+      "edges": [],
+      "memories": [],
+      "tombstones": []
+    },
+    {
+      "after_turn": 4,
+      "deleted": [],
+      "edges": [],
+      "memories": [],
+      "tombstones": []
+    },
+    {
+      "after_turn": 5,
+      "deleted": [],
+      "edges": [],
+      "memories": [],
+      "tombstones": []
+    }
+  ],
+  "meta": {
+    "extractor": "llm-0.1",
+    "flags": {
+      "OPENPOKE_INGRESS_SCRUB": true,
+      "OPENPOKE_LTM_DEBUG": true,
+      "OPENPOKE_LTM_DEBUG_EVENTS": true,
+      "OPENPOKE_LTM_ENABLED": true,
+      "OPENPOKE_LTM_EXTRACTOR": "llm",
+      "OPENPOKE_LTM_TEST_HOOKS": true
+    },
+    "generated_at": "2026-10-07T18:48:56Z",
+    "git_commit": "a989a16d3dc593cd281736293c2f0600258d58ca",
+    "git_dirty": true,
+    "headline_probe": "same_session",
+    "llm": "mock",
+    "policy": "policy-0.1",
+    "python": "3.13.5",
+    "run_id": "run_01M4BV4Z6KYQHKZPF46YWYXAMM",
+    "sqlite": "3.53.4"
+  },
+  "mode": "ltm",
+  "model_context": {
+    "contains_contact_pii": true,
+    "contains_secret": false,
+    "contains_useful_fact": true,
+    "note": "same-session short-term history unchanged by design (see design §24.1)",
+    "probe": "same_session",
+    "sections": {
+      "active_agents": {
+        "contains_contact_pii": false,
+        "contains_secret": false,
+        "contains_useful_fact": false,
+        "present": true
+      },
+      "conversation_history": {
+        "contains_contact_pii": true,
+        "contains_secret": false,
+        "contains_useful_fact": true,
+        "present": true
+      },
+      "new_user_message": {
+        "contains_contact_pii": false,
+        "contains_secret": false,
+        "contains_useful_fact": false,
+        "present": true
+      }
+    },
+    "turn_index": 3
+  },
+  "pipeline": [
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "chars": 34,
+        "epoch": 0,
+        "kind": "setup",
+        "observed_at": "2026-10-07T18:48:56.731Z",
+        "source_kind": "user_message",
+        "turn_id": "turn_2026-10-07T18:48:56.731Z_ce92"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "conversation",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "event",
+      "stage": "ingest",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.734Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": "CLEAN",
+      "detail": {
+        "detectors": []
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "ingress_scrub",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "event",
+      "stage": "ingress.scrub",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.735Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "detectors": [
+          {
+            "count": 1,
+            "type": "EMAIL"
+          }
+        ]
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "privacy",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "event",
+      "stage": "privacy.scrub",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.737Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "hard_filters": {
+          "allowed_use": "interaction_context",
+          "not_expired": true,
+          "sensitivity": [
+            "low",
+            "medium"
+          ],
+          "statuses": [
+            "active",
+            "contested"
+          ],
+          "user_scope": "local-user"
+        },
+        "n_entities": 0,
+        "n_terms": 1
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "event",
+      "stage": "retrieve.query",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.740Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "constraint": 0,
+        "fts": 0,
+        "slot": 0,
+        "total": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 4,
+      "source": "event",
+      "stage": "retrieve.candidates",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.743Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "selected": [],
+        "tokens": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": "",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 5,
+      "source": "event",
+      "stage": "retrieve.select",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.745Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": "OK",
+      "detail": {
+        "duplicate": false,
+        "extractor_version": "llm-0.1",
+        "latency_ms": 19.0,
+        "n_candidates": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "extract",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 6,
+      "source": "event",
+      "stage": "extract",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.789Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": "NO_CANDIDATE",
+      "detail": {
+        "clause_index": 0
+      },
+      "input_safe": "My email is [EMAIL_1].",
+      "memory_id": null,
+      "node": "ignore",
+      "output_safe": null,
+      "reason": "SMALL_TALK",
+      "reason_codes": [
+        "SMALL_TALK"
+      ],
+      "refs": {},
+      "scores": null,
+      "seq": 7,
+      "source": "event",
+      "stage": "extract.clause",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "ts": "2026-10-07T18:48:56.791Z",
+      "turn_index": 0
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "chars": 36,
+        "epoch": 0,
+        "kind": "setup",
+        "observed_at": "2026-10-07T18:48:59.154Z",
+        "source_kind": "user_message",
+        "turn_id": "turn_2026-10-07T18:48:59.154Z_c8d1"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "conversation",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "event",
+      "stage": "ingest",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.156Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": "SCRUBBED",
+      "detail": {
+        "detectors": [
+          {
+            "count": 1,
+            "type": "API_KEY"
+          }
+        ]
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "ingress_scrub",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "event",
+      "stage": "ingress.scrub",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.158Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "detectors": []
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "privacy",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "event",
+      "stage": "privacy.scrub",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.159Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "families": [],
+        "hard_filters": {
+          "allowed_use": "interaction_context",
+          "not_expired": true,
+          "sensitivity": [
+            "low",
+            "medium"
+          ],
+          "statuses": [
+            "active",
+            "contested"
+          ],
+          "user_scope": "local-user"
+        },
+        "n_entities": 0,
+        "n_terms": 3
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "event",
+      "stage": "retrieve.query",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.160Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "constraint": 0,
+        "fts": 0,
+        "slot": 0,
+        "total": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 4,
+      "source": "event",
+      "stage": "retrieve.candidates",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.163Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "selected": [],
+        "tokens": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": "",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 5,
+      "source": "event",
+      "stage": "retrieve.select",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.164Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": "OK",
+      "detail": {
+        "duplicate": false,
+        "extractor_version": "llm-0.1",
+        "latency_ms": 11.3,
+        "n_candidates": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "extract",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 6,
+      "source": "event",
+      "stage": "extract",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.185Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": "NO_CANDIDATE",
+      "detail": {
+        "clause_index": 0
+      },
+      "input_safe": "My test API key is [SECRET:API_KEY].",
+      "memory_id": null,
+      "node": "ignore",
+      "output_safe": null,
+      "reason": "SMALL_TALK",
+      "reason_codes": [
+        "SMALL_TALK"
+      ],
+      "refs": {},
+      "scores": null,
+      "seq": 7,
+      "source": "event",
+      "stage": "extract.clause",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "ts": "2026-10-07T18:48:59.187Z",
+      "turn_index": 1
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "chars": 100,
+        "epoch": 0,
+        "kind": "setup",
+        "observed_at": "2026-10-07T18:49:00.294Z",
+        "source_kind": "user_message",
+        "turn_id": "turn_2026-10-07T18:49:00.294Z_0f6c"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "conversation",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "event",
+      "stage": "ingest",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.296Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": "SCRUBBED",
+      "detail": {
+        "detectors": [
+          {
+            "count": 1,
+            "type": "API_KEY"
+          }
+        ]
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "ingress_scrub",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "event",
+      "stage": "ingress.scrub",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.298Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "detectors": [
+          {
+            "count": 1,
+            "type": "EMAIL"
+          }
+        ]
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "privacy",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "event",
+      "stage": "privacy.scrub",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.299Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "hard_filters": {
+          "allowed_use": "interaction_context",
+          "not_expired": true,
+          "sensitivity": [
+            "low",
+            "medium"
+          ],
+          "statuses": [
+            "active",
+            "contested"
+          ],
+          "user_scope": "local-user"
+        },
+        "n_entities": 0,
+        "n_terms": 6
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "event",
+      "stage": "retrieve.query",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.301Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "constraint": 0,
+        "fts": 0,
+        "slot": 0,
+        "total": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 4,
+      "source": "event",
+      "stage": "retrieve.candidates",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.303Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "selected": [],
+        "tokens": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": "",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 5,
+      "source": "event",
+      "stage": "retrieve.select",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.304Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": "OK",
+      "detail": {
+        "duplicate": false,
+        "extractor_version": "llm-0.1",
+        "latency_ms": 10.19,
+        "n_candidates": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "extract",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 6,
+      "source": "event",
+      "stage": "extract",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.324Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": "NO_CANDIDATE",
+      "detail": {
+        "clause_index": 0
+      },
+      "input_safe": "My email is [EMAIL_1]",
+      "memory_id": null,
+      "node": "ignore",
+      "output_safe": null,
+      "reason": "SMALL_TALK",
+      "reason_codes": [
+        "SMALL_TALK"
+      ],
+      "refs": {},
+      "scores": null,
+      "seq": 7,
+      "source": "event",
+      "stage": "extract.clause",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.326Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": "NO_CANDIDATE",
+      "detail": {
+        "clause_index": 1
+      },
+      "input_safe": "my test API key is [SECRET:API_KEY]",
+      "memory_id": null,
+      "node": "ignore",
+      "output_safe": null,
+      "reason": "SMALL_TALK",
+      "reason_codes": [
+        "SMALL_TALK"
+      ],
+      "refs": {},
+      "scores": null,
+      "seq": 8,
+      "source": "event",
+      "stage": "extract.clause",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.327Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": "NO_CANDIDATE",
+      "detail": {
+        "clause_index": 2
+      },
+      "input_safe": "I prefer concise emails.",
+      "memory_id": null,
+      "node": "ignore",
+      "output_safe": null,
+      "reason": "SMALL_TALK",
+      "reason_codes": [
+        "SMALL_TALK"
+      ],
+      "refs": {},
+      "scores": null,
+      "seq": 9,
+      "source": "event",
+      "stage": "extract.clause",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "ts": "2026-10-07T18:49:00.329Z",
+      "turn_index": 2
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "chars": 43,
+        "epoch": 0,
+        "kind": "probe",
+        "observed_at": "2026-10-07T18:49:01.449Z",
+        "source_kind": "user_message",
+        "turn_id": "turn_2026-10-07T18:49:01.449Z_d710"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "conversation",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "event",
+      "stage": "ingest",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.451Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": "CLEAN",
+      "detail": {
+        "detectors": []
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "ingress_scrub",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "event",
+      "stage": "ingress.scrub",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.453Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "detectors": []
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "privacy",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "event",
+      "stage": "privacy.scrub",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.454Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "hard_filters": {
+          "allowed_use": "interaction_context",
+          "not_expired": true,
+          "sensitivity": [
+            "low",
+            "medium"
+          ],
+          "statuses": [
+            "active",
+            "contested"
+          ],
+          "user_scope": "local-user"
+        },
+        "n_entities": 1,
+        "n_terms": 5
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "event",
+      "stage": "retrieve.query",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.456Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "constraint": 0,
+        "fts": 0,
+        "slot": 0,
+        "total": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 4,
+      "source": "event",
+      "stage": "retrieve.candidates",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.458Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "selected": [],
+        "tokens": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": "",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 5,
+      "source": "event",
+      "stage": "retrieve.select",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.460Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": "OK",
+      "detail": {
+        "duplicate": false,
+        "extractor_version": "llm-0.1",
+        "latency_ms": 9.96,
+        "n_candidates": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "extract",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 6,
+      "source": "event",
+      "stage": "extract",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.479Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": "NO_CANDIDATE",
+      "detail": {
+        "clause_index": 0
+      },
+      "input_safe": "Draft a short note to Sam about the launch.",
+      "memory_id": null,
+      "node": "ignore",
+      "output_safe": null,
+      "reason": "SMALL_TALK",
+      "reason_codes": [
+        "SMALL_TALK"
+      ],
+      "refs": {},
+      "scores": null,
+      "seq": 7,
+      "source": "event",
+      "stage": "extract.clause",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "ts": "2026-10-07T18:49:01.481Z",
+      "turn_index": 3
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "chars": 43,
+        "epoch": 1,
+        "kind": "probe",
+        "observed_at": "2026-10-07T18:49:03.128Z",
+        "source_kind": "user_message",
+        "turn_id": "turn_2026-10-07T18:49:03.128Z_c056"
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "conversation",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 0,
+      "source": "event",
+      "stage": "ingest",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.130Z",
+      "turn_index": 5
+    },
+    {
+      "candidate_id": null,
+      "decision": "CLEAN",
+      "detail": {
+        "detectors": []
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "ingress_scrub",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 1,
+      "source": "event",
+      "stage": "ingress.scrub",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.131Z",
+      "turn_index": 5
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "detectors": []
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "privacy",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 2,
+      "source": "event",
+      "stage": "privacy.scrub",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.133Z",
+      "turn_index": 5
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "hard_filters": {
+          "allowed_use": "interaction_context",
+          "not_expired": true,
+          "sensitivity": [
+            "low",
+            "medium"
+          ],
+          "statuses": [
+            "active",
+            "contested"
+          ],
+          "user_scope": "local-user"
+        },
+        "n_entities": 1,
+        "n_terms": 5
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 3,
+      "source": "event",
+      "stage": "retrieve.query",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.134Z",
+      "turn_index": 5
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "constraint": 0,
+        "fts": 0,
+        "slot": 0,
+        "total": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 4,
+      "source": "event",
+      "stage": "retrieve.candidates",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.137Z",
+      "turn_index": 5
+    },
+    {
+      "candidate_id": null,
+      "decision": null,
+      "detail": {
+        "selected": [],
+        "tokens": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "retrieve",
+      "output_safe": "",
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 5,
+      "source": "event",
+      "stage": "retrieve.select",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.138Z",
+      "turn_index": 5
+    },
+    {
+      "candidate_id": null,
+      "decision": "OK",
+      "detail": {
+        "duplicate": false,
+        "extractor_version": "llm-0.1",
+        "latency_ms": 12.91,
+        "n_candidates": 0
+      },
+      "input_safe": null,
+      "memory_id": null,
+      "node": "extract",
+      "output_safe": null,
+      "reason": null,
+      "reason_codes": [],
+      "refs": {},
+      "scores": null,
+      "seq": 6,
+      "source": "event",
+      "stage": "extract",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.161Z",
+      "turn_index": 5
+    },
+    {
+      "candidate_id": null,
+      "decision": "NO_CANDIDATE",
+      "detail": {
+        "clause_index": 0
+      },
+      "input_safe": "Draft a short note to Sam about the launch.",
+      "memory_id": null,
+      "node": "ignore",
+      "output_safe": null,
+      "reason": "SMALL_TALK",
+      "reason_codes": [
+        "SMALL_TALK"
+      ],
+      "refs": {},
+      "scores": null,
+      "seq": 7,
+      "source": "event",
+      "stage": "extract.clause",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "ts": "2026-10-07T18:49:03.163Z",
+      "turn_index": 5
+    }
+  ],
+  "probes": [
+    {
+      "label": "same_session",
+      "model_context": {
+        "contains_contact_pii": true,
+        "contains_secret": false,
+        "contains_useful_fact": true,
+        "sections": {
+          "active_agents": {
+            "contains_contact_pii": false,
+            "contains_secret": false,
+            "contains_useful_fact": false,
+            "present": true
+          },
+          "conversation_history": {
+            "contains_contact_pii": true,
+            "contains_secret": false,
+            "contains_useful_fact": true,
+            "present": true
+          },
+          "new_user_message": {
+            "contains_contact_pii": false,
+            "contains_secret": false,
+            "contains_useful_fact": false,
+            "present": true
+          }
+        }
+      },
+      "probe": "same_session",
+      "turn_index": 3
+    },
+    {
+      "label": "new_conversation",
+      "model_context": {
+        "contains_contact_pii": false,
+        "contains_secret": false,
+        "contains_useful_fact": false,
+        "sections": {
+          "active_agents": {
+            "contains_contact_pii": false,
+            "contains_secret": false,
+            "contains_useful_fact": false,
+            "present": true
+          },
+          "conversation_history": {
+            "contains_contact_pii": false,
+            "contains_secret": false,
+            "contains_useful_fact": false,
+            "present": true
+          },
+          "new_user_message": {
+            "contains_contact_pii": false,
+            "contains_secret": false,
+            "contains_useful_fact": false,
+            "present": true
+          }
+        }
+      },
+      "probe": "new_conversation",
+      "turn_index": 5
+    }
+  ],
+  "retrieval": [
+    {
+      "candidates": [],
+      "egress": null,
+      "excluded_by_filters": [],
+      "hard_filters": {
+        "allowed_use": "interaction_context",
+        "not_expired": true,
+        "sensitivity": [
+          "low",
+          "medium"
+        ],
+        "statuses": [
+          "active",
+          "contested"
+        ],
+        "user_scope": "local-user"
+      },
+      "label": null,
+      "ltm_block": "",
+      "ltm_block_tokens": 0,
+      "probe": null,
+      "query": {
+        "entities": [],
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "n_terms": 1,
+        "terms": []
+      },
+      "selected": [],
+      "turn_index": 0
+    },
+    {
+      "candidates": [],
+      "egress": null,
+      "excluded_by_filters": [],
+      "hard_filters": {
+        "allowed_use": "interaction_context",
+        "not_expired": true,
+        "sensitivity": [
+          "low",
+          "medium"
+        ],
+        "statuses": [
+          "active",
+          "contested"
+        ],
+        "user_scope": "local-user"
+      },
+      "label": null,
+      "ltm_block": "",
+      "ltm_block_tokens": 0,
+      "probe": null,
+      "query": {
+        "entities": [],
+        "families": [],
+        "n_terms": 3,
+        "terms": []
+      },
+      "selected": [],
+      "turn_index": 1
+    },
+    {
+      "candidates": [],
+      "egress": null,
+      "excluded_by_filters": [],
+      "hard_filters": {
+        "allowed_use": "interaction_context",
+        "not_expired": true,
+        "sensitivity": [
+          "low",
+          "medium"
+        ],
+        "statuses": [
+          "active",
+          "contested"
+        ],
+        "user_scope": "local-user"
+      },
+      "label": null,
+      "ltm_block": "",
+      "ltm_block_tokens": 0,
+      "probe": null,
+      "query": {
+        "entities": [],
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "n_terms": 6,
+        "terms": []
+      },
+      "selected": [],
+      "turn_index": 2
+    },
+    {
+      "candidates": [],
+      "egress": null,
+      "excluded_by_filters": [],
+      "hard_filters": {
+        "allowed_use": "interaction_context",
+        "not_expired": true,
+        "sensitivity": [
+          "low",
+          "medium"
+        ],
+        "statuses": [
+          "active",
+          "contested"
+        ],
+        "user_scope": "local-user"
+      },
+      "label": null,
+      "ltm_block": "",
+      "ltm_block_tokens": 0,
+      "probe": "same_session",
+      "query": {
+        "entities": [],
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "n_terms": 5,
+        "terms": []
+      },
+      "selected": [],
+      "turn_index": 3
+    },
+    {
+      "candidates": [],
+      "egress": null,
+      "excluded_by_filters": [],
+      "hard_filters": {
+        "allowed_use": "interaction_context",
+        "not_expired": true,
+        "sensitivity": [
+          "low",
+          "medium"
+        ],
+        "statuses": [
+          "active",
+          "contested"
+        ],
+        "user_scope": "local-user"
+      },
+      "label": null,
+      "ltm_block": "",
+      "ltm_block_tokens": 0,
+      "probe": "new_conversation",
+      "query": {
+        "entities": [],
+        "families": [
+          "pref.email_style",
+          "constraint.confirm_before_email"
+        ],
+        "n_terms": 5,
+        "terms": []
+      },
+      "selected": [],
+      "turn_index": 5
+    }
+  ],
+  "retrieved": [],
+  "scenario": "privacy",
+  "schema": "openpoke.ltm.demo_trace.v1",
+  "turns": [
+    {
+      "kind": "setup",
+      "outcomes": [
+        {
+          "candidate_id": null,
+          "clause_index": 0,
+          "decision": "IGNORE",
+          "label": "My email is [EMAIL_1]",
+          "memory_id": null,
+          "reason": "SMALL_TALK",
+          "result": "NO_CANDIDATE"
+        }
+      ],
+      "path": [
+        "conversation",
+        "ingress_scrub",
+        "privacy",
+        "retrieve",
+        "extract",
+        "ignore"
+      ],
+      "session": "s1",
+      "text_safe": "My email is [EMAIL_1].",
+      "trace_id": "trc_01M4BV504VN5MQ0DXTJSN0MR7X",
+      "turn_index": 0
+    },
+    {
+      "kind": "setup",
+      "outcomes": [
+        {
+          "candidate_id": null,
+          "clause_index": 0,
+          "decision": "IGNORE",
+          "label": "My test API key is [SECRET:API_KEY]",
+          "memory_id": null,
+          "reason": "SMALL_TALK",
+          "result": "NO_CANDIDATE"
+        }
+      ],
+      "path": [
+        "conversation",
+        "ingress_scrub",
+        "privacy",
+        "retrieve",
+        "extract",
+        "ignore"
+      ],
+      "session": "s1",
+      "text_safe": "My test API key is [SECRET:API_KEY].",
+      "trace_id": "trc_01M4BV52GK4TMKXY3KYE0NR6AT",
+      "turn_index": 1
+    },
+    {
+      "kind": "setup",
+      "outcomes": [
+        {
+          "candidate_id": null,
+          "clause_index": 0,
+          "decision": "IGNORE",
+          "label": "My email is [EMAIL_1]",
+          "memory_id": null,
+          "reason": "SMALL_TALK",
+          "result": "NO_CANDIDATE"
+        },
+        {
+          "candidate_id": null,
+          "clause_index": 1,
+          "decision": "IGNORE",
+          "label": "my test API key is [SECRET:API_KEY]",
+          "memory_id": null,
+          "reason": "SMALL_TALK",
+          "result": "NO_CANDIDATE"
+        },
+        {
+          "candidate_id": null,
+          "clause_index": 2,
+          "decision": "IGNORE",
+          "label": "prefer concise emails",
+          "memory_id": null,
+          "reason": "SMALL_TALK",
+          "result": "NO_CANDIDATE"
+        }
+      ],
+      "path": [
+        "conversation",
+        "ingress_scrub",
+        "privacy",
+        "retrieve",
+        "extract",
+        "ignore"
+      ],
+      "session": "s1",
+      "text_safe": "My email is [EMAIL_1], my test API key is [SECRET:API_KEY], and I prefer concise emails.",
+      "trace_id": "trc_01M4BV53M728VAN6GPYPWPKD5Y",
+      "turn_index": 2
+    },
+    {
+      "kind": "probe",
+      "label": "same_session",
+      "outcomes": [
+        {
+          "candidate_id": null,
+          "clause_index": 0,
+          "decision": "IGNORE",
+          "label": "Draft a short note to Sam about the launch",
+          "memory_id": null,
+          "reason": "SMALL_TALK",
+          "result": "NO_CANDIDATE"
+        }
+      ],
+      "path": [
+        "conversation",
+        "ingress_scrub",
+        "privacy",
+        "retrieve",
+        "extract",
+        "ignore",
+        "agent"
+      ],
+      "probe": "same_session",
+      "session": "s1",
+      "text_safe": "Draft a short note to Sam about the launch.",
+      "trace_id": "trc_01M4BV54RAMYYXJV91HVYV6RE1",
+      "turn_index": 3
+    },
+    {
+      "kind": "new_conversation",
+      "outcomes": [],
+      "path": [],
+      "session": "s2",
+      "text_safe": null,
+      "turn_index": 4
+    },
+    {
+      "kind": "probe",
+      "label": "new_conversation",
+      "outcomes": [
+        {
+          "candidate_id": null,
+          "clause_index": 0,
+          "decision": "IGNORE",
+          "label": "Draft a short note to Sam about the launch",
+          "memory_id": null,
+          "reason": "SMALL_TALK",
+          "result": "NO_CANDIDATE"
+        }
+      ],
+      "path": [
+        "conversation",
+        "ingress_scrub",
+        "privacy",
+        "retrieve",
+        "extract",
+        "ignore",
+        "agent"
+      ],
+      "probe": "new_conversation",
+      "session": "s2",
+      "text_safe": "Draft a short note to Sam about the launch.",
+      "trace_id": "trc_01M4BV56CS00APQE1AE2C8E9H8",
+      "turn_index": 5
+    }
+  ]
+}

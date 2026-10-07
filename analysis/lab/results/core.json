@@ -1,0 +1,230 @@
+{
+  "gmail_status_response_keys": [
+    "connected",
+    "email",
+    "ok",
+    "profile",
+    "profile_source",
+    "status",
+    "user_id"
+  ],
+  "turn_persistence": {
+    "locker_code_in_next_turn_history": true,
+    "api_key_in_next_turn_history": true,
+    "history_source": "working_memory_log.render_transcript (raw tail, no summary yet)",
+    "interaction_payload_message_count": 4,
+    "system_prompt_chars": 10424,
+    "tools_sent": [
+      "send_message_to_agent",
+      "send_message_to_user",
+      "send_draft",
+      "wait"
+    ]
+  },
+  "delegation_call_sequence": [
+    "interaction_agent",
+    "execution_agent",
+    "interaction_agent",
+    "search_subagent",
+    "search_subagent",
+    "execution_agent",
+    "interaction_agent",
+    "interaction_agent"
+  ],
+  "execution_agent_input": {
+    "system_prompt_contains_execution_history": true,
+    "receives_interaction_conversation_history": false,
+    "user_message": "search my email for the bank verification code"
+  },
+  "search_tool_result_wire_format": "python_repr_fallback",
+  "gmail_fields_to_search_subagent_llm": [
+    "attachment_count",
+    "attachment_filenames",
+    "clean_text",
+    "has_attachments",
+    "id",
+    "label_ids",
+    "query",
+    "recipient",
+    "sender",
+    "subject",
+    "thread_id",
+    "timestamp"
+  ],
+  "gmail_fields_to_execution_agent_llm": [
+    "attachment_count",
+    "attachment_filenames",
+    "clean_text",
+    "has_attachments",
+    "id",
+    "label_ids",
+    "query",
+    "recipient",
+    "sender",
+    "subject",
+    "thread_id",
+    "timestamp"
+  ],
+  "otp_body_reached_interaction_agent": true,
+  "trigger_rows": [
+    {
+      "id": 1,
+      "agent_name": "Synthetic Lab Agent",
+      "payload": "TRIGGER: remind me daily that my gate PIN is GATE-PIN-5521",
+      "start_time": "2026-10-07T15:06:30Z",
+      "next_trigger": "2026-10-08T15:06:30Z",
+      "recurrence_rule": "DTSTART;TZID=America/New_York:20261007T110630\nRRULE:FREQ=DAILY",
+      "timezone": "America/New_York",
+      "status": "active",
+      "last_error": null,
+      "created_at": "2026-10-07T15:06:30Z",
+      "updated_at": "2026-10-07T15:06:30Z"
+    }
+  ],
+  "email_classifier_payload": "Email Metadata:\nSender: Synthetic Login <no-reply@login.example.test>\nRecipient: lab-user-A@example.test\nSubject: Your sign-in code\nReceived (user timezone): 2026-10-07T11:06:33.453121-04:00\nThread ID: msg-watch-2\nLabels: INBOX, UNREAD\nHas attachments: No\nAttachment filenames: None\n\nCleaned Body:\nUse code 771204 to sign in. Request came from 42 Synthetic Lane.",
+  "watcher_summary_in_conversation_log": true,
+  "locations_before_restart": {
+    "locker_code": [
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent"
+    ],
+    "pii_email": [
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent"
+    ],
+    "api_key": [
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent"
+    ],
+    "ssn_like": [
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent"
+    ],
+    "card_test_number": [
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent"
+    ],
+    "otp_search_email": [
+      "server/data/execution_agents/synthetic-lab-agent.log",
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:search_subagent",
+      "LLM:execution_agent",
+      "LLM:interaction_agent"
+    ],
+    "otp_watched_email": [
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:email_classifier",
+      "LLM:interaction_agent"
+    ],
+    "street_address": [
+      "server/data/execution_agents/synthetic-lab-agent.log",
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:search_subagent",
+      "LLM:execution_agent",
+      "LLM:interaction_agent",
+      "LLM:email_classifier"
+    ],
+    "trigger_pin": [
+      "server/data/triggers.db-wal",
+      "server/data/execution_agents/synthetic-lab-agent.log",
+      "server/data/conversation/poke_working_memory.log",
+      "server/data/conversation/poke_conversation.log",
+      "LLM:interaction_agent",
+      "LLM:execution_agent"
+    ],
+    "openrouter_key": []
+  },
+  "data_files_before_restart": {
+    "server/data/conversation/poke_conversation.log": 3625,
+    "server/data/conversation/poke_working_memory.log": 3739,
+    "server/data/execution_agents/roster.json": 27,
+    "server/data/execution_agents/synthetic-lab-agent.log": 2755,
+    "server/data/execution_agents/task-email-search.log": 237,
+    "server/data/gmail_seen.json": 31,
+    "server/data/timezone.txt": 16,
+    "server/data/triggers.db": 16384,
+    "server/data/triggers.db-shm": 32768,
+    "server/data/triggers.db-wal": 12392
+  },
+  "restart": {
+    "history_len_before": 13,
+    "history_len_after": 13,
+    "locker_code_in_llm_history_after_restart": true,
+    "roster_after_restart": [
+      "Synthetic Lab Agent"
+    ],
+    "watcher_gmail_fetches_in_7s_after_restart": 0,
+    "note": "active Gmail user id is in-process memory only; watcher idles until a client re-POSTs /gmail/status"
+  },
+  "scoping": {
+    "unauthenticated_other_client_sees_locker_code": true,
+    "composio_user_ids_used_after_user_B_status_call": [
+      "lab-user-B"
+    ],
+    "execution_agent_log_files": [
+      "roster.json",
+      "synthetic-lab-agent.log",
+      "task-email-search.log"
+    ],
+    "all_paths_user_scoped": false
+  },
+  "delete_status": 200,
+  "locations_after_delete": {
+    "locker_code": [
+      "LLM:interaction_agent"
+    ],
+    "pii_email": [
+      "LLM:interaction_agent"
+    ],
+    "api_key": [
+      "LLM:interaction_agent"
+    ],
+    "ssn_like": [
+      "LLM:interaction_agent"
+    ],
+    "card_test_number": [
+      "LLM:interaction_agent"
+    ],
+    "otp_search_email": [
+      "LLM:search_subagent",
+      "LLM:execution_agent",
+      "LLM:interaction_agent"
+    ],
+    "otp_watched_email": [
+      "LLM:email_classifier",
+      "LLM:interaction_agent",
+      "LLM:search_subagent",
+      "LLM:execution_agent"
+    ],
+    "street_address": [
+      "LLM:search_subagent",
+      "LLM:execution_agent",
+      "LLM:interaction_agent",
+      "LLM:email_classifier"
+    ],
+    "trigger_pin": [
+      "server/data/triggers.db",
+      "server/data/triggers.db-wal",
+      "LLM:interaction_agent",
+      "LLM:execution_agent"
+    ],
+    "openrouter_key": []
+  },
+  "data_files_after_delete": {
+    "server/data/conversation/poke_working_memory.log": 114,
+    "server/data/gmail_seen.json": 31,
+    "server/data/timezone.txt": 16,
+    "server/data/triggers.db": 16384,
+    "server/data/triggers.db-shm": 32768,
+    "server/data/triggers.db-wal": 8272
+  },
+  "_elapsed_s": 32.6
+}

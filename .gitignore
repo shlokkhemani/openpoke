@@ -44,3 +44,7 @@ server/venv/
 # Generated documentation / analysis artifacts
 server/repomix-output.txt
 server/plans/
+
+# LTM lab: harness venv and runtime state (state/ holds synthetic secrets from baseline runs)
+.venv-lab/
+analysis/lab/state/
