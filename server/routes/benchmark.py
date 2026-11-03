@@ -17,6 +17,8 @@ from ..services import (
 from ..services.benchmark_activity import get_interaction_activity
 from ..services.conversation.summarization.scheduler import get_summarization_status
 from ..services.gmail import benchmark_email_fixture_enabled
+from ..services.gmail.client import _get_benchmark_backend
+from ..benchmark_events import read_events
 
 
 router = APIRouter(prefix="/benchmark", tags=["benchmark"])
@@ -70,6 +72,14 @@ def benchmark_status(settings: Settings = Depends(get_settings)) -> dict[str, ob
     return _status_payload(settings)
 
 
+@router.get("/metrics")
+def benchmark_metrics(settings: Settings = Depends(get_settings)) -> dict[str, object]:
+    """Allow preserving partial usage even when a failed group is not idle."""
+    _require_benchmark_mode(settings)
+    events = read_events()
+    return {"metrics_events": events}
+
+
 @router.get("/snapshot")
 def benchmark_snapshot(settings: Settings = Depends(get_settings)) -> dict[str, object]:
     """Return the naturally generated roster and histories for a run artifact."""
@@ -98,11 +108,21 @@ def benchmark_snapshot(settings: Settings = Depends(get_settings)) -> dict[str, 
         trigger.model_dump(mode="json")
         for trigger in get_trigger_service().list_all_triggers()
     ]
+    events = read_events()
     return {
         "status": status_payload,
         "conversation": conversation,
         "execution_agent_histories": execution_histories,
         "triggers": triggers,
+        "metrics_version": 1,
+        "clock_time": get_benchmark_clock().now_utc().isoformat(),
+        "metrics_events": events,
+        "routing": {"mode": "full_roster"},
+        "models": {name: getattr(settings, name) for name in (
+            "interaction_agent_model", "execution_agent_model", "execution_agent_search_model",
+            "summarizer_model", "email_classifier_model")},
+        "email_state": (_get_benchmark_backend().snapshot()
+                        if benchmark_email_fixture_enabled() else None),
     }
 
 

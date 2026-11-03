@@ -501,7 +501,17 @@ def execute_gmail_tool(
 
     benchmark_backend = _get_benchmark_backend()
     if benchmark_backend is not None:
-        return benchmark_backend.execute(tool_name, prepared_arguments)
+        from ...benchmark_events import append_event
+        try:
+            result = benchmark_backend.execute(tool_name, prepared_arguments)
+        except Exception:
+            append_event({"event": "email_action", "tool": tool_name,
+                          "arguments": prepared_arguments, "succeeded": False})
+            raise
+        append_event({"event": "email_action", "tool": tool_name,
+                      "arguments": prepared_arguments, "result": result,
+                      "succeeded": result.get("successful", True) is not False})
+        return result
 
     try:
         client = _get_composio_client()

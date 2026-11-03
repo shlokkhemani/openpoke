@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, Dict, List, Optional
+import os
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import httpx
 
@@ -68,6 +69,15 @@ async def request_chat_completion(
 
     url = f"{base_url.rstrip('/')}/chat/completions"
 
+    # Saved smoke traces contain responses taking longer than 60 seconds.
+    # Wait longer in benchmark mode rather than retrying an uncertain paid call
+    # prematurely.
+    timeout = 60.0
+    if get_settings().benchmark_mode:
+        read_timeout = float(os.getenv("OPENPOKE_BENCHMARK_MODEL_READ_TIMEOUT", "180"))
+        if not 0 < read_timeout < float("inf"):
+            raise ValueError("Benchmark model read timeout must be positive and finite")
+        timeout = httpx.Timeout(60.0, read=read_timeout)
     async with httpx.AsyncClient() as client:
         for attempt in range(3):
             try:
@@ -75,7 +85,7 @@ async def request_chat_completion(
                     url,
                     headers=_headers(api_key=api_key),
                     json=payload,
-                    timeout=60.0,
+                    timeout=timeout,
                 )
                 try:
                     response.raise_for_status()
@@ -94,4 +104,23 @@ async def request_chat_completion(
     raise OpenRouterError("OpenRouter request failed: unknown error")
 
 
-__all__ = ["OpenRouterError", "request_chat_completion", "OpenRouterBaseURL"]
+async def request_embeddings(*, model: str, input: Union[str, Sequence[str]],
+                             api_key: Optional[str] = None,
+                             base_url: str = OpenRouterBaseURL) -> Dict[str, Any]:
+    """Request embeddings for roster matching; no retries."""
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(f"{base_url.rstrip('/')}/embeddings",
+                                         headers=_headers(api_key=api_key),
+                                         json={"model": model,
+                                               "input": input if isinstance(input, str) else list(input),
+                                               "encoding_format": "float"},
+                                         timeout=60.0)
+            response.raise_for_status()
+            result = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise OpenRouterError("Embedding request failed") from exc
+    return result
+
+
+__all__ = ["OpenRouterError", "request_chat_completion", "request_embeddings", "OpenRouterBaseURL"]

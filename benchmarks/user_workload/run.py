@@ -8,6 +8,7 @@ from urllib.request import Request, urlopen
 
 from .__main__ import ROOT, load_messages
 from .schedule import load_groups
+from .measurement import digest, make_evidence
 
 
 class Runner:
@@ -49,19 +50,25 @@ class Runner:
             time.sleep(self.poll)
         raise TimeoutError("Turn timed out; inspect server before continuing")
 
+    def snapshot(self):
+        _, snapshot = self.request("GET", "/benchmark/snapshot")
+        if snapshot.get("metrics_version") != 1:
+            raise RuntimeError("Server does not support benchmark measurements")
+        if snapshot.get("email_state") is None:
+            raise RuntimeError("Measured runs require the local benchmark inbox backend")
+        return snapshot
+
     def send(self, message):
         before = self.status()
         if not before.get("idle"):
             raise RuntimeError("Server is busy")
-        started = time.monotonic()
         code, _ = self.request("POST", "/chat/send", {
             "messages": [{"role": "user", "content": message}]})
         if code != 202:
             raise RuntimeError(f"Expected HTTP 202, received {code}")
         after = self.wait(before)
         return {"user_message": message, "roster_size_before": before["roster_size"],
-                "roster_size_after": after["roster_size"],
-                "duration_seconds": round(time.monotonic() - started, 3)}
+                "roster_size_after": after["roster_size"]}
 
     def send_group(self, messages, offsets, start_index, record):
         before = self.status()
@@ -97,7 +104,6 @@ class Runner:
             "last_index": start_index + len(messages) - 1,
             "roster_size_before": before["roster_size"],
             "roster_size_after": after["roster_size"],
-            "duration_seconds": round(time.monotonic() - started, 3),
             "observed_overlapping_messages": sum(o["earlier_work_pending"] for o in observations),
         }
         record(result)
@@ -142,9 +148,22 @@ def main():
         parser.error("Server is busy")
     if not args.allow_existing_state and (initial["roster_size"] or initial["user_message_count"]):
         parser.error("Use fresh isolated state, or explicitly --allow-existing-state")
+    before = runner.snapshot()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     output = args.output_dir or ROOT / "results" / stamp
     output.mkdir(parents=True, exist_ok=True)
+    (output / "evidence").mkdir(exist_ok=True)
+    def save(name, value):
+        with (output / name).open("x", encoding="utf-8") as handle:
+            json.dump(value, handle, indent=2, ensure_ascii=False)
+    def save_events(events):
+        # Atomically replace only this run's generated summary input.
+        path = output / "application_events.json"
+        temp = path.with_suffix(".tmp")
+        temp.write_text(json.dumps(events, ensure_ascii=False), encoding="utf-8")
+        temp.replace(path)
+    save("initial_snapshot.json", before)
+    initial_events = len(before["metrics_events"])
     with (output / "run.jsonl").open("x", encoding="utf-8") as journal:
         def record(event):
             journal.write(json.dumps(event) + "\n")
@@ -157,13 +176,31 @@ def main():
             try:
                 result = runner.send_group(messages[index - 1:index - 1 + len(offsets)],
                                            offsets, index, record)
+                after = runner.snapshot()
+                save_events(after["metrics_events"][initial_events:])
+                evidence = make_evidence(before, after,
+                                         messages[index - 1:index - 1 + len(offsets)], index)
+                save(f"evidence/{index:04d}.json", evidence)
+                record({"event": "measurement", "first_index": index,
+                        "last_index": result["last_index"],
+                        "evidence_file": f"evidence/{index:04d}.json",
+                        "evidence_sha256": digest(evidence)})
+                before = after
             except Exception as exc:
                 record({"event": "error", "index": index, "error": str(exc)})
+                try:
+                    _, metrics = runner.request("GET", "/benchmark/metrics")
+                    save_events(metrics["metrics_events"][initial_events:])
+                except Exception:
+                    record({"event": "metrics_capture_error", "index": index})
                 raise
             print(f"{result['last_index']}/{len(messages)}: roster {result['roster_size_before']} -> "
                   f"{result['roster_size_after']}; overlapping arrivals: "
                   f"{result['observed_overlapping_messages']}", flush=True)
         final = runner.status()
+        save("final_snapshot.json", before)
+        # Copy email actions so outcome evidence remains available without the server.
+        save_events(before["metrics_events"][initial_events:])
         record({"event": "finished", "final_status": final})
     print(f"Completed {len(messages)} messages; roster: {final['roster_size']} agents.")
     print(f"Run log: {output / 'run.jsonl'}")

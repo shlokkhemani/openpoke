@@ -192,6 +192,23 @@ class BenchmarkEmailBackend:
             return {"data": {"people": []}}
         raise ValueError(f"unsupported benchmark Gmail tool: {tool_name}")
 
+    def snapshot(self) -> dict[str, Any]:
+        """Capture actual local drafts and only currently visible inbox facts."""
+        if self._now_provider is None:
+            from server.benchmark_clock import get_benchmark_clock
+            now = get_benchmark_clock().now_utc()
+        else:
+            now = self._now_provider()
+        visible = []
+        for message in self.messages:
+            timestamp = datetime.fromisoformat(message["timestamp"].replace("Z", "+00:00"))
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.replace(tzinfo=timezone.utc)
+            if timestamp <= now:
+                visible.append(message.copy())
+        with self._lock:
+            return {"inbox": visible, "drafts": [dict(draft) for draft in self._drafts]}
+
 
 _BACKENDS: dict[Path, BenchmarkEmailBackend] = {}
 _BACKENDS_LOCK = threading.Lock()

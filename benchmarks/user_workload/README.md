@@ -31,25 +31,45 @@ These limitations apply identically to both comparison modes.
 
 ## Validate and preview
 
-Python 3.10+, standard library only. From the repository root:
+Python 3.10+. Message validation and the runner use the standard library; the
+server and transport tests use the installed server environment. From repo root:
 
 ```bash
 python3 -m benchmarks.user_workload
 python3 -m unittest benchmarks.user_workload.test_validation -v
 python3 -m unittest benchmarks.user_workload.test_email_backend -v
+server/venv/bin/python -m unittest discover -s benchmarks -t . -v
 python3 -m benchmarks.user_workload.run
 ```
 
 ## Run
 
-Start an isolated OpenPoke server, with shortlisting disabled for setup. The runner
-uses `POST /api/v1/chat/send` and `GET /api/v1/benchmark/status`. It requires the
-status endpoint's benchmark mode, isolated data, and isolated tools markers.
-This branch provides that endpoint; the separate matcher repo must expose the
-same status contract before using this runner. Matching is configured externally.
+Start an isolated OpenPoke server. For comparison, run the same workload from
+empty state in both full-roster and shortlist modes, allowing each roster to
+grow independently. Both modes are available on `roster-shortlisting`:
+
+- Full roster (default): `OPENPOKE_ROSTER_SHORTLISTING_ENABLED=0`.
+- Shortlist: `OPENPOKE_ROSTER_SHORTLISTING_ENABLED=1`.
+
+Set the variable when starting the server, and restart the server when changing
+modes. The matcher uses `OPENPOKE_ROSTER_EMBEDDING_MODEL` (default
+`openai/text-embedding-3-small`). It selects 5% of the roster, rounded up, with a
+minimum of 5 and maximum of 50 agents, capped at the roster size. Configure those
+with `OPENPOKE_ROSTER_MATCH_PERCENTAGE`, `OPENPOKE_ROSTER_MATCH_MIN_SIZE`, and
+`OPENPOKE_ROSTER_MATCH_MAX_SIZE`. Agent profiles use the latest 5 assigned tasks
+(`OPENPOKE_ROSTER_MATCH_RECENT_TASKS`). Small rosters that fit the shortlist skip
+embeddings. Both user messages and execution-agent updates use the chosen mode.
+Embedding failures stop the interaction instead of silently using the full roster.
+Each run's embedding cache lives under its own `OPENPOKE_DATA_DIR`.
+Routing mode, embedding model, and matcher settings are saved in the initial/final
+snapshots and included in reports; they may differ between comparison modes.
+The runner uses `POST /api/v1/chat/send`, `GET /api/v1/benchmark/status`,
+`GET /api/v1/benchmark/snapshot` and `GET /api/v1/benchmark/metrics`. It requires
+isolated data/tools, a local email backend, and metrics version 1.
 Configure the server to use this workload's inbox (the local `.env` also selects it):
 
 ```bash
+OPENPOKE_ROSTER_SHORTLISTING_ENABLED=0 \
 OPENPOKE_BENCHMARK_MODE=1 \
 OPENPOKE_BENCHMARK_TOOLS_ISOLATED=1 \
 OPENPOKE_BENCHMARK_EMAIL_FIXTURE="$PWD/benchmarks/user_workload/email_messages.json" \
@@ -90,9 +110,9 @@ afterward for the full run. Custom input files are sequential unless supplied
 `--schedule path/to/schedule.json` with the same timing schema.
 
 The runner never clears state. It requires empty state unless explicitly passed
-`--allow-existing-state`. It records each submission and acceptance, group
-completion duration, roster size before/after the group, and final status in ignored
-`results/<timestamp>/run.jsonl`. Histories remain in the server's data directory.
+`--allow-existing-state`. It records each submission and acceptance, roster size
+before/after the group, and final status in ignored `results/<timestamp>/run.jsonl`.
+Histories remain in the server's data directory and are copied into final snapshots.
 Roster changes within a burst are reported for the whole group; they are not
 attributed to individual simultaneous messages. The journal includes a copy of
 the consumed messages and schedule for reproducibility. Use the same inbox and
@@ -102,8 +122,9 @@ retried because a lost response could otherwise duplicate a submitted task.
 Inspect partial state before restarting: `--allow-existing-state` appends the
 entire supplied sequence and is not an automatic resume feature.
 
-After setup, copy the naturally generated state externally for both comparison
-modes, then run the same continuous test sequence against each copy:
+The 150-message workload is itself the comparison sequence. If you also want the
+20 extra messages, append them to each mode's own resulting state in separate
+output directories. Do not copy one mode's generated state over the other:
 
 ```bash
 python3 -m benchmarks.user_workload.run --live --allow-existing-state \
@@ -112,5 +133,58 @@ python3 -m benchmarks.user_workload.run --live --allow-existing-state \
 ```
 
 Freeze inputs before comparison and apply any changes to both modes. Both rosters
-can grow. This runner reports roster growth and completion; it does not judge
-quality or retrieval correctness. No live run of this workload has been performed.
+can grow.
+
+## Measurements and saved outcomes
+
+The report measures **full roster size**: initial size, last completed size, and
+growth after each completed group. Response quality is not automatically scored.
+Inspect the saved requests, replies, and tool actions directly. Fewer agents alone
+does not establish better task performance.
+
+Dollar cost, response latency, and roster-context length are not scored. Arrival
+offsets and timeouts remain only to drive/verify overlapping input delivery.
+
+The server saves local email-tool evidence to
+`<OPENPOKE_DATA_DIR>/benchmark_events.jsonl` in benchmark mode only. Model token
+usage is not requested, recorded, or aggregated by benchmark instrumentation.
+Benchmark chat calls now allow 180 seconds of response-read inactivity, instead
+of 60, to reduce premature timeouts observed in the smoke traces. Override with
+`OPENPOKE_BENCHMARK_MODEL_READ_TIMEOUT` (positive seconds) if needed; use the same
+setting for both comparison modes. Normal application calls retain 60 seconds.
+A partial run is never presented as a complete comparison.
+
+Each run saves:
+
+- `initial_snapshot.json` and `final_snapshot.json`: environment, models, full
+  conversation, execution histories, local drafts, and reminders.
+- `application_events.json`: email actions for this run, updated after each group;
+  partial evidence is fetched on ordinary errors when the server is reachable.
+- `evidence/<first-message-index>.json`: the requests, prior user-visible
+  conversation, current outputs/actions, visible inbox facts, and before/after
+  draft/reminder state for one completed group. These omit roster/rankings and
+  execution-agent histories.
+- `run.jsonl`: input copies, arrival observations, group completion, full-roster
+  growth, and hashes tying evidence to the run.
+
+## Reports (offline)
+
+```bash
+server/venv/bin/python -m benchmarks.user_workload.report RUN_DIRECTORY
+server/venv/bin/python -m benchmarks.user_workload.report FULL_RUN_DIRECTORY --compare SHORTLIST_RUN_DIRECTORY
+```
+
+Reports contain full-roster size only. They do not call a model or generate
+pass/fail verdicts. Historical `quality.jsonl` files and old reports remain saved
+as artifacts; their automatic judgments are not read or used by current reports.
+
+Roster results include initial size, last completed size, and growth after each
+group. `roster_size_change` is the candidate's final size minus the baseline's:
+positive means more agents with the candidate, negative means fewer. It is only
+calculated when both runs finish. Fewer agents alone does not establish better
+performance; inspect the saved outcomes too.
+
+Comparison checks identical user inputs, requested arrival timing, initial inbox,
+clock, and application models, and requires both rosters to start empty. Histories
+and roster growth may diverge after starting. Token usage is neither reported nor
+used to decide completeness.
