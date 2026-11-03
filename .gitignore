@@ -47,3 +47,6 @@ server/plans/
 
 # Personal working notes
 /.local-todo.md
+
+# Personal work tracker
+/notes/

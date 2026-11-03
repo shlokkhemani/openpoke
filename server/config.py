@@ -46,6 +46,13 @@ def _env_bool(name: str, fallback: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_float(name: str, fallback: float) -> float:
+    try:
+        return float(os.getenv(name, str(fallback)))
+    except (TypeError, ValueError):
+        return fallback
+
+
 class Settings(BaseModel):
     """Application settings with lightweight env fallbacks."""
 
@@ -79,6 +86,30 @@ class Settings(BaseModel):
     )
     email_classifier_model: str = Field(
         default=os.getenv("OPENPOKE_EMAIL_CLASSIFIER_MODEL", "anthropic/claude-sonnet-4.6")
+    )
+
+    roster_embedding_model: str = Field(
+        default=os.getenv(
+            "OPENPOKE_ROSTER_EMBEDDING_MODEL",
+            "openai/text-embedding-3-small",
+        )
+    )
+
+    # Execution-agent shortlist controls
+    roster_shortlisting_enabled: bool = Field(
+        default=_env_bool("OPENPOKE_ROSTER_SHORTLISTING_ENABLED", False)
+    )
+    roster_match_percentage: float = Field(
+        default=_env_float("OPENPOKE_ROSTER_MATCH_PERCENTAGE", 5.0), gt=0, le=100
+    )
+    roster_match_min_size: int = Field(
+        default=_env_int("OPENPOKE_ROSTER_MATCH_MIN_SIZE", 5), ge=1
+    )
+    roster_match_max_size: int = Field(
+        default=_env_int("OPENPOKE_ROSTER_MATCH_MAX_SIZE", 50), ge=1
+    )
+    roster_match_recent_tasks: int = Field(
+        default=_env_int("OPENPOKE_ROSTER_MATCH_RECENT_TASKS", 5)
     )
 
     # Credentials / integrations

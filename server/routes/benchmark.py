@@ -74,7 +74,7 @@ def benchmark_status(settings: Settings = Depends(get_settings)) -> dict[str, ob
 
 @router.get("/metrics")
 def benchmark_metrics(settings: Settings = Depends(get_settings)) -> dict[str, object]:
-    """Allow preserving partial usage even when a failed group is not idle."""
+    """Preserve email-action evidence even when a failed group is not idle."""
     _require_benchmark_mode(settings)
     events = read_events()
     return {"metrics_events": events}
@@ -117,7 +117,14 @@ def benchmark_snapshot(settings: Settings = Depends(get_settings)) -> dict[str, 
         "metrics_version": 1,
         "clock_time": get_benchmark_clock().now_utc().isoformat(),
         "metrics_events": events,
-        "routing": {"mode": "full_roster"},
+        "routing": {
+            "mode": "shortlist" if settings.roster_shortlisting_enabled else "full_roster",
+            "embedding_model": settings.roster_embedding_model,
+            "percentage": settings.roster_match_percentage,
+            "min_size": settings.roster_match_min_size,
+            "max_size": settings.roster_match_max_size,
+            "recent_tasks": settings.roster_match_recent_tasks,
+        },
         "models": {name: getattr(settings, name) for name in (
             "interaction_agent_model", "execution_agent_model", "execution_agent_search_model",
             "summarizer_model", "email_classifier_model")},
