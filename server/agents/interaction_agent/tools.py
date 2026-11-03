@@ -108,6 +108,11 @@ TOOL_SCHEMAS = [
 _EXECUTION_BATCH_MANAGER = ExecutionBatchManager()
 
 
+def get_execution_batch_manager() -> ExecutionBatchManager:
+    """Expose batch activity for benchmark synchronization and observability."""
+    return _EXECUTION_BATCH_MANAGER
+
+
 # Create or reuse execution agent and dispatch instructions asynchronously
 def send_message_to_agent(agent_name: str, instructions: str) -> ToolResult:
     """Send instructions to an execution agent."""

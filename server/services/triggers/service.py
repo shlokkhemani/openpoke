@@ -183,6 +183,10 @@ class TriggerService:
     def list_triggers(self, *, agent_name: str) -> List[TriggerRecord]:
         return self._store.list_for_agent(agent_name)
 
+    def list_all_triggers(self) -> List[TriggerRecord]:
+        """Return all triggers for isolated benchmark snapshots."""
+        return self._store.list_all()
+
     def get_due_triggers(
         self, *, before: datetime, agent_name: Optional[str] = None
     ) -> List[TriggerRecord]:

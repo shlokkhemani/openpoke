@@ -1,0 +1,7 @@
+{
+  "bursts": [
+    {"start_message": 2, "offsets_seconds": [0, 2], "situation": "short contextual hotel follow-up"},
+    {"start_message": 16, "offsets_seconds": [0, 2], "situation": "tone revision to pending customer update"},
+    {"start_message": 19, "offsets_seconds": [0, 2], "situation": "ambiguous correction before the enquiry finishes"}
+  ]
+}

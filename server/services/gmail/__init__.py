@@ -1,6 +1,7 @@
 """Gmail-related service helpers."""
 
 from .client import (
+    benchmark_email_fixture_enabled,
     disconnect_account,
     execute_gmail_tool,
     fetch_status,
@@ -13,6 +14,7 @@ from .processing import EmailTextCleaner, ProcessedEmail, parse_gmail_fetch_resp
 from .seen_store import GmailSeenStore
 
 __all__ = [
+    "benchmark_email_fixture_enabled",
     "execute_gmail_tool",
     "fetch_status",
     "initiate_connect",

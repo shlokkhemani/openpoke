@@ -4,6 +4,7 @@ import json
 import os
 import threading
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import status
@@ -24,6 +25,24 @@ _ACTIVE_USER_ID_LOCK = threading.Lock()
 _ACTIVE_USER_ID: Optional[str] = None
 
 
+def _get_benchmark_backend():
+    settings = get_settings()
+    fixture = _normalized(settings.benchmark_email_fixture)
+    if not (settings.benchmark_mode and settings.benchmark_tools_isolated and fixture):
+        return None
+    fixture_path = Path(fixture)
+    if not fixture_path.is_file():
+        return None
+    from .benchmark_backend import get_benchmark_email_backend
+
+    return get_benchmark_email_backend(fixture_path)
+
+
+def benchmark_email_fixture_enabled() -> bool:
+    """Return whether Gmail calls are routed to a local benchmark fixture."""
+    return _get_benchmark_backend() is not None
+
+
 def _normalized(value: Optional[str]) -> str:
     return (value or "").strip()
 
@@ -36,6 +55,8 @@ def _set_active_gmail_user_id(user_id: Optional[str]) -> None:
 
 
 def get_active_gmail_user_id() -> Optional[str]:
+    if _get_benchmark_backend() is not None:
+        return "benchmark-fixture-user"
     with _ACTIVE_USER_ID_LOCK:
         return _ACTIVE_USER_ID
 
@@ -477,6 +498,10 @@ def execute_gmail_tool(
                 prepared_arguments[key] = value
 
     prepared_arguments.setdefault("user_id", "me")
+
+    benchmark_backend = _get_benchmark_backend()
+    if benchmark_backend is not None:
+        return benchmark_backend.execute(tool_name, prepared_arguments)
 
     try:
         client = _get_composio_client()

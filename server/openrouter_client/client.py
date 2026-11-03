@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any, Dict, List, Optional
 
@@ -68,22 +69,27 @@ async def request_chat_completion(
     url = f"{base_url.rstrip('/')}/chat/completions"
 
     async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                url,
-                headers=_headers(api_key=api_key),
-                json=payload,
-                timeout=60.0,  # Set reasonable timeout instead of None
-            )
+        for attempt in range(3):
             try:
-                response.raise_for_status()
-            except httpx.HTTPStatusError as exc:
+                response = await client.post(
+                    url,
+                    headers=_headers(api_key=api_key),
+                    json=payload,
+                    timeout=60.0,
+                )
+                try:
+                    response.raise_for_status()
+                except httpx.HTTPStatusError as exc:
+                    _handle_response_error(exc)
+                return response.json()
+            except httpx.HTTPStatusError as exc:  # pragma: no cover - handled above
                 _handle_response_error(exc)
-            return response.json()
-        except httpx.HTTPStatusError as exc:  # pragma: no cover - handled above
-            _handle_response_error(exc)
-        except httpx.HTTPError as exc:
-            raise OpenRouterError(f"OpenRouter request failed: {exc}") from exc
+            except httpx.HTTPError as exc:
+                if attempt == 2:
+                    raise OpenRouterError(
+                        f"OpenRouter request failed after 3 attempts: {exc}"
+                    ) from exc
+                await asyncio.sleep(2**attempt)
 
     raise OpenRouterError("OpenRouter request failed: unknown error")
 

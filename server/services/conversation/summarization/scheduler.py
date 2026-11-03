@@ -43,4 +43,9 @@ async def _run_worker() -> None:
         _running = False
 
 
-__all__ = ["schedule_summarization"]
+def get_summarization_status() -> dict[str, bool]:
+    """Return background summarization activity for benchmark synchronization."""
+    return {"pending": _pending, "running": _running}
+
+
+__all__ = ["get_summarization_status", "schedule_summarization"]

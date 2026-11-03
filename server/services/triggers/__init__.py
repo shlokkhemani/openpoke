@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ...data_paths import get_data_dir
+
 from .models import TriggerRecord
 from .service import TriggerService
 from .store import TriggerStore
 
 
-_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+_DATA_DIR = get_data_dir()
 _default_db_path = _DATA_DIR / "triggers.db"
 _trigger_store = TriggerStore(_default_db_path)
 _trigger_service = TriggerService(_trigger_store)

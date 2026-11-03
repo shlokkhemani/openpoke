@@ -9,6 +9,7 @@ from typing import Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from ..logging_config import logger
+from ..data_paths import get_data_dir
 
 
 class TimezoneStore:
@@ -65,7 +66,7 @@ class TimezoneStore:
         return candidate
 
 
-_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+_DATA_DIR = get_data_dir()
 _TIMEZONE_PATH = _DATA_DIR / "timezone.txt"
 
 _timezone_store = TimezoneStore(_TIMEZONE_PATH)
