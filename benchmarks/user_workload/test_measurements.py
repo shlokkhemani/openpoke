@@ -94,12 +94,15 @@ class ReportTests(unittest.TestCase):
                                          {"type": "poke_reply", "content": "Draft: GB-88, $2,400."}])
                     events.append({"event": "email_action", "tool": "GMAIL_CREATE_EMAIL_DRAFT",
                                    "succeeded": True})
+                    events.append({"event": "input_tokens", "kind": "interaction", "input_tokens": 42})
                     return 202, {}
                 if path == "/benchmark/status":
                     return 200, status()
                 if path == "/benchmark/snapshot":
                     value = snapshot(conversation, events)
-                    value.update(metrics_version=1, status={**status(), "simulated_day": 0})
+                    value.update(metrics_version=1, token_tracking_version=1,
+                                 routing={"mode": "full_roster"},
+                                 status={**status(), "simulated_day": 0})
                     return 200, json.loads(json.dumps(value))
                 raise AssertionError(path)
             output = root / "result"
@@ -110,6 +113,8 @@ class ReportTests(unittest.TestCase):
                 run_main()
             report = build_report(output)
             self.assertEqual(report["completed_messages"], 1)
+            self.assertEqual(report["tokens"]["total_input_tokens"], 42)
+            self.assertTrue(report["tokens"]["complete"])
             packet = json.loads((output / "evidence/0001.json").read_text())
             self.assertEqual(packet["requests"], [message])
             self.assertEqual(packet["current_conversation"][-1]["content"], "Draft: GB-88, $2,400.")

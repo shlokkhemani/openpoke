@@ -77,7 +77,7 @@ def benchmark_metrics(settings: Settings = Depends(get_settings)) -> dict[str, o
     """Preserve email-action evidence even when a failed group is not idle."""
     _require_benchmark_mode(settings)
     events = read_events()
-    return {"metrics_events": events}
+    return {"metrics_events": events, "token_tracking_version": 1}
 
 
 @router.get("/snapshot")
@@ -115,6 +115,7 @@ def benchmark_snapshot(settings: Settings = Depends(get_settings)) -> dict[str, 
         "execution_agent_histories": execution_histories,
         "triggers": triggers,
         "metrics_version": 1,
+        "token_tracking_version": 1,
         "clock_time": get_benchmark_clock().now_utc().isoformat(),
         "metrics_events": events,
         "routing": {

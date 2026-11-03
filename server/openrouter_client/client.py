@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 import httpx
 
 from ..config import get_settings
+from ..benchmark_events import record_input_tokens
 
 OpenRouterBaseURL = "https://openrouter.ai/api/v1"
 
@@ -56,6 +57,7 @@ async def request_chat_completion(
     api_key: Optional[str] = None,
     tools: Optional[List[Dict[str, Any]]] = None,
     base_url: str = OpenRouterBaseURL,
+    track_interaction_input: bool = False,
 ) -> Dict[str, Any]:
     """Request a chat completion and return the raw JSON payload."""
 
@@ -80,6 +82,9 @@ async def request_chat_completion(
         timeout = httpx.Timeout(60.0, read=read_timeout)
     async with httpx.AsyncClient() as client:
         for attempt in range(3):
+            result = None
+            http_status = None
+            error_type = None
             try:
                 response = await client.post(
                     url,
@@ -87,19 +92,42 @@ async def request_chat_completion(
                     json=payload,
                     timeout=timeout,
                 )
+                http_status = response.status_code
                 try:
                     response.raise_for_status()
                 except httpx.HTTPStatusError as exc:
+                    try:
+                        result = response.json()
+                    except ValueError:
+                        pass
                     _handle_response_error(exc)
-                return response.json()
+                result = response.json()
+                return result
             except httpx.HTTPStatusError as exc:  # pragma: no cover - handled above
+                error_type = type(exc).__name__
                 _handle_response_error(exc)
             except httpx.HTTPError as exc:
+                error_type = type(exc).__name__
                 if attempt == 2:
                     raise OpenRouterError(
                         f"OpenRouter request failed after 3 attempts: {exc}"
                     ) from exc
                 await asyncio.sleep(2**attempt)
+            except BaseException as exc:
+                error_type = type(exc).__name__
+                raise
+            finally:
+                if track_interaction_input:
+                    if http_status is not None and not 200 <= http_status < 300:
+                        outcome = "http_error"
+                    elif isinstance(result, dict) and result.get("error"):
+                        outcome = "api_error"
+                    elif error_type:
+                        outcome = "transport_error" if http_status is None else "invalid_response"
+                    else:
+                        outcome = "success"
+                    record_input_tokens("interaction", model, result, http_status=http_status,
+                                        error_type=error_type, request_outcome=outcome)
 
     raise OpenRouterError("OpenRouter request failed: unknown error")
 

@@ -138,7 +138,8 @@ can grow.
 ## Measurements and saved outcomes
 
 The report measures **full roster size**: initial size, last completed size, and
-growth after each completed group. Response quality is not automatically scored.
+growth after each completed group, plus **input tokens** in the scope below.
+Response quality is not automatically scored.
 Inspect the saved requests, replies, and tool actions directly. Fewer agents alone
 does not establish better task performance.
 
@@ -146,8 +147,53 @@ Dollar cost, response latency, and roster-context length are not scored. Arrival
 offsets and timeouts remain only to drive/verify overlapping input delivery.
 
 The server saves local email-tool evidence to
-`<OPENPOKE_DATA_DIR>/benchmark_events.jsonl` in benchmark mode only. Model token
-usage is not requested, recorded, or aggregated by benchmark instrumentation.
+`<OPENPOKE_DATA_DIR>/benchmark_events.jsonl` in benchmark mode only. The same
+ledger records input-token usage for interaction calls and shortlist embeddings.
+
+- **No shortlisting:** sum interaction LLM input tokens across all its calls.
+- **Shortlisting:** that same sum plus embedding input tokens for queries and
+  agent profiles. Reusing cached embeddings adds no tokens.
+
+Interaction input includes the entire prompt ingested on each call: instructions,
+history, roster, tool definitions and tool results, including cached input tokens
+as reported by the provider. Output tokens and execution/search/summarization/
+classification calls are excluded, even when they use the same model. Embedding
+vectors are not output tokens. Counts come from response `usage.prompt_tokens`
+(or `input_tokens`); embedding usage may also use `total_tokens`.
+See [OpenRouter usage accounting](https://openrouter.ai/docs/cookbook/administration/usage-accounting).
+
+Missing usage or failed transport attempts are marked unknown, without blocking
+the application or making automatic recovery calls. Each record saves response ID,
+request outcome, HTTP status when available, exception type, and only returned
+input-usage fields. Prompts, response text, output-token counts, and vectors are not
+included in token records. Reports expose known counts and missing
+usage counts; exact totals/comparisons stay null when coverage is incomplete.
+Every interaction transport attempt is recorded, including retries. This does not
+change the existing retry policy. Old runs without tracking are unavailable,
+not zero, and cannot be recovered from saved text alone.
+
+For a successful interaction response with missing usage and a saved response ID,
+preview metadata recovery, then explicitly fetch it if wanted:
+
+```bash
+server/venv/bin/python -m benchmarks.user_workload.recover_input_tokens RUN_DIRECTORY
+server/venv/bin/python -m benchmarks.user_workload.recover_input_tokens RUN_DIRECTORY --fetch
+```
+
+This only makes GET requests to OpenRouter's
+[`/generation` metadata endpoint](https://openrouter.ai/docs/api/api-reference/generations/get-generation).
+It never generates or retries a model response. Only matching generation ID/model
+and `native_tokens_prompt` are accepted; normalized `tokens_prompt` is not used as
+a substitute. Failed requests, embeddings, missing IDs, unavailable native counts,
+or failed lookups remain unknown. A lookup is attempted once per eligible event
+per invocation; already recovered counts are reused.
+
+Recovery saves `input-token-recovery.json` separately, leaving original ledgers and
+snapshots untouched. Reports validate its link to the exact original event ledger
+and show how many counts were recovered. Changed or stale recovery data is rejected.
+The first token smoke did not save response IDs, so its three unknown counts cannot
+be recovered through this command.
+
 Benchmark chat calls now allow 180 seconds of response-read inactivity, instead
 of 60, to reduce premature timeouts observed in the smoke traces. Override with
 `OPENPOKE_BENCHMARK_MODEL_READ_TIMEOUT` (positive seconds) if needed; use the same
@@ -174,7 +220,7 @@ server/venv/bin/python -m benchmarks.user_workload.report RUN_DIRECTORY
 server/venv/bin/python -m benchmarks.user_workload.report FULL_RUN_DIRECTORY --compare SHORTLIST_RUN_DIRECTORY
 ```
 
-Reports contain full-roster size only. They do not call a model or generate
+Reports contain full-roster size and scoped input-token counts. They do not call a model or generate
 pass/fail verdicts. Historical `quality.jsonl` files and old reports remain saved
 as artifacts; their automatic judgments are not read or used by current reports.
 
@@ -186,5 +232,6 @@ performance; inspect the saved outcomes too.
 
 Comparison checks identical user inputs, requested arrival timing, initial inbox,
 clock, and application models, and requires both rosters to start empty. Histories
-and roster growth may diverge after starting. Token usage is neither reported nor
-used to decide completeness.
+and roster growth may diverge after starting. `input_token_change` is candidate
+minus baseline and is only reported when both runs and their usage coverage are
+complete. Token completeness is independent of roster-comparison completeness.

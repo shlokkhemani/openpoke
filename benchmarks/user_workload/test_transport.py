@@ -19,7 +19,7 @@ from .__main__ import ROOT
 
 
 class TransportTests(unittest.IsolatedAsyncioTestCase):
-    async def test_model_requests_do_not_track_usage(self):
+    async def test_only_interaction_input_usage_is_tracked(self):
         requests = []
         def handler(request):
             requests.append(request)
@@ -36,8 +36,16 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
             runtime = object.__new__(InteractionAgentRuntime)
             runtime.model, runtime.api_key, runtime.tool_schemas = "chat", "never-a-real-key", []
             await runtime._make_llm_call("private prompt", [])
+            # Other agents can use the same model; model name must not define scope.
+            await client.request_chat_completion(model="chat", messages=[])
             await client.request_embeddings(model="embed", input=["private embedding input"])
-            self.assertEqual(read_events(), [])
+            events = read_events()
+            self.assertEqual(len(events), 1)
+            self.assertEqual(events[0]["kind"], "interaction")
+            self.assertEqual(events[0]["input_tokens"], 10)
+            self.assertEqual(events[0]["http_status"], 200)
+            self.assertEqual(events[0]["request_outcome"], "success")
+            self.assertNotIn("completion_tokens", events[0]["input_usage"])
             for request in requests:
                 self.assertNotIn("usage", json.loads(request.content))
             self.assertEqual(requests[0].extensions["timeout"]["read"], 180.0)
@@ -130,4 +138,6 @@ class ApiEvidenceTests(unittest.TestCase):
             self.assertEqual(result["conversation"][0]["content"], "Actual draft")
             self.assertEqual(len(result["email_state"]["inbox"]), 20)
             self.assertNotIn("token_usage", result)
-            self.assertEqual(benchmark_routes.benchmark_metrics(settings), {"metrics_events": []})
+            self.assertEqual(benchmark_routes.benchmark_metrics(settings),
+                             {"metrics_events": [], "token_tracking_version": 1})
+            self.assertEqual(result["token_tracking_version"], 1)

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence
 
 from ...config import get_settings
+from ...benchmark_events import record_input_tokens
 from ...data_paths import get_data_dir
 from ...logging_config import logger
 from ...openrouter_client import request_embeddings
@@ -235,7 +236,16 @@ class RosterMatcher:
         )
 
     async def _embed_texts(self, texts: Sequence[str]) -> List[List[float]]:
-        response = await self._embedding_request(model=self._model, input=list(texts))
+        response = None
+        error_type = None
+        try:
+            response = await self._embedding_request(model=self._model, input=list(texts))
+        except BaseException as exc:
+            error_type = type(exc.__cause__ or exc).__name__
+            raise
+        finally:
+            record_input_tokens("embedding", self._model, response, error_type=error_type,
+                                request_outcome="request_error" if error_type else "success")
         raw_data = response.get("data")
         if not isinstance(raw_data, list) or len(raw_data) != len(texts):
             raise ValueError("Embedding response count did not match input count")
