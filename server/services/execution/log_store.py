@@ -8,11 +8,12 @@ from html import escape, unescape
 from pathlib import Path
 from typing import Dict, Iterator, List, Tuple
 
+from ...data_paths import get_data_dir
 from ...logging_config import logger
 from ...utils.timezones import now_in_user_timezone
 
 
-_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+_DATA_DIR = get_data_dir()
 _EXECUTION_LOG_DIR = _DATA_DIR / "execution_agents"
 
 

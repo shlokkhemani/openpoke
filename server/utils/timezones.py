@@ -7,6 +7,7 @@ from typing import Optional
 
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from ..benchmark_clock import benchmark_clock_enabled, get_benchmark_clock
 from ..logging_config import logger
 from ..services.timezone_store import get_timezone_store
 
@@ -48,7 +49,12 @@ def now_in_user_timezone(fmt: Optional[str] = None, *, default: str = "UTC") -> 
     otherwise the aware ``datetime`` object is returned.
     """
 
-    current = datetime.now(resolve_user_timezone(default))
+    if benchmark_clock_enabled():
+        current = get_benchmark_clock().now_utc().astimezone(
+            resolve_user_timezone(default)
+        )
+    else:
+        current = datetime.now(resolve_user_timezone(default))
     if fmt is None:
         return current
     return current.strftime(fmt)

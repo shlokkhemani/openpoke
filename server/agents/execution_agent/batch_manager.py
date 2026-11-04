@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from .runtime import ExecutionAgentRuntime, ExecutionResult
 from ...logging_config import logger
+from ...services.benchmark_activity import get_interaction_activity
 
 
 @dataclass
@@ -85,6 +86,10 @@ class ExecutionBatchManager:
         finally:
             self._pending.pop(request_id, None)
 
+        if not result.success:
+            get_interaction_activity().record_failure(
+                f"{agent_name}: {result.error or result.response}"
+            )
         await self._complete_execution(batch_id, result, agent_name)
         return result
 
@@ -190,4 +195,10 @@ class ExecutionBatchManager:
             asyncio.run(runtime.handle_agent_message(payload))
             return
 
-        loop.create_task(runtime.handle_agent_message(payload))
+        async def _run_interaction() -> None:
+            with get_interaction_activity().track():
+                result = await runtime.handle_agent_message(payload)
+                if not result.success:
+                    get_interaction_activity().record_failure(result.error)
+
+        loop.create_task(_run_interaction())

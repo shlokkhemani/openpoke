@@ -1,3 +1,3 @@
-from .client import OpenRouterError, request_chat_completion
+from .client import OpenRouterError, request_chat_completion, request_embeddings
 
-__all__ = ["OpenRouterError", "request_chat_completion"]
+__all__ = ["OpenRouterError", "request_chat_completion", "request_embeddings"]

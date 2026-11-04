@@ -5,6 +5,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from ...config import get_settings
 from ...logging_config import logger
 from ...services.conversation import get_conversation_log
 from ...services.execution import get_agent_roster, get_execution_agent_logs
@@ -105,7 +106,15 @@ TOOL_SCHEMAS = [
     },
 ]
 
-_EXECUTION_BATCH_MANAGER = ExecutionBatchManager()
+# Allow longer execution only on an isolated benchmark server.
+_EXECUTION_BATCH_MANAGER = ExecutionBatchManager(
+    timeout_seconds=210 if get_settings().benchmark_mode else 90,
+)
+
+
+def get_execution_batch_manager() -> ExecutionBatchManager:
+    """Expose batch activity for benchmark synchronization and observability."""
+    return _EXECUTION_BATCH_MANAGER
 
 
 # Create or reuse execution agent and dispatch instructions asynchronously

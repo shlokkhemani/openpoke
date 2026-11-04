@@ -1,0 +1,14 @@
+{
+  "bursts": [
+    {"start_message": 1, "offsets_seconds": [0, 2], "situation": "additional hotel requirement while drafting"},
+    {"start_message": 3, "offsets_seconds": [0, 2], "situation": "tone revision while drafting"},
+    {"start_message": 10, "offsets_seconds": [0, 3], "situation": "follow-up on unfinished project work"},
+    {"start_message": 14, "offsets_seconds": [0, 2], "situation": "extra flight requirement"},
+    {"start_message": 19, "offsets_seconds": [0, 2], "situation": "correction to reminder time"},
+    {"start_message": 64, "offsets_seconds": [0, 2], "situation": "customer update tone revision"},
+    {"start_message": 73, "offsets_seconds": [0, 2, 4], "situation": "three independent requests sent rapidly"},
+    {"start_message": 86, "offsets_seconds": [0, 2], "situation": "short contextual revision"},
+    {"start_message": 126, "offsets_seconds": [0, 2], "situation": "shorten a pending draft"},
+    {"start_message": 148, "offsets_seconds": [0, 2, 4], "situation": "revision followed by an unrelated older topic"}
+  ]
+}

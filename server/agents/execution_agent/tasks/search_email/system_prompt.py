@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from server.utils.timezones import now_in_user_timezone
 
 
 def get_system_prompt() -> str:
     """Generate system prompt with today's date for Gmail search assistant."""
-    today = datetime.now().strftime("%Y/%m/%d")
+    today = now_in_user_timezone("%Y/%m/%d")
     
     return (
         "You are an expert Gmail search assistant helping users find emails efficiently.\n"

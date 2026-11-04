@@ -39,6 +39,20 @@ def _env_int(name: str, fallback: int) -> int:
         return fallback
 
 
+def _env_bool(name: str, fallback: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return fallback
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_float(name: str, fallback: float) -> float:
+    try:
+        return float(os.getenv(name, str(fallback)))
+    except (TypeError, ValueError):
+        return fallback
+
+
 class Settings(BaseModel):
     """Application settings with lightweight env fallbacks."""
 
@@ -49,13 +63,54 @@ class Settings(BaseModel):
     # Server runtime
     server_host: str = Field(default=os.getenv("OPENPOKE_HOST", "0.0.0.0"))
     server_port: int = Field(default=_env_int("OPENPOKE_PORT", 8001))
+    benchmark_mode: bool = Field(default=_env_bool("OPENPOKE_BENCHMARK_MODE"))
+    benchmark_tools_isolated: bool = Field(
+        default=_env_bool("OPENPOKE_BENCHMARK_TOOLS_ISOLATED")
+    )
+    benchmark_email_fixture: Optional[str] = Field(
+        default=os.getenv("OPENPOKE_BENCHMARK_EMAIL_FIXTURE")
+    )
 
     # LLM model selection
-    interaction_agent_model: str = Field(default="anthropic/claude-sonnet-4")
-    execution_agent_model: str = Field(default="anthropic/claude-sonnet-4")
-    execution_agent_search_model: str = Field(default="anthropic/claude-sonnet-4")
-    summarizer_model: str = Field(default="anthropic/claude-sonnet-4")
-    email_classifier_model: str = Field(default="anthropic/claude-sonnet-4")
+    interaction_agent_model: str = Field(
+        default=os.getenv("OPENPOKE_INTERACTION_AGENT_MODEL", "anthropic/claude-sonnet-4")
+    )
+    execution_agent_model: str = Field(
+        default=os.getenv("OPENPOKE_EXECUTION_AGENT_MODEL", "anthropic/claude-sonnet-4")
+    )
+    execution_agent_search_model: str = Field(
+        default=os.getenv("OPENPOKE_EXECUTION_AGENT_SEARCH_MODEL", "anthropic/claude-sonnet-4")
+    )
+    summarizer_model: str = Field(
+        default=os.getenv("OPENPOKE_SUMMARIZER_MODEL", "anthropic/claude-sonnet-4")
+    )
+    email_classifier_model: str = Field(
+        default=os.getenv("OPENPOKE_EMAIL_CLASSIFIER_MODEL", "anthropic/claude-sonnet-4")
+    )
+
+    roster_embedding_model: str = Field(
+        default=os.getenv(
+            "OPENPOKE_ROSTER_EMBEDDING_MODEL",
+            "openai/text-embedding-3-small",
+        )
+    )
+
+    # Execution-agent shortlist controls
+    roster_shortlisting_enabled: bool = Field(
+        default=_env_bool("OPENPOKE_ROSTER_SHORTLISTING_ENABLED", False)
+    )
+    roster_match_percentage: float = Field(
+        default=_env_float("OPENPOKE_ROSTER_MATCH_PERCENTAGE", 5.0), gt=0, le=100
+    )
+    roster_match_min_size: int = Field(
+        default=_env_int("OPENPOKE_ROSTER_MATCH_MIN_SIZE", 5), ge=1
+    )
+    roster_match_max_size: int = Field(
+        default=_env_int("OPENPOKE_ROSTER_MATCH_MAX_SIZE", 50), ge=1
+    )
+    roster_match_recent_tasks: int = Field(
+        default=_env_int("OPENPOKE_ROSTER_MATCH_RECENT_TASKS", 5)
+    )
 
     # Credentials / integrations
     openrouter_api_key: Optional[str] = Field(default=os.getenv("OPENROUTER_API_KEY"))

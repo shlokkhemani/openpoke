@@ -8,6 +8,7 @@ from .agent import build_system_prompt, prepare_message_with_history
 from .tools import ToolResult, get_tool_schemas, handle_tool_call
 from ...config import get_settings
 from ...services.conversation import get_conversation_log, get_working_memory_log
+from ...services.execution import get_roster_matcher
 from ...openrouter_client import request_chat_completion
 from ...logging_config import logger
 
@@ -54,6 +55,7 @@ class InteractionAgentRuntime:
         self.settings = settings
         self.conversation_log = get_conversation_log()
         self.working_memory_log = get_working_memory_log()
+        self.roster_matcher = get_roster_matcher() if settings.roster_shortlisting_enabled else None
         self.tool_schemas = get_tool_schemas()
 
         if not self.api_key:
@@ -70,8 +72,13 @@ class InteractionAgentRuntime:
             self.conversation_log.record_user_message(user_message)
 
             system_prompt = build_system_prompt()
+            active_agents = (await self.roster_matcher.shortlist(user_message)
+                             if self.roster_matcher is not None else None)
             messages = prepare_message_with_history(
-                user_message, transcript_before, message_type="user"
+                user_message,
+                transcript_before,
+                message_type="user",
+                active_agents=active_agents,
             )
 
             logger.info("Processing user message through interaction agent")
@@ -89,7 +96,7 @@ class InteractionAgentRuntime:
             )
 
         except Exception as exc:
-            logger.error("Interaction agent failed", extra={"error": str(exc)})
+            logger.error(f"Interaction agent failed: {exc}")
             return InteractionResult(
                 success=False,
                 response="",
@@ -105,8 +112,13 @@ class InteractionAgentRuntime:
             self.conversation_log.record_agent_message(agent_message)
 
             system_prompt = build_system_prompt()
+            active_agents = (await self.roster_matcher.shortlist(agent_message)
+                             if self.roster_matcher is not None else None)
             messages = prepare_message_with_history(
-                agent_message, transcript_before, message_type="agent"
+                agent_message,
+                transcript_before,
+                message_type="agent",
+                active_agents=active_agents,
             )
 
             logger.info("Processing execution agent results")
@@ -124,7 +136,7 @@ class InteractionAgentRuntime:
             )
 
         except Exception as exc:
-            logger.error("Interaction agent (agent message) failed", extra={"error": str(exc)})
+            logger.error(f"Interaction agent (agent message) failed: {exc}")
             return InteractionResult(
                 success=False,
                 response="",
@@ -216,6 +228,7 @@ class InteractionAgentRuntime:
             system=system_prompt,
             api_key=self.api_key,
             tools=self.tool_schemas,
+            track_interaction_input=True,
         )
 
     # Extract the assistant's message from the OpenRouter API response structure

@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from ...agents.interaction_agent.runtime import InteractionAgentRuntime
 from ...logging_config import logger
 from ...models import ChatMessage, ChatRequest
+from ..benchmark_activity import get_interaction_activity
 from ...utils import error_response
 
 
@@ -39,10 +40,14 @@ async def handle_chat_request(payload: ChatRequest) -> Union[PlainTextResponse, 
         return error_response(str(ve), status_code=status.HTTP_400_BAD_REQUEST)
 
     async def _run_interaction() -> None:
-        try:
-            await runtime.execute(user_message=user_content)
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.error("chat task failed", extra={"error": str(exc)})
+        with get_interaction_activity().track():
+            try:
+                result = await runtime.execute(user_message=user_content)
+                if not result.success:
+                    get_interaction_activity().record_failure(result.error)
+            except Exception as exc:  # pragma: no cover - defensive
+                get_interaction_activity().record_failure(str(exc))
+                logger.error("chat task failed", extra={"error": str(exc)})
 
     asyncio.create_task(_run_interaction())
 

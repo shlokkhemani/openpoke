@@ -101,6 +101,11 @@ class TriggerStore:
             ).fetchall()
         return [self._row_to_record(row) for row in rows]
 
+    def list_all(self) -> List[TriggerRecord]:
+        with self._lock, self._connect() as conn:
+            rows = conn.execute("SELECT * FROM triggers ORDER BY id").fetchall()
+        return [self._row_to_record(row) for row in rows]
+
     def fetch_due(
         self, agent_name: Optional[str], before_iso: str
     ) -> List[TriggerRecord]:

@@ -7,6 +7,7 @@ from dateutil import parser as date_parser
 from dateutil.rrule import rrulestr
 from zoneinfo import ZoneInfo
 
+from ...benchmark_clock import benchmark_clock_enabled, get_benchmark_clock
 from ...logging_config import logger
 
 
@@ -18,6 +19,8 @@ VALID_STATUSES = {"active", "paused", "completed"}
 def utc_now() -> datetime:
     """Return the current time in UTC."""
 
+    if benchmark_clock_enabled():
+        return get_benchmark_clock().now_utc()
     return datetime.now(UTC)
 
 

@@ -12,6 +12,7 @@ from server.services.execution import get_execution_agent_logs
 from server.services.gmail import (
     EmailTextCleaner,
     ProcessedEmail,
+    benchmark_email_fixture_enabled,
     execute_gmail_tool,
     get_active_gmail_user_id,
     parse_gmail_fetch_response,
@@ -104,6 +105,24 @@ async def task_email_search(search_query: str) -> Any:
     if not composio_user_id:
         logger.error(f"[EMAIL_SEARCH] Gmail not connected")
         return {"error": ERROR_GMAIL_NOT_CONNECTED}
+
+    if benchmark_email_fixture_enabled():
+        raw_result = execute_gmail_tool(
+            "GMAIL_FETCH_EMAILS",
+            composio_user_id,
+            arguments={"query": cleaned_query, "max_results": 5},
+        )
+        processed_emails, _ = parse_gmail_fetch_response(
+            raw_result,
+            query=cleaned_query,
+            cleaner=_EMAIL_CLEANER,
+        )
+        result = [
+            _processed_to_schema(email).model_dump(exclude_none=True)
+            for email in processed_emails
+        ]
+        logger.info(f"[EMAIL_SEARCH] Benchmark fixture returned {len(result)} emails")
+        return result
     
     api_key, model_or_error = _validate_openrouter_config()
     if not api_key:

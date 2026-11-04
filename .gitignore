@@ -44,3 +44,10 @@ server/venv/
 # Generated documentation / analysis artifacts
 server/repomix-output.txt
 server/plans/
+
+# Personal working notes
+/AGENTS.md
+/.local-todo.md
+
+# Personal work tracker
+/notes/
