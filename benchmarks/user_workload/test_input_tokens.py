@@ -16,7 +16,7 @@ from .report import input_token_report
 
 
 class InputTokenTests(unittest.IsolatedAsyncioTestCase):
-    async def test_retry_keeps_unknown_attempt_instead_of_claiming_complete_usage(self):
+    async def test_transport_failure_records_unknown_usage_without_retrying(self):
         attempts = []
         def handler(request):
             attempts.append(1)
@@ -27,11 +27,12 @@ class InputTokenTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
                 "OPENPOKE_BENCHMARK_MODE": "1", "OPENPOKE_DATA_DIR": directory}), \
              patch.object(client, "get_settings", return_value=SimpleNamespace(benchmark_mode=True, openrouter_api_key="fake")), \
-             patch.object(client.httpx, "AsyncClient", side_effect=lambda: factory(transport=httpx.MockTransport(handler))), \
-             patch.object(client.asyncio, "sleep", new_callable=AsyncMock):
-            await client.request_chat_completion(model="same-model", messages=[], track_interaction_input=True)
-            self.assertEqual([row["input_tokens"] for row in read_events()], [None, 20])
-            self.assertEqual([row["request_outcome"] for row in read_events()], ["transport_error", "success"])
+             patch.object(client.httpx, "AsyncClient", side_effect=lambda: factory(transport=httpx.MockTransport(handler))):
+            with self.assertRaises(client.OpenRouterError):
+                await client.request_chat_completion(model="same-model", messages=[], track_interaction_input=True)
+            self.assertEqual(len(attempts), 1)
+            self.assertEqual([row["input_tokens"] for row in read_events()], [None])
+            self.assertEqual([row["request_outcome"] for row in read_events()], ["transport_error"])
             self.assertEqual(read_events()[0]["error_type"], "ReadTimeout")
             self.assertIsNone(read_events()[0]["http_status"])
 

@@ -73,19 +73,19 @@ class Settings(BaseModel):
 
     # LLM model selection
     interaction_agent_model: str = Field(
-        default=os.getenv("OPENPOKE_INTERACTION_AGENT_MODEL", "anthropic/claude-sonnet-4.6")
+        default=os.getenv("OPENPOKE_INTERACTION_AGENT_MODEL", "anthropic/claude-sonnet-4")
     )
     execution_agent_model: str = Field(
-        default=os.getenv("OPENPOKE_EXECUTION_AGENT_MODEL", "anthropic/claude-sonnet-4.6")
+        default=os.getenv("OPENPOKE_EXECUTION_AGENT_MODEL", "anthropic/claude-sonnet-4")
     )
     execution_agent_search_model: str = Field(
-        default=os.getenv("OPENPOKE_EXECUTION_AGENT_SEARCH_MODEL", "anthropic/claude-sonnet-4.6")
+        default=os.getenv("OPENPOKE_EXECUTION_AGENT_SEARCH_MODEL", "anthropic/claude-sonnet-4")
     )
     summarizer_model: str = Field(
-        default=os.getenv("OPENPOKE_SUMMARIZER_MODEL", "anthropic/claude-sonnet-4.6")
+        default=os.getenv("OPENPOKE_SUMMARIZER_MODEL", "anthropic/claude-sonnet-4")
     )
     email_classifier_model: str = Field(
-        default=os.getenv("OPENPOKE_EMAIL_CLASSIFIER_MODEL", "anthropic/claude-sonnet-4.6")
+        default=os.getenv("OPENPOKE_EMAIL_CLASSIFIER_MODEL", "anthropic/claude-sonnet-4")
     )
 
     roster_embedding_model: str = Field(

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 from typing import Any, Dict, List, Optional, Sequence, Union
@@ -71,9 +70,7 @@ async def request_chat_completion(
 
     url = f"{base_url.rstrip('/')}/chat/completions"
 
-    # Saved smoke traces contain responses taking longer than 60 seconds.
-    # Wait longer in benchmark mode rather than retrying an uncertain paid call
-    # prematurely.
+    # Isolated benchmarks can allow slower responses without retrying requests.
     timeout = 60.0
     if get_settings().benchmark_mode:
         read_timeout = float(os.getenv("OPENPOKE_BENCHMARK_MODEL_READ_TIMEOUT", "180"))
@@ -81,53 +78,48 @@ async def request_chat_completion(
             raise ValueError("Benchmark model read timeout must be positive and finite")
         timeout = httpx.Timeout(60.0, read=read_timeout)
     async with httpx.AsyncClient() as client:
-        for attempt in range(3):
-            result = None
-            http_status = None
-            error_type = None
+        result = None
+        http_status = None
+        error_type = None
+        try:
+            response = await client.post(
+                url,
+                headers=_headers(api_key=api_key),
+                json=payload,
+                timeout=timeout,
+            )
+            http_status = response.status_code
             try:
-                response = await client.post(
-                    url,
-                    headers=_headers(api_key=api_key),
-                    json=payload,
-                    timeout=timeout,
-                )
-                http_status = response.status_code
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
                 try:
-                    response.raise_for_status()
-                except httpx.HTTPStatusError as exc:
-                    try:
-                        result = response.json()
-                    except ValueError:
-                        pass
-                    _handle_response_error(exc)
-                result = response.json()
-                return result
-            except httpx.HTTPStatusError as exc:  # pragma: no cover - handled above
-                error_type = type(exc).__name__
+                    result = response.json()
+                except ValueError:
+                    pass
                 _handle_response_error(exc)
-            except httpx.HTTPError as exc:
-                error_type = type(exc).__name__
-                if attempt == 2:
-                    raise OpenRouterError(
-                        f"OpenRouter request failed after 3 attempts: {exc}"
-                    ) from exc
-                await asyncio.sleep(2**attempt)
-            except BaseException as exc:
-                error_type = type(exc).__name__
-                raise
-            finally:
-                if track_interaction_input:
-                    if http_status is not None and not 200 <= http_status < 300:
-                        outcome = "http_error"
-                    elif isinstance(result, dict) and result.get("error"):
-                        outcome = "api_error"
-                    elif error_type:
-                        outcome = "transport_error" if http_status is None else "invalid_response"
-                    else:
-                        outcome = "success"
-                    record_input_tokens("interaction", model, result, http_status=http_status,
-                                        error_type=error_type, request_outcome=outcome)
+            result = response.json()
+            return result
+        except httpx.HTTPStatusError as exc:  # pragma: no cover - handled above
+            error_type = type(exc).__name__
+            _handle_response_error(exc)
+        except httpx.HTTPError as exc:
+            error_type = type(exc).__name__
+            raise OpenRouterError(f"OpenRouter request failed: {exc}") from exc
+        except BaseException as exc:
+            error_type = type(exc).__name__
+            raise
+        finally:
+            if track_interaction_input:
+                if http_status is not None and not 200 <= http_status < 300:
+                    outcome = "http_error"
+                elif isinstance(result, dict) and result.get("error"):
+                    outcome = "api_error"
+                elif error_type:
+                    outcome = "transport_error" if http_status is None else "invalid_response"
+                else:
+                    outcome = "success"
+                record_input_tokens("interaction", model, result, http_status=http_status,
+                                    error_type=error_type, request_outcome=outcome)
 
     raise OpenRouterError("OpenRouter request failed: unknown error")
 

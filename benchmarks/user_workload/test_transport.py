@@ -4,7 +4,7 @@ import json
 import tempfile
 import unittest
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import httpx
 
@@ -67,7 +67,7 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
                     await client.request_chat_completion(model="test", messages=[])
                 self.assertEqual(requests[-1].extensions["timeout"]["read"], expected)
 
-    async def test_transport_retry_behavior_is_unchanged(self):
+    async def test_transport_failure_is_not_retried_in_either_mode(self):
         calls = []
         def handler(request):
             calls.append(request)
@@ -77,13 +77,17 @@ class TransportTests(unittest.IsolatedAsyncioTestCase):
         factory = httpx.AsyncClient
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
             "OPENPOKE_BENCHMARK_MODE": "1", "OPENPOKE_DATA_DIR": directory,
-        }), patch.object(client, "get_settings", return_value=SimpleNamespace(
-            benchmark_mode=True, openrouter_api_key="fake")), \
-            patch.object(client.httpx, "AsyncClient", side_effect=lambda: factory(transport=httpx.MockTransport(handler))), \
-            patch.object(client.asyncio, "sleep", new_callable=AsyncMock):
-            await client.request_chat_completion(model="chat", messages=[])
-            self.assertEqual(len(calls), 2)
-            self.assertEqual(read_events(), [])
+        }), patch.object(client.httpx, "AsyncClient", side_effect=lambda: factory(transport=httpx.MockTransport(handler))):
+            for mode in (False, True):
+                calls.clear()
+                with self.subTest(benchmark_mode=mode), patch.object(
+                    client, "get_settings", return_value=SimpleNamespace(
+                        benchmark_mode=mode, openrouter_api_key="fake")
+                ):
+                    with self.assertRaises(client.OpenRouterError):
+                        await client.request_chat_completion(model="chat", messages=[])
+                    self.assertEqual(len(calls), 1)
+                    self.assertEqual(read_events(), [])
 
     async def test_http_error_is_not_retried(self):
         factory = httpx.AsyncClient

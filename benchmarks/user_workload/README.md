@@ -66,7 +66,7 @@ snapshots and included in reports; they may differ between comparison modes.
 The runner uses `POST /api/v1/chat/send`, `GET /api/v1/benchmark/status`,
 `GET /api/v1/benchmark/snapshot` and `GET /api/v1/benchmark/metrics`. It requires
 isolated data/tools, a local email backend, and metrics version 1.
-Configure the server to use this workload's inbox (the local `.env` also selects it):
+Configure the server to use this workload's inbox:
 
 ```bash
 OPENPOKE_ROSTER_SHORTLISTING_ENABLED=0 \
@@ -168,9 +168,10 @@ request outcome, HTTP status when available, exception type, and only returned
 input-usage fields. Prompts, response text, output-token counts, and vectors are not
 included in token records. Reports expose known counts and missing
 usage counts; exact totals/comparisons stay null when coverage is incomplete.
-Every interaction transport attempt is recorded, including retries. This does not
-change the existing retry policy. Old runs without tracking are unavailable,
-not zero, and cannot be recovered from saved text alone.
+Each interaction request is recorded, including failed transport attempts. Chat
+and embedding requests are not automatically retried. Runs without token tracking
+are reported as unavailable, not zero; counts cannot be recovered from saved text
+alone.
 
 For a successful interaction response with missing usage and a saved response ID,
 preview metadata recovery, then explicitly fetch it if wanted:
@@ -191,14 +192,14 @@ per invocation; already recovered counts are reused.
 Recovery saves `input-token-recovery.json` separately, leaving original ledgers and
 snapshots untouched. Reports validate its link to the exact original event ledger
 and show how many counts were recovered. Changed or stale recovery data is rejected.
-The first token smoke did not save response IDs, so its three unknown counts cannot
-be recovered through this command.
+Responses without a saved response ID cannot be recovered through this command.
 
-Benchmark chat calls now allow 180 seconds of response-read inactivity, instead
-of 60, to reduce premature timeouts observed in the smoke traces. Override with
+Benchmark chat calls allow 180 seconds of response-read inactivity. Override with
 `OPENPOKE_BENCHMARK_MODEL_READ_TIMEOUT` (positive seconds) if needed; use the same
-setting for both comparison modes. Normal application calls retain 60 seconds.
-A partial run is never presented as a complete comparison.
+setting for both comparison modes. Benchmark execution tasks have a separate
+210-second total timeout. Normal application calls retain a 60-second read timeout
+and execution tasks retain a 90-second total timeout. A partial run is never
+presented as a complete comparison.
 
 Each run saves:
 
@@ -220,9 +221,8 @@ server/venv/bin/python -m benchmarks.user_workload.report RUN_DIRECTORY
 server/venv/bin/python -m benchmarks.user_workload.report FULL_RUN_DIRECTORY --compare SHORTLIST_RUN_DIRECTORY
 ```
 
-Reports contain full-roster size and scoped input-token counts. They do not call a model or generate
-pass/fail verdicts. Historical `quality.jsonl` files and old reports remain saved
-as artifacts; their automatic judgments are not read or used by current reports.
+Reports contain full-roster size and scoped input-token counts. They do not call
+a model or generate quality scores or pass/fail verdicts.
 
 Roster results include initial size, last completed size, and growth after each
 group. `roster_size_change` is the candidate's final size minus the baseline's:
