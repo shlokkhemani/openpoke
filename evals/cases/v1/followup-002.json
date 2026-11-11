@@ -1,0 +1,123 @@
+{
+  "id": "followup-002",
+  "category": "email_followup",
+  "split": "test",
+  "source": "template",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_bzxcbyn5",
+      "name": "Email Priya about design review",
+      "description": "Emailed Priya Raman about feedback on the design review slides. Priya replied that two slides need rework. Thread MSG-82410 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 18.0,
+      "last_run_days_ago": 18.0
+    },
+    {
+      "id": "ag_dgnu5mlk",
+      "name": "Email Priya about wedding rsvp",
+      "description": "Emailed Priya Raman about the RSVP for the wedding. Priya replied that a seat has been reserved. The confirmation code is CONF-K33EQB.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 60.0,
+      "last_run_days_ago": 60.0
+    },
+    {
+      "id": "ag_dpq74iot",
+      "name": "Find emails from Priya about flight confirmation",
+      "description": "Searched the inbox for emails from Priya Raman about the flight confirmation and listed 7 matches. The confirmation code is CONF-BEKLNY.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 46.0,
+      "last_run_days_ago": 46.0
+    },
+    {
+      "id": "ag_f2mexitj",
+      "name": "Email Priya the proposal",
+      "description": "Sent Priya Raman the draft proposal. Priya acknowledged it. Thread MSG-34951 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "priya.raman@gmail.com",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 2.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_qpngcw2c",
+      "name": "Find emails from Priya about tax return",
+      "description": "Searched the inbox for emails from Priya Raman about the tax return and listed 2 matches. Reference number REF-77314 is on file.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 91.0,
+      "last_run_days_ago": 91.0
+    },
+    {
+      "id": "ag_sqbzmbwn",
+      "name": "Email Priya about invoice dispute",
+      "description": "Emailed Priya Raman about the disputed invoice. Priya replied that the charge will be reversed. The paperwork is filed under INV-93067.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 32.0,
+      "last_run_days_ago": 32.0
+    },
+    {
+      "id": "ag_yho6t5wz",
+      "name": "Find emails from Priya about quarterly report",
+      "description": "Searched the inbox for emails from Priya Raman about the quarterly report and listed 4 matches. Reference number REF-45938 is on file.",
+      "contacts": [
+        {
+          "email": "priya.raman@gmail.com",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 90.0,
+      "last_run_days_ago": 90.0
+    }
+  ],
+  "message": "Look again for messages from Priya regarding the annual tax filing.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Is it going to rain in Seattle tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "Light rain in the morning, clearing by noon."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_qpngcw2c)"
+  ],
+  "expect_person": "Priya Raman",
+  "notes": "Reuse the search agent 'Find emails from Priya about tax return'. The message names Priya Raman and paraphrases the topic ('the tax return'); Priya Raman's other agents have different topics, so only the topic separates them (long-tail: user activity 91 days ago)."
+}

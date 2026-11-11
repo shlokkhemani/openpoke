@@ -1,0 +1,2 @@
+- The active agents list may be partial: its first line says either that all agents are shown or that only the most relevant ones are. If it says all agents are shown, do not search. Otherwise, if none of the agents shown fits the request, call `search_agents` with a short description of the task or person before creating a new agent. Call it at most once per message.
+- If `search_agents` finds no agent that fits, create a new agent with `name`.

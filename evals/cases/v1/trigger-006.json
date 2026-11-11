@@ -1,0 +1,80 @@
+{
+  "id": "trigger-006",
+  "category": "trigger_management",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_ohyhhbka",
+      "name": "Subscription audit reminder",
+      "description": "Reminds the user every year on March 3 to review the monthly subscriptions. It is filed under reference REF-80219.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "yearly on March 3",
+          "payload": "Remind the user to review the monthly subscriptions",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 84.0,
+      "last_run_days_ago": 84.0
+    },
+    {
+      "id": "ag_77wgdk6a",
+      "name": "Passport reminder",
+      "description": "Reminds the user every year on March 3 to check the passport expiry date. It is filed under reference REF-35360.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "yearly on March 3",
+          "payload": "Remind the user to check the passport expiry date",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 64.0,
+      "last_run_days_ago": 64.0
+    },
+    {
+      "id": "ag_sx52hkww",
+      "name": "Update roadmap reminder",
+      "description": "Reminds the user every weekday at 9am to update the roadmap doc. It is saved as reminder RMD-74875.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 9am",
+          "payload": "Remind the user to update the roadmap doc",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 81.0,
+      "last_run_days_ago": 1.0
+    }
+  ],
+  "message": "Could you push this back by an hour?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Thanks, that's all for now."
+    },
+    {
+      "role": "assistant",
+      "text": "You're welcome. I'm here if anything comes up."
+    },
+    {
+      "role": "agent",
+      "text": "Reminder: review the monthly subscriptions.",
+      "agent_id": "ag_ohyhhbka",
+      "agent_name": "Subscription audit reminder"
+    },
+    {
+      "role": "assistant",
+      "text": "Reminder: review the monthly subscriptions."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_ohyhhbka)"
+  ],
+  "notes": "Trigger 'context' on 'Subscription audit reminder' (every year on March 3, active; user last touched it 84 days ago, so recency misses it). The message names nothing; only the conversation (the agent's own message, tagged with its id) identifies the target. A wrong create duplicates the trigger.",
+  "original_message": "can you make this come an hour later?"
+}

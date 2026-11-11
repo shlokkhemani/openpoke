@@ -29,10 +29,26 @@ class TriggerService:
     def __init__(self, store: TriggerStore):
         self._store = store
 
+    def list_for_agent(self, agent_id: str) -> List[TriggerRecord]:
+        return self._store.list_for_agent(agent_id)
+
+    def _refresh_search_index(self, agent_id: str) -> None:
+        """Rebuild the agent's search text from its current triggers; never raises."""
+        try:
+            # Local import: services.agents imports triggers.models, so a top-level import would be circular.
+            from ..agents import indexer
+
+            indexer.index_agent(agent_id, self.list_for_agent(agent_id))
+        except Exception as exc:
+            logger.warning(
+                "agent search index refresh failed",
+                extra={"agent_id": agent_id, "error": str(exc)},
+            )
+
     def create_trigger(
         self,
         *,
-        agent_name: str,
+        agent_id: str,
         payload: str,
         recurrence_rule: Optional[str] = None,
         start_time: Optional[str] = None,
@@ -51,7 +67,7 @@ class TriggerService:
         )
         timestamp = to_storage_timestamp(now)
         record: Dict[str, Any] = {
-            "agent_name": agent_name,
+            "agent_id": agent_id,
             "payload": payload,
             "start_time": to_storage_timestamp(start_dt_local),
             "next_trigger": to_storage_timestamp(next_fire) if next_fire else None,
@@ -63,16 +79,17 @@ class TriggerService:
             "updated_at": timestamp,
         }
         trigger_id = self._store.insert(record)
-        created = self._store.fetch_one(trigger_id, agent_name)
+        created = self._store.fetch_one(trigger_id, agent_id)
         if not created:  # pragma: no cover - defensive
             raise RuntimeError("Failed to load trigger after insert")
+        self._refresh_search_index(agent_id)
         return created
 
     def update_trigger(
         self,
         trigger_id: int,
         *,
-        agent_name: str,
+        agent_id: str,
         payload: Optional[str] = None,
         recurrence_rule: Optional[str] = None,
         start_time: Optional[str] = None,
@@ -81,7 +98,7 @@ class TriggerService:
         last_error: Optional[str] = None,
         clear_error: bool = False,
     ) -> Optional[TriggerRecord]:
-        existing = self._store.fetch_one(trigger_id, agent_name)
+        existing = self._store.fetch_one(trigger_id, agent_id)
         if existing is None:
             return None
 
@@ -177,28 +194,31 @@ class TriggerService:
         if not fields:
             return existing
 
-        updated = self._store.update(trigger_id, agent_name, fields)
-        return self._store.fetch_one(trigger_id, agent_name) if updated else existing
+        updated = self._store.update(trigger_id, agent_id, fields)
+        if updated:
+            self._refresh_search_index(agent_id)
+        return self._store.fetch_one(trigger_id, agent_id) if updated else existing
 
-    def list_triggers(self, *, agent_name: str) -> List[TriggerRecord]:
-        return self._store.list_for_agent(agent_name)
+    def list_triggers(self, *, agent_id: str) -> List[TriggerRecord]:
+        return self._store.list_for_agent(agent_id)
 
     def get_due_triggers(
-        self, *, before: datetime, agent_name: Optional[str] = None
+        self, *, before: datetime, agent_id: Optional[str] = None
     ) -> List[TriggerRecord]:
         iso_cutoff = to_storage_timestamp(before)
-        return self._store.fetch_due(agent_name, iso_cutoff)
+        return self._store.fetch_due(agent_id, iso_cutoff)
 
-    def mark_as_completed(self, trigger_id: int, *, agent_name: str) -> None:
+    def mark_as_completed(self, trigger_id: int, *, agent_id: str) -> None:
         self._store.update(
             trigger_id,
-            agent_name,
+            agent_id,
             {
                 "status": "completed",
                 "next_trigger": None,
                 "last_error": None,
             },
         )
+        self._refresh_search_index(agent_id)
 
     def schedule_next_occurrence(
         self,
@@ -207,8 +227,8 @@ class TriggerService:
         fired_at: datetime,
     ) -> Optional[TriggerRecord]:
         if not trigger.recurrence_rule:
-            self.mark_as_completed(trigger.id, agent_name=trigger.agent_name)
-            return self._store.fetch_one(trigger.id, trigger.agent_name)
+            self.mark_as_completed(trigger.id, agent_id=trigger.agent_id)
+            return self._store.fetch_one(trigger.id, trigger.agent_id)
 
         tz = resolve_timezone(trigger.timezone)
         next_fire = self._compute_next_after(trigger.recurrence_rule, fired_at, tz)
@@ -218,27 +238,30 @@ class TriggerService:
         }
         if next_fire is None:
             fields["status"] = "completed"
-        self._store.update(trigger.id, trigger.agent_name, fields)
-        return self._store.fetch_one(trigger.id, trigger.agent_name)
+        self._store.update(trigger.id, trigger.agent_id, fields)
+        if next_fire is None:
+            self._refresh_search_index(trigger.agent_id)
+        return self._store.fetch_one(trigger.id, trigger.agent_id)
 
     def record_failure(self, trigger: TriggerRecord, error: str) -> None:
         self._store.update(
             trigger.id,
-            trigger.agent_name,
+            trigger.agent_id,
             {
                 "last_error": error,
             },
         )
 
-    def clear_next_fire(self, trigger_id: int, *, agent_name: str) -> Optional[TriggerRecord]:
+    def clear_next_fire(self, trigger_id: int, *, agent_id: str) -> Optional[TriggerRecord]:
         self._store.update(
             trigger_id,
-            agent_name,
+            agent_id,
             {
                 "next_trigger": None,
             },
         )
-        return self._store.fetch_one(trigger_id, agent_name)
+        self._refresh_search_index(agent_id)
+        return self._store.fetch_one(trigger_id, agent_id)
 
     def clear_all(self) -> None:
         self._store.clear_all()

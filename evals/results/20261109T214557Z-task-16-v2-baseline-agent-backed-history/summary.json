@@ -1,0 +1,1018 @@
+{
+  "purpose": "Task 16: v2 baseline (agent-backed history), dev, legacy_rules+full x 4 sizes x 3 runs (Haiku)",
+  "command": "python -m evals.run routing --modes legacy_rules,full --sizes 10,30,100,300 --split dev --runs 3 --max-cost 5 --cases-dir evals/cases/v2 --purpose 'Task 16: v2 baseline (agent-backed history), dev, legacy_rules+full x 4 sizes x 3 runs (Haiku)' --yes",
+  "date_utc": "2026-11-09T21:45:57Z",
+  "run_folder": "20261109T214557Z-task-16-v2-baseline-agent-backed-history",
+  "model": "anthropic/claude-haiku-5.5",
+  "git": "uncommitted working tree on HEAD 6c9e97c",
+  "case_set": {
+    "dir": "evals/cases/v2",
+    "version": "v2",
+    "manifest_sha256": "d0c9a4ca5b94e38c5c16bc428609f90cd25ba1b03d8adf80e733689c4649cc3c",
+    "frozen_on": "2026-11-09",
+    "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6"
+  },
+  "split": "dev",
+  "case_ids": [
+    "amb-person-006",
+    "amb-person-007",
+    "broad-person-005",
+    "broad-person-006",
+    "clear-person-005",
+    "clear-person-006",
+    "followup-005",
+    "followup-006",
+    "multi-intent-005",
+    "multi-intent-006",
+    "multi-person-005",
+    "multi-person-006",
+    "newtask-005",
+    "newtask-006",
+    "trigger-005",
+    "trigger-006"
+  ],
+  "n_cases": 16,
+  "modes": [
+    "legacy_rules",
+    "full"
+  ],
+  "sizes": [
+    10,
+    30,
+    100,
+    300
+  ],
+  "runs": 3,
+  "max_cost": 5.0,
+  "concurrency": 4,
+  "descriptions": {
+    "source": "regen",
+    "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+    "covered": 310,
+    "total": 310
+  },
+  "counts": {
+    "planned": 384,
+    "completed": 384,
+    "graded": 384,
+    "infra_errors": 0,
+    "retried": 0,
+    "skipped_max_cost": 0
+  },
+  "cost": {
+    "actual_usd": 1.541966,
+    "estimated_usd": 1.451914,
+    "prompt_tokens": 14013922,
+    "completion_tokens": 281148,
+    "reservation_margin": 1.2,
+    "unmetered_attempts": 0,
+    "unmetered_usd": 0.0
+  },
+  "latency": {
+    "mean_latency_s": 5.24,
+    "mean_round_trips": 2.284
+  },
+  "pass_rate": {
+    "legacy_rules": {
+      "10": {
+        "passed": 40,
+        "graded": 48,
+        "rate": 0.8333333333333334
+      },
+      "30": {
+        "passed": 41,
+        "graded": 48,
+        "rate": 0.8541666666666666
+      },
+      "100": {
+        "passed": 39,
+        "graded": 48,
+        "rate": 0.8125
+      },
+      "300": {
+        "passed": 37,
+        "graded": 48,
+        "rate": 0.7708333333333334
+      }
+    },
+    "full": {
+      "10": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "30": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "100": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "300": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      }
+    }
+  },
+  "by_category": {
+    "ambiguous_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "30": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "100": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "broad_question_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "30": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "100": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "clear_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 5,
+          "graded": 6,
+          "rate": 0.8333333333333334
+        },
+        "30": {
+          "passed": 5,
+          "graded": 6,
+          "rate": 0.8333333333333334
+        },
+        "100": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "email_followup": {
+      "legacy_rules": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_intent": {
+      "legacy_rules": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 5,
+          "graded": 6,
+          "rate": 0.8333333333333334
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 4,
+          "graded": 6,
+          "rate": 0.6666666666666666
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "new_task_lookalike": {
+      "legacy_rules": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "trigger_management": {
+      "legacy_rules": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    }
+  },
+  "flags": {
+    "legacy_rules": {
+      "10": {
+        "wrong_reuse": 7,
+        "duplicate_create": 1
+      },
+      "30": {
+        "wrong_reuse": 6,
+        "duplicate_create": 1
+      },
+      "100": {
+        "wrong_reuse": 6,
+        "duplicate_create": 3
+      },
+      "300": {
+        "wrong_reuse": 6,
+        "duplicate_create": 5
+      }
+    },
+    "full": {
+      "10": {},
+      "30": {},
+      "100": {},
+      "300": {}
+    }
+  },
+  "structural": {
+    "legacy_rules": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "infra_errors": {
+    "legacy_rules": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "skipped": {
+    "legacy_rules": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "error_kinds": {},
+  "iteration_limit": [],
+  "failing": [
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Email Daniel about lab results, dispatch→Find emails from Daniel about conference schedule, dispatch→Send Daniel the signed NDA, wait)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Email Daniel about lab results, dispatch→Find emails from Daniel about conference schedule, dispatch→Send Daniel the signed NDA)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Email Daniel about lab results, dispatch→Find emails from Daniel about conference schedule, dispatch→Send Daniel the signed NDA, wait)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Email Daniel about lab results, dispatch→Send Daniel the signed NDA, dispatch→Find emails from Daniel about conference schedule, wait)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Email Daniel about lab results, dispatch→Send Daniel the signed NDA, dispatch→Find emails from Daniel about conference schedule, wait)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Email Daniel about lab results, dispatch→Send Daniel the signed NDA, dispatch→Find emails from Daniel about conference schedule, wait)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Find emails from Daniel about conference schedule, dispatch→Send Daniel the signed NDA, dispatch→Email Daniel about lab results)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Find emails from Daniel about conference schedule, dispatch→Send Daniel the signed NDA, dispatch→Email Daniel about lab results, wait)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Find emails from Daniel about conference schedule, dispatch→Send Daniel the signed NDA, dispatch→Email Daniel about lab results)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Send Daniel the signed NDA, dispatch→Find emails from Daniel about conference schedule, dispatch→Email Daniel about lab results)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Send Daniel the signed NDA, dispatch→Find emails from Daniel about conference schedule, dispatch→Email Daniel about lab results)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Send Daniel the signed NDA, dispatch→Email Daniel about lab results, dispatch→Find emails from Daniel about conference schedule)"
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Find emails from Helena about interview loop, dispatch→Follow up with Helena on contract renewal, dispatch→E..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Find emails from Helena about interview loop, dispatch→Follow up with Helena on contract renewal, dispatch→E..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Find emails from Helena about interview loop, dispatch→Follow up with Helena on contract renewal, dispatch→E..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Email Helena re podcast interview, dispatch→Follow up with Helena on catering order, dispatch→Find emails fr..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Email Helena re podcast interview, dispatch→Find emails from Helena about interview loop, dispatch→Follow up..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Email Helena re podcast interview, dispatch→Follow up with Helena on catering order, dispatch→Find emails fr..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Find emails from Helena about interview loop, dispatch→Email Helena re podcast interview, dispatch→Follow up..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Find emails from Helena about interview loop, dispatch→Email Helena re podcast interview, dispatch→Follow up..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Find emails from Helena about interview loop, dispatch→Email Helena re podcast interview, dispatch→Email Hel..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Email Helena re podcast interview, dispatch→Find emails from Helena about interview loop, dispatch→Email Hel..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Email Helena re podcast interview, dispatch→Find emails from Helena about interview loop, dispatch→Email Hel..."
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got reuse (message_user, dispatch→Email Helena re podcast interview, dispatch→Find emails from Helena about interview loop, dispatch→Email Hel..."
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got reuse (message_user, dispatch→Email Farah the transcript, dispatch→Email Farah the reading list, dispatch→Email Farah re offer letter)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Find emails from Farah Moreau about interview write-up)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Find emails from Farah Moreau about interview write-up)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Find emails from Farah Moreau about interview write-up)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Find emails from Farah Moreau about interview write-up)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Find emails from Farah Moreau about interview write-up)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Find emails from Farah Moreau about interview write-up)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Find emails from Farah Moreau about interview write-up)"
+    },
+    {
+      "case_id": "multi-person-005",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3syqqzg7); create[Amara Abara]); got create (message_user, dispatch→Check billing dispute status with Liam Bianchi, dispatch→Email Amara Abara about hairdresser); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-005",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3syqqzg7); create[Amara Abara]); got create (message_user, dispatch→Check Liam Bianchi billing dispute update, dispatch→Email Amara Abara about hairdresser, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-005",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3syqqzg7); create[Amara Abara]); got create (message_user, dispatch→Check billing dispute with Liam Bianchi, dispatch→Email Amara Abara about hairdresser); slots 1/2"
+    }
+  ]
+}

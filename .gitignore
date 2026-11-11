@@ -44,3 +44,7 @@ server/venv/
 # Generated documentation / analysis artifacts
 server/repomix-output.txt
 server/plans/
+
+docs/
+# Inspect AI logs regenerate from run folders (python -m evals.run inspect)
+evals/inspect_logs/

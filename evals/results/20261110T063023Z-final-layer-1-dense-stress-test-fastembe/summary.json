@@ -1,0 +1,60 @@
+{
+ "purpose": "Final layer-1 dense stress test fastembed, frozen config 39a1439",
+ "command": "python -m evals.run retrieval --split test --world dense --embedder fastembed --purpose 'Final layer-1 dense stress test fastembed, frozen config 39a1439'",
+ "date_utc": "2026-11-10T06:30:23Z",
+ "run_folder": "20261110T063023Z-final-layer-1-dense-stress-test-fastembe",
+ "git": "uncommitted working tree on HEAD 39a1439",
+ "split": "test",
+ "sizes": [
+  100,
+  200,
+  300
+ ],
+ "queries": "all",
+ "embedder": "fastembed",
+ "case_set_sha256": "d0c9a4ca5b94e38c5c16bc428609f90cd25ba1b03d8adf80e733689c4649cc3c",
+ "descriptions": {
+  "source": "world (forced for dense)",
+  "sha256": null,
+  "covered": 0,
+  "total": 310
+ },
+ "seeds": {
+  "used": [],
+  "skipped": [],
+  "count": 0,
+  "dropped": 0
+ },
+ "counts": {
+  "dense": 168,
+  "target_exact": 48,
+  "target_para": 48,
+  "topic_noname": 24,
+  "history_pull": 48,
+  "referenced": 48,
+  "skipped_n_below_required": 0
+ },
+ "timings": {
+  "load_s": 0.010780209006043151,
+  "queries_s": 0.006072875010431744,
+  "evaluate_s": 9.78442629201163,
+  "write_s": 0.01067108300048858
+ },
+ "headline": "dense test target_para recall@20 at N=100/200/300: 0.85/0.85/0.85 (base@20 0.42/0.44/0.44)",
+ "world": "dense",
+ "paraphrases": {
+  "file": "dense_paraphrases.json",
+  "sha256": "ec5ae4f8eb9958d2b4e6bcba9333ee6c13ccd607bd6a317efde5f53cb17e3db0",
+  "dropped_at_load": [
+   {
+    "topic": "w-9 form",
+    "paraphrase": "that W-9 thing",
+    "leaked": [
+     "9",
+     "w"
+    ]
+   }
+  ],
+  "skipped_topics": []
+ }
+}

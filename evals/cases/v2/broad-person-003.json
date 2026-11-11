@@ -1,0 +1,162 @@
+{
+  "id": "broad-person-003",
+  "category": "broad_question_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_3syqqzg7",
+      "name": "Email Liam re invoice dispute",
+      "description": "Emailed Liam Bianchi about the disputed invoice. Liam replied that the charge will be reversed. Invoice INV-46759 is attached.",
+      "contacts": [
+        {
+          "email": "liam.bianchi@outlook.com",
+          "display_name": "Liam Bianchi",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 4.0,
+      "last_run_days_ago": 4.0
+    },
+    {
+      "id": "ag_b5g3tgyl",
+      "name": "Email Liam about deposit refund",
+      "description": "Emailed Liam Bianchi about the security deposit refund. Liam replied that the refund was processed. Reference number REF-30686 is on file.",
+      "contacts": [
+        {
+          "email": "liam.bianchi@outlook.com",
+          "display_name": "Liam Bianchi",
+          "role": "to"
+        },
+        {
+          "email": "ivan.gallagher@northwind.io",
+          "display_name": "Ivan Gallagher",
+          "role": "cc"
+        }
+      ],
+      "last_user_activity_days_ago": 7.0,
+      "last_run_days_ago": 7.0
+    },
+    {
+      "id": "ag_dw36whj3",
+      "name": "Follow up with Liam on vendor contract",
+      "description": "Emailed Liam Bianchi about the vendor contract redlines. Liam replied that legal is still reviewing it. Reference number REF-42008 is on file.",
+      "contacts": [
+        {
+          "email": "liam.bianchi@outlook.com",
+          "display_name": "Liam Bianchi",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 0.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_fwcj2nwk",
+      "name": "Find emails from Liam about birthday plans",
+      "description": "Searched the inbox for emails from Liam Bianchi about the birthday plans and listed 5 matches. Thread MSG-71121 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "liam.bianchi@outlook.com",
+          "display_name": "Liam Bianchi",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 73.0,
+      "last_run_days_ago": 73.0
+    },
+    {
+      "id": "ag_tyljnsme",
+      "name": "Find emails from Ruth about contract draft",
+      "description": "Searched the inbox for emails from Ruth Moreau about the contract draft and listed 9 matches. It is filed under reference REF-12812.",
+      "contacts": [
+        {
+          "email": "ruth.moreau@gmail.com",
+          "display_name": "Ruth Moreau",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 109.0,
+      "last_run_days_ago": 109.0
+    }
+  ],
+  "message": "Any updates on the Liam stuff?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any news from Fiona Lindqvist on the deadline extension?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on the deadline extension: Fiona replied that the new date works.",
+      "agent_id": "ag_7itnrndm",
+      "agent_name": "Follow up with Fiona on project deadline"
+    },
+    {
+      "role": "assistant",
+      "text": "Fiona replied that the new date works."
+    },
+    {
+      "role": "user",
+      "text": "Anything new in my inbox?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your support ticket summary: 5 new items, nothing that needs an answer today.",
+      "agent_id": "ag_w6proags",
+      "agent_name": "Monthly support ticket summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your support ticket summary: 5 new items, nothing that needs an answer today."
+    }
+  ],
+  "acceptable": [
+    "answer_set([ag_dw36whj3, ag_3syqqzg7, ag_b5g3tgyl, ag_fwcj2nwk])"
+  ],
+  "unique_facts": {
+    "ag_3syqqzg7": "INV-46759",
+    "ag_b5g3tgyl": "REF-30686",
+    "ag_dw36whj3": "REF-42008",
+    "ag_fwcj2nwk": "MSG-71121"
+  },
+  "notes": "Broad question about Liam Bianchi: cover all 4 agents linked to them. Covered = messaged OR unique fact in the reply (code-style facts; 0 agent(s) have no code fact and must be messaged). Oldest agent: 73 days since the user's last activity. Distractor: 'Find emails from Ruth about contract draft' shares a topic but not the person.",
+  "original_message": "What's the latest on everything involving Liam?",
+  "context_agents": [
+    {
+      "id": "ag_7itnrndm",
+      "name": "Follow up with Fiona on project deadline",
+      "description": "Emailed Fiona Lindqvist about moving the project deadline by a week. Fiona replied that the new date works. The thread is saved as MSG-12847.",
+      "contacts": [
+        {
+          "email": "fiona.lindqvist@fastmail.com",
+          "display_name": "Fiona Lindqvist",
+          "role": "to"
+        },
+        {
+          "email": "sana.weber@gmail.com",
+          "display_name": "Sana Weber",
+          "role": "cc"
+        }
+      ],
+      "last_user_activity_days_ago": 20.0,
+      "last_run_days_ago": 20.0
+    },
+    {
+      "id": "ag_w6proags",
+      "name": "Monthly support ticket summary",
+      "description": "On the 1st of every month at 9am, summarises the support ticket emails and sends the summary to the user. Support case #Q-14068 tracks it.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "monthly on the 1st at 9am",
+          "payload": "Summarise the support ticket emails",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 22.0,
+      "last_run_days_ago": 16.0
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "id": "trigger-004",
+  "category": "trigger_management",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_jjrnptml",
+      "name": "Inbox zero reminder",
+      "description": "Reminds the user every weekday at 5pm to clear the inbox. The reminder id is RMD-25688.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to clear the inbox",
+          "status": "paused"
+        }
+      ],
+      "last_user_activity_days_ago": 53.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_ft33ftgo",
+      "name": "Inbox zero reminder",
+      "description": "Reminds the user every day at 12pm to clear the inbox. The reminder id is RMD-16194.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 12pm",
+          "payload": "Remind the user to clear the inbox",
+          "status": "paused"
+        }
+      ],
+      "last_user_activity_days_ago": 94.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_i43u2a3d",
+      "name": "Inbox zero reminder",
+      "description": "Reminds the user every weekday at 9am to clear the inbox. It is saved as reminder RMD-75412.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 9am",
+          "payload": "Remind the user to clear the inbox",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 39.0,
+      "last_run_days_ago": 3.0
+    },
+    {
+      "id": "ag_pwqhcleb",
+      "name": "Dentist checkup reminder",
+      "description": "Reminds the user every weekday at 5pm to book the dentist checkup. The confirmation code is CONF-PT5OXC.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to book the dentist checkup",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 56.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_rmm7mteg",
+      "name": "Standing desk reminder",
+      "description": "Reminds the user every weekday at 5pm to reset the standing desk height. The reminder id is RMD-35450.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to reset the standing desk height",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 47.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Can you re-enable the weekday 5pm reminder about cleaning up my inbox?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What day is the first of next month?"
+    },
+    {
+      "role": "assistant",
+      "text": "It falls on a Monday."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_jjrnptml)"
+  ],
+  "notes": "Trigger 'resume' on 'Inbox zero reminder' (every weekday at 5pm, paused; user last touched it 53 days ago, so recency misses it). Named by topic and schedule; 2 same-label twin(s) on other schedules are required lookalikes. A wrong create duplicates the trigger.",
+  "original_message": "Turn the inbox cleanup nudge that goes out every weekday at 5pm back on."
+}

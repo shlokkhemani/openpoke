@@ -1,0 +1,364 @@
+{
+  "purpose": "Task 16f: hybrid on v2 with A3 message weighting, dev, 4 sizes x 3 runs (Haiku)",
+  "command": "python -m evals.run routing --modes hybrid --sizes 10,30,100,300 --split dev --runs 3 --embedder fastembed --max-cost 1 --purpose 'Task 16f: hybrid on v2 with A3 message weighting, dev, 4 sizes x 3 runs (Haiku)' --yes",
+  "date_utc": "2026-11-10T00:08:01Z",
+  "run_folder": "20261110T000801Z-task-16f-hybrid-on-v2-with-a3-message-we",
+  "model": "anthropic/claude-haiku-5.5",
+  "git": "uncommitted working tree on HEAD e5ae51a",
+  "case_set": {
+    "dir": "evals/cases/v2",
+    "version": "v2",
+    "manifest_sha256": "d0c9a4ca5b94e38c5c16bc428609f90cd25ba1b03d8adf80e733689c4649cc3c",
+    "frozen_on": "2026-11-09",
+    "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6"
+  },
+  "split": "dev",
+  "case_ids": [
+    "amb-person-006",
+    "amb-person-007",
+    "broad-person-005",
+    "broad-person-006",
+    "clear-person-005",
+    "clear-person-006",
+    "followup-005",
+    "followup-006",
+    "multi-intent-005",
+    "multi-intent-006",
+    "multi-person-005",
+    "multi-person-006",
+    "newtask-005",
+    "newtask-006",
+    "trigger-005",
+    "trigger-006"
+  ],
+  "n_cases": 16,
+  "modes": [
+    "hybrid"
+  ],
+  "sizes": [
+    10,
+    30,
+    100,
+    300
+  ],
+  "runs": 3,
+  "max_cost": 1.0,
+  "concurrency": 4,
+  "descriptions": {
+    "source": "regen",
+    "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+    "covered": 310,
+    "total": 310
+  },
+  "embedder": "fastembed",
+  "search": {
+    "hybrid": {
+      "10": {
+        "graded": 48,
+        "searched": 0,
+        "search_errors": 0,
+        "target_in_initial": 48,
+        "target_found_by_search": 0
+      },
+      "30": {
+        "graded": 48,
+        "searched": 2,
+        "search_errors": 0,
+        "target_in_initial": 48,
+        "target_found_by_search": 0
+      },
+      "100": {
+        "graded": 48,
+        "searched": 3,
+        "search_errors": 0,
+        "target_in_initial": 42,
+        "target_found_by_search": 0
+      },
+      "300": {
+        "graded": 48,
+        "searched": 1,
+        "search_errors": 0,
+        "target_in_initial": 42,
+        "target_found_by_search": 0
+      }
+    }
+  },
+  "counts": {
+    "planned": 192,
+    "completed": 192,
+    "graded": 192,
+    "infra_errors": 0,
+    "retried": 0,
+    "skipped_max_cost": 0
+  },
+  "cost": {
+    "actual_usd": 0.466772,
+    "estimated_usd": 0.492802,
+    "prompt_tokens": 4037699,
+    "completion_tokens": 126004,
+    "reservation_margin": 1.2,
+    "unmetered_attempts": 0,
+    "unmetered_usd": 0.0
+  },
+  "latency": {
+    "mean_latency_s": 4.508,
+    "mean_round_trips": 2.224
+  },
+  "pass_rate": {
+    "hybrid": {
+      "10": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "30": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "100": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "300": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      }
+    }
+  },
+  "by_category": {
+    "ambiguous_person": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "broad_question_person": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "clear_person": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "email_followup": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_intent": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_person": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "new_task_lookalike": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "trigger_management": {
+      "hybrid": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    }
+  },
+  "flags": {
+    "hybrid": {
+      "10": {},
+      "30": {
+        "invalid_call": 1
+      },
+      "100": {},
+      "300": {
+        "invalid_call": 1
+      }
+    }
+  },
+  "structural": {
+    "hybrid": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "infra_errors": {
+    "hybrid": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "skipped": {
+    "hybrid": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "error_kinds": {},
+  "iteration_limit": [],
+  "failing": []
+}

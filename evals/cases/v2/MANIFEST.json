@@ -1,0 +1,464 @@
+{
+  "version": "v2",
+  "generator": "evals.product_history",
+  "derived_from": {
+    "dir": "evals/cases/v1",
+    "manifest_sha256": "688388e57eb5980fa06046a7e384b5449d9b1c71134c817bbf7d20d166fbcbda"
+  },
+  "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6",
+  "n_cases": 49,
+  "cases": [
+    {
+      "id": "amb-person-001",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-001.json",
+      "sha256": "9672a1c2a38526da62567914c9cd7cfa2b28366805b0cebcaba394dbbdd44466"
+    },
+    {
+      "id": "amb-person-002",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-002.json",
+      "sha256": "843b2d336efea79741f01802d5a8aa948f441f64a4e61b5d16679ee15b18a2f5"
+    },
+    {
+      "id": "amb-person-003",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-003.json",
+      "sha256": "abc0a97666fe13b394296490970d14eb41a360ba30e2373ab79a080979563aad"
+    },
+    {
+      "id": "amb-person-004",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-004.json",
+      "sha256": "e801cce56873ff586aaac1d93b7d5955a12fe06a423fbb136acd3000c16e10c8"
+    },
+    {
+      "id": "amb-person-005",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-005.json",
+      "sha256": "b6645e6c6e9abc9ec2c04099cb4dad877f965ccf90c941b005bf27c2a56ee7c3"
+    },
+    {
+      "id": "amb-person-006",
+      "category": "ambiguous_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "amb-person-006.json",
+      "sha256": "23ad97928a6c1ca707d61b4b020ffdd6bf658f5b329e365ba31271c3038217d8"
+    },
+    {
+      "id": "amb-person-007",
+      "category": "ambiguous_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "amb-person-007.json",
+      "sha256": "a8586783015a8e0a56a78d378cfaf1e375ebc129306bf9b9deda31c469105e74"
+    },
+    {
+      "id": "broad-person-001",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "hand",
+      "file": "broad-person-001.json",
+      "sha256": "dec9920317c0e8365dbce3dc5d358732c83e5a53499648c1635b6bc31f93800e"
+    },
+    {
+      "id": "broad-person-002",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "broad-person-002.json",
+      "sha256": "261f446bf66d5c8643e28f6afbaaf732567f5d2e174257afe69df7ca56770e0e"
+    },
+    {
+      "id": "broad-person-003",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "broad-person-003.json",
+      "sha256": "d6aa520a2f9bdc9c0b5403738b57cac847be7b391e67a558891da8a17b135221"
+    },
+    {
+      "id": "broad-person-004",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "broad-person-004.json",
+      "sha256": "d1f67ba2e4f2fdf226a82a9055a3f9891a5b1897bb75d5fe8c0e090ef2f74f77"
+    },
+    {
+      "id": "broad-person-005",
+      "category": "broad_question_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "broad-person-005.json",
+      "sha256": "b068206dc56d7d08919bfd81b0ca57b3c77c1771549ace4e32fd69f26a0e64ea"
+    },
+    {
+      "id": "broad-person-006",
+      "category": "broad_question_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "broad-person-006.json",
+      "sha256": "f5f711d431274c2d525368ab39779e732e29c598c311a49ae7c1859958da4350"
+    },
+    {
+      "id": "clear-person-001",
+      "category": "clear_person",
+      "split": "test",
+      "source": "hand",
+      "file": "clear-person-001.json",
+      "sha256": "b16eb64c5de79744e72e49488b78da33a4119f7c940e3f5631b9522af2a32380"
+    },
+    {
+      "id": "clear-person-002",
+      "category": "clear_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "clear-person-002.json",
+      "sha256": "9ac86770c0a005991f096039c2ea0773f3ec9641f043803fcff19d3c93d548a2"
+    },
+    {
+      "id": "clear-person-003",
+      "category": "clear_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "clear-person-003.json",
+      "sha256": "89aa2b333a1fe89dc22db98d0d60d686333238dd606c08647214600836f285da"
+    },
+    {
+      "id": "clear-person-004",
+      "category": "clear_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "clear-person-004.json",
+      "sha256": "b5148ef298fb6ea81809b29ed9632230f459d532634d8c73b1e701cdbfbc3f6c"
+    },
+    {
+      "id": "clear-person-005",
+      "category": "clear_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "clear-person-005.json",
+      "sha256": "fed775dcaedc76d963c32d2d8d880588952ed7070caccc8210052f317b9d1d92"
+    },
+    {
+      "id": "clear-person-006",
+      "category": "clear_person",
+      "split": "dev",
+      "source": "template",
+      "file": "clear-person-006.json",
+      "sha256": "62f00b1edcddc3dad8c71d9067bcc8292c42b60a0030e4335cbd1a6b8ba983f3"
+    },
+    {
+      "id": "followup-001",
+      "category": "email_followup",
+      "split": "test",
+      "source": "hand",
+      "file": "followup-001.json",
+      "sha256": "6fa52e8153f444dfbf36aef8fc61f074d19f02437567dc095f3854370db80a1c"
+    },
+    {
+      "id": "followup-002",
+      "category": "email_followup",
+      "split": "test",
+      "source": "template",
+      "file": "followup-002.json",
+      "sha256": "c109a82ceedc36148e6c5b56a775248c738524518ee08593234d0022fab4cdaa"
+    },
+    {
+      "id": "followup-003",
+      "category": "email_followup",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "followup-003.json",
+      "sha256": "0c16bf78cdfb57bd9eb8206d513f13e8b8f0728be0465a6abf2a66002fe47885"
+    },
+    {
+      "id": "followup-004",
+      "category": "email_followup",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "followup-004.json",
+      "sha256": "59ebdedd3816835eb0cb614f51efc4d043493d3dd8ebfcd375ad805f1630fa35"
+    },
+    {
+      "id": "followup-005",
+      "category": "email_followup",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "followup-005.json",
+      "sha256": "2c4ed93bd5684ad54297a7ccf7b06ecaebcf44adae74cb11252d21a4ae1fdf2c"
+    },
+    {
+      "id": "followup-006",
+      "category": "email_followup",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "followup-006.json",
+      "sha256": "76180ffe6f0ac3fdebdcea6e8e1239817deb6f7961d7c1e662805ad190cc6ad1"
+    },
+    {
+      "id": "multi-intent-001",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-001.json",
+      "sha256": "45259bd6b229922f2440659f12c76a8aaed71f39bf36b3dac9cfc22a44766c6b"
+    },
+    {
+      "id": "multi-intent-002",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-002.json",
+      "sha256": "b6c38ebd91630e26313932070e38d1ef591e77615ae277098e40c929928067a0"
+    },
+    {
+      "id": "multi-intent-003",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-003.json",
+      "sha256": "32a4aaf684cefece3db67940641a073bb706a39d810a4d20bd3f3ae1d29078e1"
+    },
+    {
+      "id": "multi-intent-004",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-004.json",
+      "sha256": "8909595fb8454ec2307157ea46521c8497d48cd26a15ce904fe33432ce451fac"
+    },
+    {
+      "id": "multi-intent-005",
+      "category": "multi_intent",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "multi-intent-005.json",
+      "sha256": "37171f2c102113b53922bda1d6d768f5257ae012893ee1050cac6959a0a49343"
+    },
+    {
+      "id": "multi-intent-006",
+      "category": "multi_intent",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "multi-intent-006.json",
+      "sha256": "22df29a3e2239b289c8b04fcb568564576c75bd2168173dae5aa3c38d3f2a111"
+    },
+    {
+      "id": "multi-person-001",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-001.json",
+      "sha256": "77ec639f9e4373ed23b1976d488e13acad82c1c4dfde80f54bb5e9d1c450e088"
+    },
+    {
+      "id": "multi-person-002",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-002.json",
+      "sha256": "9dc559a737355714f920a2aa598c148db72b381802b99092bb8e332033cf1f7b"
+    },
+    {
+      "id": "multi-person-003",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-003.json",
+      "sha256": "5bfc7ae858784936c3319910a7ffd920769d92eeadfa17a4d5a743653960eb58"
+    },
+    {
+      "id": "multi-person-004",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-004.json",
+      "sha256": "1dead5554467b6096a786c9fb07cc25c06d9dc94ce409a36fb2d6da21f38ca2d"
+    },
+    {
+      "id": "multi-person-005",
+      "category": "multi_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "multi-person-005.json",
+      "sha256": "c960b03f143c717a860405f35e8d482493242a2236f98b43b78ed336148b18ce"
+    },
+    {
+      "id": "multi-person-006",
+      "category": "multi_person",
+      "split": "dev",
+      "source": "template",
+      "file": "multi-person-006.json",
+      "sha256": "fddbaefe9f48f6cce1b9dd2a2bffeb6822350bd575aa2f0f84d3c8dd5ee6775e"
+    },
+    {
+      "id": "newtask-001",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "hand",
+      "file": "newtask-001.json",
+      "sha256": "a8c93c2f81ca530594fb9c1cd7828217bfc4521257f3f73037dfc4dccdddf64b"
+    },
+    {
+      "id": "newtask-002",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "template",
+      "file": "newtask-002.json",
+      "sha256": "54fa537adfc5e3fe9fdf9f1358673ba91c7a559c0c2435b0fb27e3a21d348000"
+    },
+    {
+      "id": "newtask-003",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "template",
+      "file": "newtask-003.json",
+      "sha256": "10a90a678c2e7d22732d1b8f4609496c0adfeaeb0b8bc88612b746a0d751693f"
+    },
+    {
+      "id": "newtask-004",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "newtask-004.json",
+      "sha256": "37c7e20412b1b60060e09cfb56286944bb04f1de6a4e90a8bce7d3d68fba1fd7"
+    },
+    {
+      "id": "newtask-005",
+      "category": "new_task_lookalike",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "newtask-005.json",
+      "sha256": "0e6920f5f90056a0ceb23bc0831a9d96a3ac16384f80dd936f8e50e97b3c9178"
+    },
+    {
+      "id": "newtask-006",
+      "category": "new_task_lookalike",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "newtask-006.json",
+      "sha256": "15363e6a4c8677f36ecae3fecb1e3cceaa5db5208b508c11b276291de6701584"
+    },
+    {
+      "id": "trigger-001",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "hand",
+      "file": "trigger-001.json",
+      "sha256": "374b0b51a47abd036b01a193e105344f87ed9617bf2fa6b1fd972eb36e51fb1f"
+    },
+    {
+      "id": "trigger-002",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "hand",
+      "file": "trigger-002.json",
+      "sha256": "d629d586e00005d7c9a08fc749069d1072bfba85338dafdc73b91ed0b0356509"
+    },
+    {
+      "id": "trigger-003",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "trigger-003.json",
+      "sha256": "c14e1a9a72eb87633c358c2cc936b8085e963c2c297bdf62541f4c3e8e19ad5b"
+    },
+    {
+      "id": "trigger-004",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "trigger-004.json",
+      "sha256": "a33746e39f771ccbabb708c4b45f08412a158f7d8f2880771c639efcd6c434fd"
+    },
+    {
+      "id": "trigger-005",
+      "category": "trigger_management",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "trigger-005.json",
+      "sha256": "64e2821857563ae8a279f3f27344a36e62c21c15b9fd13628db54148da9e047e"
+    },
+    {
+      "id": "trigger-006",
+      "category": "trigger_management",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "trigger-006.json",
+      "sha256": "237d2cbb58b33de061910462dc86f1aa44ea4f7d145d86a627a765a0b2c2450c"
+    }
+  ],
+  "paraphrase": {
+    "model": "anthropic/claude-haiku-5.5",
+    "kept": 33,
+    "retried": 5,
+    "reverted": 5,
+    "infra_errors": 0,
+    "prompt_tokens": 14115,
+    "completion_tokens": 1693,
+    "cost_usd": 0.002258
+  },
+  "amendments": [
+    {
+      "date": "2026-11-07",
+      "case": "trigger-006",
+      "change": "message 'Could you push these back by an hour?' -> 'Could you push this back by an hour?' (original_message 'these' -> 'this')",
+      "why": "one reminder on screen but a plural pronoun: asking which reminders is reasonable, so the reuse-only label was unfair; see evals/results/changes.md"
+    }
+  ],
+  "changed": [
+    "amb-person-001",
+    "amb-person-003",
+    "amb-person-005",
+    "amb-person-006",
+    "amb-person-007",
+    "broad-person-001",
+    "broad-person-002",
+    "broad-person-003",
+    "broad-person-004",
+    "broad-person-006",
+    "clear-person-001",
+    "clear-person-002",
+    "clear-person-003",
+    "clear-person-004",
+    "clear-person-005",
+    "clear-person-006",
+    "followup-001",
+    "followup-002",
+    "followup-003",
+    "followup-004",
+    "followup-005",
+    "followup-006",
+    "multi-intent-002",
+    "multi-intent-003",
+    "multi-intent-004",
+    "multi-intent-005",
+    "multi-intent-006",
+    "multi-person-001",
+    "multi-person-002",
+    "multi-person-003",
+    "multi-person-004",
+    "multi-person-005",
+    "multi-person-006",
+    "newtask-001",
+    "newtask-002",
+    "newtask-006",
+    "trigger-001",
+    "trigger-005"
+  ],
+  "frozen": true,
+  "frozen_on": "2026-11-09"
+}

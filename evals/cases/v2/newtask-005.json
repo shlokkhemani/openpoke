@@ -1,0 +1,68 @@
+{
+  "id": "newtask-005",
+  "category": "new_task_lookalike",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_5f4xuzfg",
+      "name": "Email Sam re vendor contract",
+      "description": "Emailed Sam Okafor about the vendor contract redlines. Sam replied that legal is still reviewing it. Reference number REF-40655 is on file.",
+      "contacts": [
+        {
+          "email": "sam.okafor@gmail.com",
+          "display_name": "Sam Okafor",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 6.0,
+      "last_run_days_ago": 6.0
+    },
+    {
+      "id": "ag_ernemqtn",
+      "name": "Email Sam re security audit",
+      "description": "Emailed Sam Okafor about the security audit findings. Sam replied that remediation is underway. Ticket #Q-39439 was opened for it.",
+      "contacts": [
+        {
+          "email": "sam.okafor@gmail.com",
+          "display_name": "Sam Okafor",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 12.0,
+      "last_run_days_ago": 12.0
+    },
+    {
+      "id": "ag_m7s4pnzj",
+      "name": "Email Sam re vendor contract",
+      "description": "Emailed Sam Rivera about the vendor contract redlines. Sam replied that legal is still reviewing it. It is filed under reference REF-37383.",
+      "contacts": [
+        {
+          "email": "sam.rivera@northwind.io",
+          "display_name": "Sam Rivera",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 5.0,
+      "last_run_days_ago": 5.0
+    }
+  ],
+  "message": "Could you email Sam Okafor and ask what restaurant they'd recommend for our team dinner?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Thanks, that's all for now."
+    },
+    {
+      "role": "assistant",
+      "text": "You're welcome. I'm here if anything comes up."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Sam Okafor",
+  "notes": "Same person (Sam Okafor), brand-new thread: create, not a reuse of any of their 3 existing agents. Lookalikes share the contact.",
+  "original_message": "Can you write to Sam Okafor asking which restaurant they would suggest for a team dinner?"
+}

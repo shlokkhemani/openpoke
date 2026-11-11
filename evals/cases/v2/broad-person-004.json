@@ -1,0 +1,171 @@
+{
+  "id": "broad-person-004",
+  "category": "broad_question_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_fgoj3532",
+      "name": "Find emails from Isaac about flight confirmation",
+      "description": "Searched the inbox for emails from Isaac Varga about the flight confirmation and listed 5 matches. The confirmation code is CONF-CXDEXD.",
+      "contacts": [
+        {
+          "email": "isaac.varga@fastmail.com",
+          "display_name": "Isaac Varga",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9.0,
+      "last_run_days_ago": 9.0
+    },
+    {
+      "id": "ag_khps5ywr",
+      "name": "Find emails from Isaac about school form",
+      "description": "Searched the inbox for emails from Isaac Varga about the school form and listed 9 matches. Reference number REF-50981 is on file.",
+      "contacts": [
+        {
+          "email": "isaac.varga@fastmail.com",
+          "display_name": "Isaac Varga",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 7.0,
+      "last_run_days_ago": 7.0
+    },
+    {
+      "id": "ag_ubyfxd34",
+      "name": "Follow up with Isaac on deposit refund",
+      "description": "Emailed Isaac Brennan about the security deposit refund. Isaac replied that the refund was processed. Reference number REF-73149 is on file.",
+      "contacts": [
+        {
+          "email": "isaac.brennan@gmail.com",
+          "display_name": "Isaac Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 16.0,
+      "last_run_days_ago": 16.0
+    },
+    {
+      "id": "ag_w4lalqsk",
+      "name": "Follow up with Isaac on Q4 roadmap",
+      "description": "Emailed Isaac Brennan about the Q4 roadmap draft. Isaac replied that they will send comments by Thursday. Thread MSG-95451 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "isaac.brennan@gmail.com",
+          "display_name": "Isaac Brennan",
+          "role": "to"
+        },
+        {
+          "email": "ruth.zhang@fastmail.com",
+          "display_name": "Ruth Zhang",
+          "role": "cc"
+        }
+      ],
+      "last_user_activity_days_ago": 49.0,
+      "last_run_days_ago": 49.0
+    },
+    {
+      "id": "ag_ydks7yml",
+      "name": "Email Isaac re catering order",
+      "description": "Emailed Isaac Brennan about the catering order for the launch party. Isaac replied that the menu is locked in. The order number is ORD-36894.",
+      "contacts": [
+        {
+          "email": "isaac.brennan@gmail.com",
+          "display_name": "Isaac Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 8.0,
+      "last_run_days_ago": 8.0
+    },
+    {
+      "id": "ag_adb3iw2l",
+      "name": "Find emails from Leila about refund",
+      "description": "Searched the inbox for emails from Leila Bianchi about the refund and listed 7 matches. Reference number REF-38609 is on file.",
+      "contacts": [
+        {
+          "email": "leila.bianchi@gmail.com",
+          "display_name": "Leila Bianchi",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 76.0,
+      "last_run_days_ago": 76.0
+    }
+  ],
+  "message": "Quick check: what's the latest on Isaac Brennan?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's on my plate today?"
+    },
+    {
+      "role": "agent",
+      "text": "Reminder: book a dinner for the anniversary.",
+      "agent_id": "ag_hn3twdnz",
+      "agent_name": "Anniversary reminder"
+    },
+    {
+      "role": "assistant",
+      "text": "Reminder: book a dinner for the anniversary."
+    },
+    {
+      "role": "user",
+      "text": "Did any of my reminders go off?"
+    },
+    {
+      "role": "agent",
+      "text": "Reminder: renew the domain name.",
+      "agent_id": "ag_2sb7la67",
+      "agent_name": "Domain renewal reminder"
+    },
+    {
+      "role": "assistant",
+      "text": "Reminder: renew the domain name."
+    }
+  ],
+  "acceptable": [
+    "answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk])"
+  ],
+  "unique_facts": {
+    "ag_ubyfxd34": "REF-73149",
+    "ag_w4lalqsk": "MSG-95451",
+    "ag_ydks7yml": "ORD-36894"
+  },
+  "notes": "Broad question about Isaac Brennan: cover all 3 agents linked to them. Covered = messaged OR unique fact in the reply (code-style facts; 0 agent(s) have no code fact and must be messaged). Oldest agent: 49 days since the user's last activity. Distractor: 'Find emails from Leila about refund' shares a topic but not the person.",
+  "original_message": "Where do things stand with Isaac Brennan right now?",
+  "context_agents": [
+    {
+      "id": "ag_hn3twdnz",
+      "name": "Anniversary reminder",
+      "description": "Reminds the user every year on March 3 to book a dinner for the anniversary. Confirmation CONF-5ZEXIM was issued.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "yearly on March 3",
+          "payload": "Remind the user to book a dinner for the anniversary",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 100.0,
+      "last_run_days_ago": 75.0
+    },
+    {
+      "id": "ag_2sb7la67",
+      "name": "Domain renewal reminder",
+      "description": "Reminds the user on the 1st of every month at 9am to renew the domain name. Reference number REF-79773 is on file.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "monthly on the 1st at 9am",
+          "payload": "Remind the user to renew the domain name",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 97.0,
+      "last_run_days_ago": 27.0
+    }
+  ]
+}

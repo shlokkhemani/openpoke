@@ -1,0 +1,679 @@
+{
+  "purpose": "Task 14 smoke: legacy/full/hybrid on the real code path, dev, N=10/30 (Haiku)",
+  "command": "python -m evals.run routing --modes legacy,full,hybrid --sizes 10,30 --split dev --runs 1 --embedder fastembed --max-cost 1 --purpose 'Task 14 smoke: legacy/full/hybrid on the real code path, dev, N=10/30 (Haiku)' --yes",
+  "date_utc": "2026-11-09T19:48:41Z",
+  "run_folder": "20261109T194841Z-task-14-smoke-legacy-full-hybrid-on-the",
+  "model": "anthropic/claude-haiku-5.5",
+  "git": "uncommitted working tree on HEAD 2e9a0bd",
+  "case_set": {
+    "dir": "evals/cases/v1",
+    "version": "v1",
+    "manifest_sha256": "688388e57eb5980fa06046a7e384b5449d9b1c71134c817bbf7d20d166fbcbda",
+    "frozen_on": "2026-11-07",
+    "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6"
+  },
+  "split": "dev",
+  "case_ids": [
+    "amb-person-006",
+    "amb-person-007",
+    "broad-person-005",
+    "broad-person-006",
+    "clear-person-005",
+    "clear-person-006",
+    "followup-005",
+    "followup-006",
+    "multi-intent-005",
+    "multi-intent-006",
+    "multi-person-005",
+    "multi-person-006",
+    "newtask-005",
+    "newtask-006",
+    "trigger-005",
+    "trigger-006"
+  ],
+  "n_cases": 16,
+  "modes": [
+    "legacy",
+    "full",
+    "hybrid"
+  ],
+  "sizes": [
+    10,
+    30
+  ],
+  "runs": 1,
+  "max_cost": 1.0,
+  "concurrency": 4,
+  "descriptions": {
+    "source": "regen",
+    "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+    "covered": 310,
+    "total": 310
+  },
+  "embedder": "fastembed",
+  "search": {
+    "hybrid": {
+      "10": {
+        "graded": 16,
+        "searched": 0,
+        "search_errors": 0,
+        "target_in_initial": 16,
+        "target_found_by_search": 0
+      },
+      "30": {
+        "graded": 16,
+        "searched": 1,
+        "search_errors": 0,
+        "target_in_initial": 16,
+        "target_found_by_search": 0
+      }
+    }
+  },
+  "counts": {
+    "planned": 96,
+    "completed": 96,
+    "graded": 96,
+    "infra_errors": 0,
+    "retried": 0,
+    "skipped_max_cost": 0
+  },
+  "cost": {
+    "actual_usd": 0.201266,
+    "estimated_usd": 0.231274,
+    "prompt_tokens": 1702856,
+    "completion_tokens": 61960,
+    "reservation_margin": 1.2,
+    "unmetered_attempts": 0,
+    "unmetered_usd": 0.0
+  },
+  "latency": {
+    "mean_latency_s": 4.691,
+    "mean_round_trips": 2.26
+  },
+  "pass_rate": {
+    "legacy": {
+      "10": {
+        "passed": 8,
+        "graded": 16,
+        "rate": 0.5
+      },
+      "30": {
+        "passed": 10,
+        "graded": 16,
+        "rate": 0.625
+      }
+    },
+    "full": {
+      "10": {
+        "passed": 16,
+        "graded": 16,
+        "rate": 1.0
+      },
+      "30": {
+        "passed": 16,
+        "graded": 16,
+        "rate": 1.0
+      }
+    },
+    "hybrid": {
+      "10": {
+        "passed": 16,
+        "graded": 16,
+        "rate": 1.0
+      },
+      "30": {
+        "passed": 16,
+        "graded": 16,
+        "rate": 1.0
+      }
+    }
+  },
+  "by_category": {
+    "ambiguous_person": {
+      "legacy": {
+        "10": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        },
+        "30": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "broad_question_person": {
+      "legacy": {
+        "10": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        },
+        "30": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "clear_person": {
+      "legacy": {
+        "10": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        },
+        "30": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "email_followup": {
+      "legacy": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_intent": {
+      "legacy": {
+        "10": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_person": {
+      "legacy": {
+        "10": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        },
+        "30": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "new_task_lookalike": {
+      "legacy": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "trigger_management": {
+      "legacy": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    }
+  },
+  "flags": {
+    "legacy": {
+      "10": {
+        "wrong_reuse": 3,
+        "duplicate_create": 2,
+        "ambiguous_dispatch": 1
+      },
+      "30": {
+        "wrong_reuse": 1,
+        "duplicate_create": 2,
+        "ambiguous_dispatch": 1
+      }
+    },
+    "full": {
+      "10": {},
+      "30": {}
+    },
+    "hybrid": {
+      "10": {},
+      "30": {}
+    }
+  },
+  "structural": {
+    "legacy": {
+      "10": 0,
+      "30": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0
+    },
+    "hybrid": {
+      "10": 0,
+      "30": 0
+    }
+  },
+  "infra_errors": {
+    "legacy": {
+      "10": 0,
+      "30": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0
+    },
+    "hybrid": {
+      "10": 0,
+      "30": 0
+    }
+  },
+  "skipped": {
+    "legacy": {
+      "10": 0,
+      "30": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0
+    },
+    "hybrid": {
+      "10": 0,
+      "30": 0
+    }
+  },
+  "error_kinds": {},
+  "iteration_limit": [],
+  "failing": [
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (dispatch→Find emails from Daniel about conference schedule, dispatch→Email Daniel about lab results, dispatch→Send Daniel the signed NDA, message_user)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Find emails from Daniel about conference schedule)"
+    },
+    {
+      "case_id": "broad-person-005",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_6qcrp7gd, ag_ivh5ynui, ag_msz3aew4, ag_jjm6nfqy, ag_qodxxymf]); got reuse (message_user, dispatch→Find emails from Imani about new pricing)"
+    },
+    {
+      "case_id": "broad-person-005",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_6qcrp7gd, ag_ivh5ynui, ag_msz3aew4, ag_jjm6nfqy, ag_qodxxymf]); got reuse (message_user, dispatch→Find emails from Imani about new pricing)"
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got create (message_user, dispatch→Helena Rossi Open Items)"
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got create (message_user, dispatch→Open items with Helena Rossi, wait)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Search Farah interview write-up)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Search Farah interview write-up)"
+    },
+    {
+      "case_id": "multi-intent-005",
+      "category": "multi_intent",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "mixed",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(create[Jamal Kowalski]; create); got mixed (message_user, dispatch→Friday lunch reminder 12:30pm, dispatch→Find emails from Jamal about quarterly report); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-006",
+      "category": "multi_intent",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(create[Greta Silva]; reuse(ag_wyehdpnc)); got reuse (message_user, dispatch→Email Greta re budget approval, dispatch→Bike service reminder, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-005",
+      "category": "multi_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3syqqzg7); create[Amara Abara]); got create (message_user, dispatch→Liam Bianchi billing dispute update, dispatch→Draft email to Amara Abara hairdresser); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-005",
+      "category": "multi_person",
+      "mode": "legacy",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3syqqzg7); create[Amara Abara]); got create (message_user, dispatch→Liam Bianchi billing dispute update, dispatch→Email Amara Abara about hairdresser); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-006",
+      "category": "multi_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Alice Chen] + ask); got create (message_user, dispatch→Running club invite Sam and Alice Chen); slots 1/1"
+    },
+    {
+      "case_id": "multi-person-006",
+      "category": "multi_person",
+      "mode": "legacy",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Alice Chen] + ask); got create (message_user, dispatch→Running club invite to Sam and Alice Chen); slots 1/1"
+    }
+  ]
+}

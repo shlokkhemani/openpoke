@@ -1,0 +1,68 @@
+{
+  "id": "clear-person-002",
+  "category": "clear_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_5f4xuzfg",
+      "name": "Email Sam re vendor contract",
+      "description": "Emailed Sam Okafor about the vendor contract redlines. Sam replied that legal is still reviewing it. Reference number REF-40655 is on file.",
+      "contacts": [
+        {
+          "email": "sam.okafor@gmail.com",
+          "display_name": "Sam Okafor",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 6.0,
+      "last_run_days_ago": 6.0
+    },
+    {
+      "id": "ag_ernemqtn",
+      "name": "Email Sam re security audit",
+      "description": "Emailed Sam Okafor about the security audit findings. Sam replied that remediation is underway. Ticket #Q-39439 was opened for it.",
+      "contacts": [
+        {
+          "email": "sam.okafor@gmail.com",
+          "display_name": "Sam Okafor",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 12.0,
+      "last_run_days_ago": 12.0
+    },
+    {
+      "id": "ag_m7s4pnzj",
+      "name": "Email Sam re vendor contract",
+      "description": "Emailed Sam Rivera about the vendor contract redlines. Sam replied that legal is still reviewing it. It is filed under reference REF-37383.",
+      "contacts": [
+        {
+          "email": "sam.rivera@northwind.io",
+          "display_name": "Sam Rivera",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 5.0,
+      "last_run_days_ago": 5.0
+    }
+  ],
+  "message": "Can you shoot Sam Rivera a quick text and see if I can borrow a drill this weekend?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's on my calendar tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "A team lunch at noon and a one-on-one at 3:30."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Sam Rivera",
+  "notes": "Full name given (Sam Rivera); another Sam exists, which is why this is a clear-person case: don't ask. A new ask, so create.",
+  "original_message": "Send Sam Rivera a quick message asking whether I can borrow a drill this weekend."
+}

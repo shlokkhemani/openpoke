@@ -1,0 +1,421 @@
+{
+  "version": "v1",
+  "generator": "evals.expand",
+  "seed": 7,
+  "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6",
+  "n_cases": 49,
+  "cases": [
+    {
+      "id": "amb-person-001",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-001.json",
+      "sha256": "6ae633cce6f71ea5d39dd089f8656313d5b2b411e391b5ad9a1477a9fa546436"
+    },
+    {
+      "id": "amb-person-002",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-002.json",
+      "sha256": "843b2d336efea79741f01802d5a8aa948f441f64a4e61b5d16679ee15b18a2f5"
+    },
+    {
+      "id": "amb-person-003",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-003.json",
+      "sha256": "447bdb4a6ced97e07161a963491f61e5019b792f6a7490ff5a5132c3ad32aa95"
+    },
+    {
+      "id": "amb-person-004",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-004.json",
+      "sha256": "e801cce56873ff586aaac1d93b7d5955a12fe06a423fbb136acd3000c16e10c8"
+    },
+    {
+      "id": "amb-person-005",
+      "category": "ambiguous_person",
+      "split": "test",
+      "source": "hand",
+      "file": "amb-person-005.json",
+      "sha256": "0bad6899fa1b89c31fc0831159c11a9cc9ee97a2df616f40da9c679698323b2a"
+    },
+    {
+      "id": "amb-person-006",
+      "category": "ambiguous_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "amb-person-006.json",
+      "sha256": "5000d75fabc68f974b99e83441d670f8b3ba1a400335c566239f590e9d0e2925"
+    },
+    {
+      "id": "amb-person-007",
+      "category": "ambiguous_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "amb-person-007.json",
+      "sha256": "c5e8dda2438266bf415b9dc0f0d613a012b4a3870b245c069e32cbe04cc79997"
+    },
+    {
+      "id": "broad-person-001",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "hand",
+      "file": "broad-person-001.json",
+      "sha256": "4fda66c25b341315d4f22ad8ed32e8fafc2e9eeb6568c3ea3dc3ce885628c473"
+    },
+    {
+      "id": "broad-person-002",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "broad-person-002.json",
+      "sha256": "fdc6a4d80ca0e9165e09a72ed7e93940bba475de4d3328c7efa0e8b42bb78482"
+    },
+    {
+      "id": "broad-person-003",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "broad-person-003.json",
+      "sha256": "c5ee89a19d27792b89c4cf81600707c94f484394f99f59a2fdfad229edadcb21"
+    },
+    {
+      "id": "broad-person-004",
+      "category": "broad_question_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "broad-person-004.json",
+      "sha256": "5fa41bbbc0cad8a9a8b5dd2112a58818828a287ecf8f948d3b0058bd7ef9fdbf"
+    },
+    {
+      "id": "broad-person-005",
+      "category": "broad_question_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "broad-person-005.json",
+      "sha256": "b068206dc56d7d08919bfd81b0ca57b3c77c1771549ace4e32fd69f26a0e64ea"
+    },
+    {
+      "id": "broad-person-006",
+      "category": "broad_question_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "broad-person-006.json",
+      "sha256": "c7f1ea56207f53000119451bcdc8eaf0f66204cbed52ace946eb49adc36b4476"
+    },
+    {
+      "id": "clear-person-001",
+      "category": "clear_person",
+      "split": "test",
+      "source": "hand",
+      "file": "clear-person-001.json",
+      "sha256": "877e1478a6d61e8e9ea7547168e79b9e6590f4f7a0e3be977fbb8818c95dc74c"
+    },
+    {
+      "id": "clear-person-002",
+      "category": "clear_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "clear-person-002.json",
+      "sha256": "5e9de0c8e45749c28ce2946dbb08597909f26575bf4c25b341d29b0dccf83cad"
+    },
+    {
+      "id": "clear-person-003",
+      "category": "clear_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "clear-person-003.json",
+      "sha256": "6506ae87f27b185346cb78f3b37375f98c4d2a062f0c4c6054bdc94f3b40fd1f"
+    },
+    {
+      "id": "clear-person-004",
+      "category": "clear_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "clear-person-004.json",
+      "sha256": "1058be839cecf257a0bf70ed7a492042b2afbfaa05b2c81e3d82ebb21cb34b54"
+    },
+    {
+      "id": "clear-person-005",
+      "category": "clear_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "clear-person-005.json",
+      "sha256": "e02d5ced59589d36a662649542b00a2c7ad32a3330029a2ae7a8a79090f0f39c"
+    },
+    {
+      "id": "clear-person-006",
+      "category": "clear_person",
+      "split": "dev",
+      "source": "template",
+      "file": "clear-person-006.json",
+      "sha256": "c1b2acd14f71d9fdbafd18edb726dcb183f47edb9caa53363d1b758244ebf114"
+    },
+    {
+      "id": "followup-001",
+      "category": "email_followup",
+      "split": "test",
+      "source": "hand",
+      "file": "followup-001.json",
+      "sha256": "73c4cab89a10e31288a2164e43e3a996d76961ebe74152e09e2653f758360784"
+    },
+    {
+      "id": "followup-002",
+      "category": "email_followup",
+      "split": "test",
+      "source": "template",
+      "file": "followup-002.json",
+      "sha256": "4a04aba5ac88f6629006236da7c2d5c5c9db4519544ff6c8bfc80d87896f6587"
+    },
+    {
+      "id": "followup-003",
+      "category": "email_followup",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "followup-003.json",
+      "sha256": "1dd35f3dc7ccc4b9ebc8182f23c1669e71bab6ce33976a509c81c9419dd50f85"
+    },
+    {
+      "id": "followup-004",
+      "category": "email_followup",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "followup-004.json",
+      "sha256": "4686c5e85f2bcbc368958574032fc99a6997b28c9830241c350391a3a128fe1c"
+    },
+    {
+      "id": "followup-005",
+      "category": "email_followup",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "followup-005.json",
+      "sha256": "10af8c6fa0e697a74d89c29a14a03cb42308550cbd92788d0b0f7857cc7463fe"
+    },
+    {
+      "id": "followup-006",
+      "category": "email_followup",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "followup-006.json",
+      "sha256": "dbb1935cf895c58504ad6bdb6b1b5cf2e9cc979e2f19e0441262fad7b900e456"
+    },
+    {
+      "id": "multi-intent-001",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-001.json",
+      "sha256": "45259bd6b229922f2440659f12c76a8aaed71f39bf36b3dac9cfc22a44766c6b"
+    },
+    {
+      "id": "multi-intent-002",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-002.json",
+      "sha256": "beb80da9e00dff94dd25529989b929ae6f60a00f6bc90d65fcabf236d37c8469"
+    },
+    {
+      "id": "multi-intent-003",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-003.json",
+      "sha256": "0906246f6a1ea6096a6e0174f6a9a469053b5068c555dce0a7883331337b2942"
+    },
+    {
+      "id": "multi-intent-004",
+      "category": "multi_intent",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-intent-004.json",
+      "sha256": "57cbdd4c59730b4f5f8625c265dc70680d98de6389241eefc1d325b084205f6f"
+    },
+    {
+      "id": "multi-intent-005",
+      "category": "multi_intent",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "multi-intent-005.json",
+      "sha256": "56bc5902e282a48d8e826b3edff9fc33e4ff09c24e32129a7c3b47673596a604"
+    },
+    {
+      "id": "multi-intent-006",
+      "category": "multi_intent",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "multi-intent-006.json",
+      "sha256": "49a393244ec49f3432c2428c218c12d1b776e72f19fdb1a4e5b26f29a8082686"
+    },
+    {
+      "id": "multi-person-001",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-001.json",
+      "sha256": "05538795dc1fd80c75d5b2415eb05712153c899c6206639e2c05bf7ab479a889"
+    },
+    {
+      "id": "multi-person-002",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-002.json",
+      "sha256": "bb25c00e6f5dd8002253dee2959d98d85108bc93af3710cae09dc9ebb6309c7c"
+    },
+    {
+      "id": "multi-person-003",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-003.json",
+      "sha256": "84a609e8643b696402ac78e458da0b3c8c59f3f5ed8ec30ca6107a34ac3ddfb2"
+    },
+    {
+      "id": "multi-person-004",
+      "category": "multi_person",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "multi-person-004.json",
+      "sha256": "6e56bb631a51d5cc274b69ca645ba085f4f9fbdab1518b421977856ed6918861"
+    },
+    {
+      "id": "multi-person-005",
+      "category": "multi_person",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "multi-person-005.json",
+      "sha256": "e3776619b085a8ea3a32933d35500d0657630290521a349a4c4da26fb4a9cd39"
+    },
+    {
+      "id": "multi-person-006",
+      "category": "multi_person",
+      "split": "dev",
+      "source": "template",
+      "file": "multi-person-006.json",
+      "sha256": "37c7d6ca01a958c9bb1ccfcf1b4f82fe74189dd5855a8fb335bcbdc2e73675d7"
+    },
+    {
+      "id": "newtask-001",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "hand",
+      "file": "newtask-001.json",
+      "sha256": "e02f7339dbd3173b0bca0a366bbca71b4f4983df0d5d102d832e3a12bc80c1c3"
+    },
+    {
+      "id": "newtask-002",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "template",
+      "file": "newtask-002.json",
+      "sha256": "bdf395f1318f6cddc9d2895c57552137126f799257817dfe751f0faebefc14c2"
+    },
+    {
+      "id": "newtask-003",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "template",
+      "file": "newtask-003.json",
+      "sha256": "10a90a678c2e7d22732d1b8f4609496c0adfeaeb0b8bc88612b746a0d751693f"
+    },
+    {
+      "id": "newtask-004",
+      "category": "new_task_lookalike",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "newtask-004.json",
+      "sha256": "37c7e20412b1b60060e09cfb56286944bb04f1de6a4e90a8bce7d3d68fba1fd7"
+    },
+    {
+      "id": "newtask-005",
+      "category": "new_task_lookalike",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "newtask-005.json",
+      "sha256": "0e6920f5f90056a0ceb23bc0831a9d96a3ac16384f80dd936f8e50e97b3c9178"
+    },
+    {
+      "id": "newtask-006",
+      "category": "new_task_lookalike",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "newtask-006.json",
+      "sha256": "a8e94f7a22e5dc0065134d3c49ab82d68263304a06f21ebb353aa656298df5de"
+    },
+    {
+      "id": "trigger-001",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "hand",
+      "file": "trigger-001.json",
+      "sha256": "1a19c73581ae64ae0f4f141e5a2f3018c09378f3ce2b0be485d32db9cc44165b"
+    },
+    {
+      "id": "trigger-002",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "hand",
+      "file": "trigger-002.json",
+      "sha256": "d629d586e00005d7c9a08fc749069d1072bfba85338dafdc73b91ed0b0356509"
+    },
+    {
+      "id": "trigger-003",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "trigger-003.json",
+      "sha256": "c14e1a9a72eb87633c358c2cc936b8085e963c2c297bdf62541f4c3e8e19ad5b"
+    },
+    {
+      "id": "trigger-004",
+      "category": "trigger_management",
+      "split": "test",
+      "source": "paraphrased",
+      "file": "trigger-004.json",
+      "sha256": "a33746e39f771ccbabb708c4b45f08412a158f7d8f2880771c639efcd6c434fd"
+    },
+    {
+      "id": "trigger-005",
+      "category": "trigger_management",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "trigger-005.json",
+      "sha256": "938e1d9945b26a107a12a8cdede0c1487705f7cd9871e7c8aba10bd1da647d90"
+    },
+    {
+      "id": "trigger-006",
+      "category": "trigger_management",
+      "split": "dev",
+      "source": "paraphrased",
+      "file": "trigger-006.json",
+      "sha256": "237d2cbb58b33de061910462dc86f1aa44ea4f7d145d86a627a765a0b2c2450c"
+    }
+  ],
+  "paraphrase": {
+    "model": "anthropic/claude-haiku-5.5",
+    "kept": 33,
+    "retried": 5,
+    "reverted": 5,
+    "infra_errors": 0,
+    "prompt_tokens": 14115,
+    "completion_tokens": 1693,
+    "cost_usd": 0.002258
+  },
+  "frozen": true,
+  "frozen_on": "2026-11-07",
+  "amendments": [
+    {
+      "date": "2026-11-07",
+      "case": "trigger-006",
+      "change": "message 'Could you push these back by an hour?' -> 'Could you push this back by an hour?' (original_message 'these' -> 'this')",
+      "why": "one reminder on screen but a plural pronoun: asking which reminders is reasonable, so the reuse-only label was unfair; see evals/results/changes.md"
+    }
+  ]
+}

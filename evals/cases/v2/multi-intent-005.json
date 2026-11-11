@@ -1,0 +1,105 @@
+{
+  "id": "multi-intent-005",
+  "category": "multi_intent",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_27a2pc4d",
+      "name": "Find emails from Jamal about quarterly report",
+      "description": "Searched the inbox for emails from Jamal Kowalski about the quarterly report and listed 4 matches. It is filed under reference REF-98142.",
+      "contacts": [
+        {
+          "email": "jamal.kowalski@outlook.com",
+          "display_name": "Jamal Kowalski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 17.0,
+      "last_run_days_ago": 17.0
+    },
+    {
+      "id": "ag_hn3twdnz",
+      "name": "Anniversary reminder",
+      "description": "Reminds the user every year on March 3 to book a dinner for the anniversary. Confirmation CONF-5ZEXIM was issued.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "yearly on March 3",
+          "payload": "Remind the user to book a dinner for the anniversary",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 100.0,
+      "last_run_days_ago": 75.0
+    },
+    {
+      "id": "ag_xbx23xyo",
+      "name": "Water filter reminder",
+      "description": "Reminds the user every day at 12pm to replace the water filter. Order ORD-70164 covers it.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 12pm",
+          "payload": "Remind the user to replace the water filter",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 75.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Shoot Jamal Kowalski a note that Friday's team lunch has shifted to 1pm, and set a reminder for me at 12:30pm that day so I don't forget to book the table.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any news from Josefina Pereira on catering for the launch?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on catering for the launch: Josefina replied that the menu is locked in.",
+      "agent_id": "ag_zi77ifox",
+      "agent_name": "Follow up with Josefina on catering order"
+    },
+    {
+      "role": "assistant",
+      "text": "Josefina replied that the menu is locked in."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Jamal Kowalski"
+          ]
+        },
+        {
+          "target": "create",
+          "must_mention": []
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "An email and a one-off reminder, both new: create two agents. Slots: create naming Jamal Kowalski; create (the reminder). Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Email Jamal Kowalski that Friday's team lunch is moving to 1pm, and remind me at 12:30pm on Friday to book the table.",
+  "context_agents": [
+    {
+      "id": "ag_zi77ifox",
+      "name": "Follow up with Josefina on catering order",
+      "description": "Emailed Josefina Pereira about the catering order for the launch party. Josefina replied that the menu is locked in. The order number is ORD-55374.",
+      "contacts": [
+        {
+          "email": "josefina.pereira@studiolune.co",
+          "display_name": "Josefina Pereira",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 68.0,
+      "last_run_days_ago": 68.0
+    }
+  ]
+}

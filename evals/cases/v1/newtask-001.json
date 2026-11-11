@@ -1,0 +1,51 @@
+{
+  "id": "newtask-001",
+  "category": "new_task_lookalike",
+  "split": "test",
+  "source": "hand",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_dana_repair",
+      "name": "Email landlord re dishwasher",
+      "description": "Asked Dana Whitfield (property manager, Maple Rentals) to send someone to fix the broken dishwasher. She opened work order MR-2291 and said a technician would come next week.",
+      "contacts": [
+        {
+          "email": "dana@maplerentals.com",
+          "display_name": "Dana Whitfield",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 18
+    },
+    {
+      "id": "ag_dana_lease",
+      "name": "Email Dana about lease renewal",
+      "description": "Asked Dana Whitfield whether the lease can be renewed for 12 months at the current $2,150/month. Waiting on her reply.",
+      "contacts": [
+        {
+          "email": "dana@maplerentals.com",
+          "display_name": "Dana Whitfield",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 5
+    }
+  ],
+  "message": "Email my landlord and ask if I'm allowed to paint the bedroom.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's on my calendar tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "Two things: standup at 9:30 and a dentist appointment at 2pm."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Dana Whitfield",
+  "notes": "Same person, new thread, so create under the rewritten reuse rule (reuse only for the same task, or same person AND thread). Reusing the lease agent is a wrong reuse even though painting is lease-adjacent: the rule is strict on purpose, because mixed threads muddy descriptions. `legacy` keeps the old 'don't worry if the name is unrelated' line and is expected to reuse here."
+}

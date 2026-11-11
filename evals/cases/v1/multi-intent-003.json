@@ -1,0 +1,106 @@
+{
+  "id": "multi-intent-003",
+  "category": "multi_intent",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_jcd4tfj6",
+      "name": "Email Wendy about offer letter",
+      "description": "Emailed Wendy Lindqvist about the signed offer letter. Wendy replied that it arrived and looks fine. It is filed under reference REF-75977.",
+      "contacts": [
+        {
+          "email": "wendy.lindqvist@acme-corp.com",
+          "display_name": "Wendy Lindqvist",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 34.0,
+      "last_run_days_ago": 34.0
+    },
+    {
+      "id": "ag_zwz6nrue",
+      "name": "Trash day reminder",
+      "description": "Reminds the user every day at 6pm to put the trash bins out. The reminder id is RMD-59839.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 6pm",
+          "payload": "Remind the user to put the trash bins out",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 94.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_hrlgvysg",
+      "name": "Gym reminder",
+      "description": "Reminds the user every day at 6pm to pack the gym bag. It is saved as reminder RMD-20671.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 6pm",
+          "payload": "Remind the user to pack the gym bag",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 62.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_fnzinjzp",
+      "name": "Medication reminder",
+      "description": "Reminds the user every day at 6pm to take the evening medication. Prescription RX-321632 is on file.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 6pm",
+          "payload": "Remind the user to take the evening medication",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 37.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Can you shoot Wendy Lindqvist an email asking if she'd water my plants while I'm out next week? Also, push the garbage bins reminder back to 7pm.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's on my calendar tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "A team lunch at noon and a one-on-one at 3:30."
+    },
+    {
+      "role": "user",
+      "text": "What's the weather like this weekend?"
+    },
+    {
+      "role": "assistant",
+      "text": "Mostly sunny on Saturday, with showers likely on Sunday afternoon."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Wendy Lindqvist"
+          ]
+        },
+        {
+          "target": "reuse(ag_zwz6nrue)",
+          "must_mention": []
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "A new email to Wendy (create) and a change to the existing trash day reminder (reuse it; creating a second one is trigger_duplicate). Lookalikes: other 6pm reminders. Slots: create naming Wendy Lindqvist; reuse 'Trash day reminder'. Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Email Wendy Lindqvist and ask if she can water my plants while I'm away next week, and move the garbage bins reminder to 7pm."
+}

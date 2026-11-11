@@ -1,0 +1,94 @@
+{
+  "id": "amb-person-006",
+  "category": "ambiguous_person",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_27trrgec",
+      "name": "Send Daniel the signed NDA",
+      "description": "Sent Daniel Walsh the signed NDA. Daniel acknowledged it. It is filed under reference REF-74721.",
+      "contacts": [
+        {
+          "email": "daniel.walsh@gmail.com",
+          "display_name": "Daniel Walsh",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 70.0,
+      "last_run_days_ago": 70.0
+    },
+    {
+      "id": "ag_e544hlzo",
+      "name": "Email Daniel about lab results",
+      "description": "Emailed Daniel Walsh about the lab results appointment. Daniel replied that the results are available in the portal. It is filed under reference REF-13823.",
+      "contacts": [
+        {
+          "email": "daniel.walsh@gmail.com",
+          "display_name": "Daniel Walsh",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 40.0,
+      "last_run_days_ago": 40.0
+    },
+    {
+      "id": "ag_vgbzlvg7",
+      "name": "Find emails from Daniel about conference schedule",
+      "description": "Searched the inbox for emails from Daniel Kaplan about the conference schedule and listed 9 matches. Thread MSG-14665 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "daniel.kaplan@gmail.com",
+          "display_name": "Daniel Kaplan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 4.0,
+      "last_run_days_ago": 4.0
+    }
+  ],
+  "message": "Has Daniel gotten back to you yet?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Did any of my reminders go off?"
+    },
+    {
+      "role": "agent",
+      "text": "Reminder: read for twenty minutes.",
+      "agent_id": "ag_jrt3ym3y",
+      "agent_name": "Read reminder"
+    },
+    {
+      "role": "assistant",
+      "text": "Reminder: read for twenty minutes."
+    }
+  ],
+  "acceptable": [
+    "clarify"
+  ],
+  "clarify_should_name": [
+    "Daniel Kaplan",
+    "Daniel Walsh"
+  ],
+  "notes": "A status question about 'Daniel' with two people called Daniel: answering for one of them, or reusing an agent, is a guess. Ask which one.",
+  "original_message": "Any word from Daniel?",
+  "context_agents": [
+    {
+      "id": "ag_jrt3ym3y",
+      "name": "Read reminder",
+      "description": "Reminds the user every day at 9pm to read for twenty minutes. The reminder id is RMD-81808.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Remind the user to read for twenty minutes",
+          "status": "paused"
+        }
+      ],
+      "last_user_activity_days_ago": 34.0,
+      "last_run_days_ago": 1.0
+    }
+  ]
+}

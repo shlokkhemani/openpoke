@@ -1,0 +1,175 @@
+{
+  "id": "multi-person-002",
+  "category": "multi_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_jhev7ddl",
+      "name": "Email Colin re security audit",
+      "description": "Emailed Colin Estrada about the security audit findings. Colin replied that remediation is underway. Ticket #Q-80500 was opened for it.",
+      "contacts": [
+        {
+          "email": "colin.estrada@acme-corp.com",
+          "display_name": "Colin Estrada",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 58.0,
+      "last_run_days_ago": 58.0
+    },
+    {
+      "id": "ag_wq7mb6s3",
+      "name": "Email Colin the project timeline",
+      "description": "Sent Colin Estrada the revised project timeline. Colin acknowledged it. Thread MSG-14913 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "colin.estrada@acme-corp.com",
+          "display_name": "Colin Estrada",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 38.0,
+      "last_run_days_ago": 38.0
+    },
+    {
+      "id": "ag_4x2pe36i",
+      "name": "Email Carmen the proposal",
+      "description": "Sent Carmen Brennan the draft proposal. Carmen acknowledged it. The thread is saved as MSG-24596.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 99.0,
+      "last_run_days_ago": 99.0
+    },
+    {
+      "id": "ag_k6vvos7t",
+      "name": "Email Carmen re price increase",
+      "description": "Emailed Carmen Brennan about the announced price increase. Carmen replied that the old rate holds until January. It is filed under reference REF-47433.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 91.0,
+      "last_run_days_ago": 91.0
+    },
+    {
+      "id": "ag_ktrvqvzr",
+      "name": "Follow up with Carmen on vendor contract",
+      "description": "Emailed Carmen Brennan about the vendor contract redlines. Carmen replied that legal is still reviewing it. It is filed under reference REF-61285.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 44.0,
+      "last_run_days_ago": 44.0
+    },
+    {
+      "id": "ag_lxvhyuts",
+      "name": "Email Carmen about flight change",
+      "description": "Emailed Carmen Brennan about changing the return flight. Carmen replied that the fare difference is small. Confirmation CONF-ODFTZE was issued.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 75.0,
+      "last_run_days_ago": 75.0
+    }
+  ],
+  "message": "Can you check whether Colin Estrada and Carmen Brennan are open for lunch Thursday?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any news from Sana Weber on the medical test results?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on the medical test results: Sana replied that the results are available in the portal.",
+      "agent_id": "ag_avxydnpv",
+      "agent_name": "Email Sana re lab results"
+    },
+    {
+      "role": "assistant",
+      "text": "Sana replied that the results are available in the portal."
+    },
+    {
+      "role": "user",
+      "text": "Any news from Tomas Gallagher on the car maintenance booking?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on the car maintenance booking: Tomas replied that the slot is confirmed.",
+      "agent_id": "ag_t4622w3n",
+      "agent_name": "Email Tomas about car service"
+    },
+    {
+      "role": "assistant",
+      "text": "Tomas replied that the slot is confirmed."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Colin Estrada"
+          ]
+        },
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Carmen Brennan"
+          ]
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "The same question to two people, neither with a lunch thread: one new agent each, so a later 'did Colin reply?' finds Colin's thread. Each agent may mention the co-invitee; a single agent emailing both (and no second dispatch) is merged_intents. Slots: create naming Colin Estrada; create naming Carmen Brennan. Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Ask Colin Estrada and Carmen Brennan if they're free for lunch on Thursday.",
+  "context_agents": [
+    {
+      "id": "ag_avxydnpv",
+      "name": "Email Sana re lab results",
+      "description": "Emailed Sana Weber about the lab results appointment. Sana replied that the results are available in the portal. Reference number REF-82827 is on file.",
+      "contacts": [
+        {
+          "email": "sana.weber@gmail.com",
+          "display_name": "Sana Weber",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 12.0,
+      "last_run_days_ago": 12.0
+    },
+    {
+      "id": "ag_t4622w3n",
+      "name": "Email Tomas about car service",
+      "description": "Emailed Tomas Gallagher about booking the car service. Tomas replied that the slot is confirmed. Confirmation CONF-F54YUP was issued.",
+      "contacts": [
+        {
+          "email": "tomas.gallagher@outlook.com",
+          "display_name": "Tomas Gallagher",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 41.0,
+      "last_run_days_ago": 41.0
+    }
+  ]
+}

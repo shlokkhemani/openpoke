@@ -1,0 +1,90 @@
+{
+  "id": "followup-003",
+  "category": "email_followup",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_4x2pe36i",
+      "name": "Email Carmen the proposal",
+      "description": "Sent Carmen Brennan the draft proposal. Carmen acknowledged it. The thread is saved as MSG-24596.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 99.0,
+      "last_run_days_ago": 99.0
+    },
+    {
+      "id": "ag_k6vvos7t",
+      "name": "Email Carmen re price increase",
+      "description": "Emailed Carmen Brennan about the announced price increase. Carmen replied that the old rate holds until January. It is filed under reference REF-47433.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 91.0,
+      "last_run_days_ago": 91.0
+    },
+    {
+      "id": "ag_ktrvqvzr",
+      "name": "Follow up with Carmen on vendor contract",
+      "description": "Emailed Carmen Brennan about the vendor contract redlines. Carmen replied that legal is still reviewing it. It is filed under reference REF-61285.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 44.0,
+      "last_run_days_ago": 44.0
+    },
+    {
+      "id": "ag_lxvhyuts",
+      "name": "Email Carmen about flight change",
+      "description": "Emailed Carmen Brennan about changing the return flight. Carmen replied that the fare difference is small. Confirmation CONF-ODFTZE was issued.",
+      "contacts": [
+        {
+          "email": "carmen.brennan@fastmail.com",
+          "display_name": "Carmen Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 75.0,
+      "last_run_days_ago": 75.0
+    }
+  ],
+  "message": "Did Carmen Brennan mention anything about the new higher price?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's on my calendar tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "A team lunch at noon and a one-on-one at 3:30."
+    },
+    {
+      "role": "user",
+      "text": "Thanks, that's all for now."
+    },
+    {
+      "role": "assistant",
+      "text": "You're welcome. I'm here if anything comes up."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_k6vvos7t)"
+  ],
+  "expect_person": "Carmen Brennan",
+  "notes": "Reuse the thread agent 'Email Carmen re price increase'. The message names Carmen Brennan and paraphrases the topic ('price increase'); Carmen Brennan's other agents have different topics, so only the topic separates them (long-tail: user activity 91 days ago).",
+  "original_message": "What did Carmen Brennan say about the new higher price?"
+}

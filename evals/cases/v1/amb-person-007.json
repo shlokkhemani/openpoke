@@ -1,0 +1,78 @@
+{
+  "id": "amb-person-007",
+  "category": "ambiguous_person",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_avdgfagy",
+      "name": "Email Farah the transcript",
+      "description": "Sent Farah Moreau the transcript from the interview. Farah acknowledged it. Thread MSG-61816 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "farah.moreau@studiolune.co",
+          "display_name": "Farah Moreau",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 39.0,
+      "last_run_days_ago": 39.0
+    },
+    {
+      "id": "ag_dcl3r2h4",
+      "name": "Email Farah re offer letter",
+      "description": "Emailed Farah Kowalski about the signed offer letter. Farah replied that it arrived and looks fine. Reference number REF-43857 is on file.",
+      "contacts": [
+        {
+          "email": "farah.kowalski@northwind.io",
+          "display_name": "Farah Kowalski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9.0,
+      "last_run_days_ago": 9.0
+    },
+    {
+      "id": "ag_ofvnsum6",
+      "name": "Email Farah the reading list",
+      "description": "Sent Farah Moreau the reading list. Farah acknowledged it. The thread is saved as MSG-33394.",
+      "contacts": [
+        {
+          "email": "farah.moreau@studiolune.co",
+          "display_name": "Farah Moreau",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 88.0,
+      "last_run_days_ago": 88.0
+    }
+  ],
+  "message": "Let her know I appreciate it, I've got things from here.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Do I have anything on Friday afternoon?"
+    },
+    {
+      "role": "assistant",
+      "text": "Nothing scheduled. Your calendar is clear after 1pm."
+    },
+    {
+      "role": "agent",
+      "text": "Update on the job offer paperwork: Farah replied that it arrived and looks fine.",
+      "agent_id": "ag_dcl3r2h4",
+      "agent_name": "Email Farah re offer letter"
+    },
+    {
+      "role": "assistant",
+      "text": "Farah Kowalski got back to you on that: Farah replied that it arrived and looks fine."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_dcl3r2h4)"
+  ],
+  "expect_person": "Farah Kowalski",
+  "notes": "The last exchange is the agent's own report ('Email Farah re offer letter', with its id), so 'her' is Farah Kowalski and the reply belongs in that thread: reuse it.",
+  "original_message": "Tell her thanks, I'll take it from here."
+}

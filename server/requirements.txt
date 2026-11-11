@@ -5,3 +5,5 @@ httpx>=0.27.0
 python-dateutil>=2.9.0
 beautifulsoup4>=4.12.0
 composio>=0.5.0
+numpy>=1.26
+fastembed>=0.3.0

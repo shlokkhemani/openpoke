@@ -1,0 +1,115 @@
+{
+  "id": "newtask-006",
+  "category": "new_task_lookalike",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_wyehdpnc",
+      "name": "Bike service reminder",
+      "description": "Reminds the user every day at 9pm to take the bike in for service. Confirmation CONF-GFKNZ4 was issued.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Remind the user to take the bike in for service",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 41.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_ie2goawu",
+      "name": "Stand-up prep reminder",
+      "description": "Reminds the user every weekday at 5pm to write notes for stand-up. The reminder id is RMD-67380.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to write notes for stand-up",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 90.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_5x57l272",
+      "name": "Smoke alarm reminder",
+      "description": "Reminds the user every Monday at 8am to test the smoke alarms. The reminder id is RMD-34806.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekly on Monday at 8am",
+          "payload": "Remind the user to test the smoke alarms",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 106.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_77wgdk6a",
+      "name": "Passport reminder",
+      "description": "Reminds the user every year on March 3 to check the passport expiry date. It is filed under reference REF-35360.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "yearly on March 3",
+          "payload": "Remind the user to check the passport expiry date",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 64.0,
+      "last_run_days_ago": 64.0
+    }
+  ],
+  "message": "Could you put a daily 8am reminder on my calendar to back up the photos on my phone?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any news from Nikhil Rossi on access to the shared account?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on access to the shared account: Nikhil replied that access has been restored.",
+      "agent_id": "ag_uz7igbah",
+      "agent_name": "Email Nikhil re password reset"
+    },
+    {
+      "role": "assistant",
+      "text": "Nikhil replied that access has been restored."
+    },
+    {
+      "role": "user",
+      "text": "What day is the first of next month?"
+    },
+    {
+      "role": "assistant",
+      "text": "It falls on a Monday."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "notes": "A new reminder ('back up my phone photos') that resembles the existing 'Backup' reminder only in vocabulary: create. Reusing a reminder agent would add a second duty to it.",
+  "original_message": "Can you set a reminder to back up my phone photos daily at 8am?",
+  "context_agents": [
+    {
+      "id": "ag_uz7igbah",
+      "name": "Email Nikhil re password reset",
+      "description": "Emailed Nikhil Rossi about the shared account password reset. Nikhil replied that access has been restored. Ticket #Q-17656 was opened for it.",
+      "contacts": [
+        {
+          "email": "nikhil.rossi@studiolune.co",
+          "display_name": "Nikhil Rossi",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 20.0,
+      "last_run_days_ago": 20.0
+    }
+  ]
+}

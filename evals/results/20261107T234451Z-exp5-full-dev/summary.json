@@ -1,0 +1,530 @@
+{
+  "purpose": "exp5-full-dev",
+  "command": "python -m evals.run routing --split dev --modes full --sizes 10,30,100,300 --runs 3 --max-cost 3 --purpose exp5-full-dev --yes",
+  "date_utc": "2026-11-07T23:44:51Z",
+  "run_folder": "20261107T234451Z-exp5-full-dev",
+  "model": "anthropic/claude-haiku-5.5",
+  "git": "uncommitted working tree on HEAD 4d629cc",
+  "case_set": {
+    "dir": "evals/cases/v1",
+    "version": "v1",
+    "manifest_sha256": "688388e57eb5980fa06046a7e384b5449d9b1c71134c817bbf7d20d166fbcbda",
+    "frozen_on": "2026-11-07",
+    "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6"
+  },
+  "split": "dev",
+  "case_ids": [
+    "amb-person-006",
+    "amb-person-007",
+    "broad-person-005",
+    "broad-person-006",
+    "clear-person-005",
+    "clear-person-006",
+    "followup-005",
+    "followup-006",
+    "multi-intent-005",
+    "multi-intent-006",
+    "multi-person-005",
+    "multi-person-006",
+    "newtask-005",
+    "newtask-006",
+    "trigger-005",
+    "trigger-006"
+  ],
+  "n_cases": 16,
+  "modes": [
+    "full"
+  ],
+  "sizes": [
+    10,
+    30,
+    100,
+    300
+  ],
+  "runs": 3,
+  "max_cost": 3.0,
+  "concurrency": 4,
+  "recency_cutoff": 20,
+  "descriptions": {
+    "source": "regen",
+    "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+    "covered": 310,
+    "total": 310
+  },
+  "counts": {
+    "planned": 192,
+    "completed": 192,
+    "graded": 192,
+    "infra_errors": 0,
+    "retried": 0,
+    "skipped_max_cost": 0,
+    "reused": 0,
+    "reused_infra_errors": 0,
+    "reused_skipped": 0
+  },
+  "cost": {
+    "actual_usd": 1.091303,
+    "estimated_usd": 0.709632,
+    "prompt_tokens": 10190218,
+    "completion_tokens": 144562,
+    "reservation_margin": 1.2,
+    "unmetered_attempts": 0,
+    "unmetered_usd": 0.0
+  },
+  "latency": {
+    "mean_latency_s": 5.034,
+    "mean_round_trips": 2.318
+  },
+  "pass_rate": {
+    "full": {
+      "10": {
+        "passed": 45,
+        "graded": 48,
+        "rate": 0.9375
+      },
+      "30": {
+        "passed": 45,
+        "graded": 48,
+        "rate": 0.9375
+      },
+      "100": {
+        "passed": 45,
+        "graded": 48,
+        "rate": 0.9375
+      },
+      "300": {
+        "passed": 43,
+        "graded": 48,
+        "rate": 0.8958333333333334
+      }
+    }
+  },
+  "by_category": {
+    "ambiguous_person": {
+      "full": {
+        "10": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "30": {
+          "passed": 4,
+          "graded": 6,
+          "rate": 0.6666666666666666
+        },
+        "100": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        }
+      }
+    },
+    "broad_question_person": {
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "clear_person": {
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "email_followup": {
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 5,
+          "graded": 6,
+          "rate": 0.8333333333333334
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_intent": {
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_person": {
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "new_task_lookalike": {
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "trigger_management": {
+      "full": {
+        "10": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 4,
+          "graded": 6,
+          "rate": 0.6666666666666666
+        }
+      }
+    }
+  },
+  "flags": {
+    "full": {
+      "10": {
+        "over_clarify": 3
+      },
+      "30": {
+        "over_clarify": 3
+      },
+      "100": {
+        "over_clarify": 3
+      },
+      "300": {
+        "over_clarify": 5
+      }
+    }
+  },
+  "structural": {
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "infra_errors": {
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "skipped": {
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "error_kinds": {},
+  "iteration_limit": [],
+  "failing": [
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got clarify (send_draft, message_user)"
+    },
+    {
+      "case_id": "followup-006",
+      "category": "email_followup",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_m7zywmxw); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-006",
+      "category": "trigger_management",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_ohyhhbka); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-006",
+      "category": "trigger_management",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_ohyhhbka); got clarify (no tool calls)"
+    }
+  ],
+  "regraded": [
+    {
+      "date_utc": "2026-11-08T00:09:14Z",
+      "previous_headline": "full N=10 88% (42/48), N=30 88% (42/48), N=100 88% (42/48), N=300 81% (39/48)",
+      "headline": "full N=10 94% (45/48), N=30 94% (45/48), N=100 94% (45/48), N=300 90% (43/48)",
+      "graded": 192
+    }
+  ]
+}

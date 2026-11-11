@@ -1,19 +1,44 @@
 """Interaction agent helpers for prompt construction."""
 
-from html import escape
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Literal, Optional
 
-from ...services.execution import get_agent_roster
+_PROMPT_DIR = Path(__file__).parent
+# The shared prompt holds this line where the tool-interface-specific routing rules go.
+_TOOL_RULES_PLACEHOLDER = "{{TOOL_RULES}}"
+_TOOL_BLOCK_FILES = {
+    "names": ("prompt_tools_names.md",),
+    "ids": ("prompt_tools_ids.md",),
+    "hybrid": ("prompt_tools_ids.md", "prompt_tools_hybrid.md"),  # ids block + search addendum
+}
 
-_prompt_path = Path(__file__).parent / "system_prompt.md"
-SYSTEM_PROMPT = _prompt_path.read_text(encoding="utf-8").strip()
+ToolStyle = Literal["names", "ids", "hybrid"]
 
 
-# Load and return the pre-defined system prompt from markdown file
-def build_system_prompt() -> str:
-    """Return the static system prompt for the interaction agent."""
-    return SYSTEM_PROMPT
+def _read(name: str) -> str:
+    return (_PROMPT_DIR / name).read_text(encoding="utf-8")
+
+
+def _compose(tool_style: ToolStyle) -> str:
+    shared = _read("system_prompt.md")
+    if shared.count(_TOOL_RULES_PLACEHOLDER) != 1:
+        raise RuntimeError("system_prompt.md must contain the tool rules placeholder exactly once")
+    block = "\n".join(_read(name).strip() for name in _TOOL_BLOCK_FILES[tool_style])
+    return shared.replace(_TOOL_RULES_PLACEHOLDER, block).strip()
+
+
+_SYSTEM_PROMPTS: Dict[str, str] = {style: _compose(style) for style in _TOOL_BLOCK_FILES}
+
+
+# Compose the system prompt: shared text plus the routing rules for one tool interface
+def build_system_prompt(tool_style: ToolStyle = "ids") -> str:
+    """Return the IA system prompt for the ``agent_id``/``name`` tool ("ids", production ``full``), the
+    same plus the ``search_agents`` addendum ("hybrid", production ``hybrid``), or the legacy
+    ``agent_name`` tool ("names", eval-only ``legacy_rules``)."""
+    try:
+        return _SYSTEM_PROMPTS[tool_style]
+    except KeyError:
+        raise ValueError(f"unknown tool style {tool_style!r}") from None
 
 
 # Build structured message with conversation history, active agents, and current turn
@@ -21,12 +46,18 @@ def prepare_message_with_history(
     latest_text: str,
     transcript: str,
     message_type: str = "user",
+    roster_block: Optional[str] = None,
 ) -> List[Dict[str, str]]:
-    """Compose a message that bundles history, roster, and the latest turn."""
+    """Compose a message that bundles history, roster, and the latest turn.
+
+    ``roster_block`` is the body of ``<active_agents>``; None renders "None".
+    """
     sections: List[str] = []
+    if roster_block is None:
+        roster_block = "None"
 
     sections.append(_render_conversation_history(transcript))
-    sections.append(f"<active_agents>\n{_render_active_agents()}\n</active_agents>")
+    sections.append(f"<active_agents>\n{roster_block}\n</active_agents>")
     sections.append(_render_current_turn(latest_text, message_type))
 
     content = "\n\n".join(sections)
@@ -39,23 +70,6 @@ def _render_conversation_history(transcript: str) -> str:
     if not history:
         history = "None"
     return f"<conversation_history>\n{history}\n</conversation_history>"
-
-
-# Format currently active execution agents into XML tags for LLM awareness
-def _render_active_agents() -> str:
-    roster = get_agent_roster()
-    roster.load()
-    agents = roster.get_agents()
-
-    if not agents:
-        return "None"
-
-    rendered: List[str] = []
-    for agent_name in agents:
-        name = escape(agent_name or "agent", quote=True)
-        rendered.append(f'<agent name="{name}" />')
-
-    return "\n".join(rendered)
 
 
 # Wrap the current message in appropriate XML tags based on sender type

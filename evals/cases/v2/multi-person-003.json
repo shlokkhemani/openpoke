@@ -1,0 +1,159 @@
+{
+  "id": "multi-person-003",
+  "category": "multi_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_5f4xuzfg",
+      "name": "Email Sam re vendor contract",
+      "description": "Emailed Sam Okafor about the vendor contract redlines. Sam replied that legal is still reviewing it. Reference number REF-40655 is on file.",
+      "contacts": [
+        {
+          "email": "sam.okafor@gmail.com",
+          "display_name": "Sam Okafor",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 6.0,
+      "last_run_days_ago": 6.0
+    },
+    {
+      "id": "ag_ernemqtn",
+      "name": "Email Sam re security audit",
+      "description": "Emailed Sam Okafor about the security audit findings. Sam replied that remediation is underway. Ticket #Q-39439 was opened for it.",
+      "contacts": [
+        {
+          "email": "sam.okafor@gmail.com",
+          "display_name": "Sam Okafor",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 12.0,
+      "last_run_days_ago": 12.0
+    },
+    {
+      "id": "ag_m7s4pnzj",
+      "name": "Email Sam re vendor contract",
+      "description": "Emailed Sam Rivera about the vendor contract redlines. Sam replied that legal is still reviewing it. It is filed under reference REF-37383.",
+      "contacts": [
+        {
+          "email": "sam.rivera@northwind.io",
+          "display_name": "Sam Rivera",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 5.0,
+      "last_run_days_ago": 5.0
+    },
+    {
+      "id": "ag_chen_budget",
+      "name": "Email Alice re Q3 budget",
+      "description": "Emailed Alice Chen the Q3 budget spreadsheet and asked for sign-off by Friday. She replied asking for the vendor breakdown; sent it. Waiting on approval.",
+      "contacts": [
+        {
+          "email": "alice.chen@northwind.io",
+          "display_name": "Alice Chen",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 3
+    },
+    {
+      "id": "ag_park_dinner",
+      "name": "Email Alice about dinner",
+      "description": "Asked Alice Park whether Saturday 7pm works for her birthday dinner at Lupa. She confirmed; reservation details sent.",
+      "contacts": [
+        {
+          "email": "alice.park@gmail.com",
+          "display_name": "Alice Park",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9
+    }
+  ],
+  "message": "Can you check whether Alice and Sam Rivera are free for coffee next week?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Did anything come in overnight?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your receipt summary: 9 new items, nothing that needs an answer today.",
+      "agent_id": "ag_tsekgzdv",
+      "agent_name": "Nightly receipt summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your receipt summary: 9 new items, nothing that needs an answer today."
+    },
+    {
+      "role": "user",
+      "text": "Any news from Imani Brennan on the rate hike?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on the rate hike: Imani replied that the old rate holds until January.",
+      "agent_id": "ag_6qcrp7gd",
+      "agent_name": "Follow up with Imani on price increase"
+    },
+    {
+      "role": "assistant",
+      "text": "Imani replied that the old rate holds until January."
+    }
+  ],
+  "acceptable": [
+    "clarify",
+    {
+      "slots": [
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Sam Rivera"
+          ]
+        }
+      ],
+      "ask": true
+    }
+  ],
+  "clarify_should_name": [
+    "Alice Chen",
+    "Alice Park"
+  ],
+  "notes": "Partial ambiguity: Sam Rivera is named in full, 'Alice' could be Alice Chen or Alice Park. Either ask which Alice before dispatching anything, or create Sam's agent and ask about Alice; either way the question must say 'Alice' (an acknowledgement is not a question). A dispatch that uses 'Alice' without a surname is ambiguous_dispatch, and any agent for an Alice is an extra dispatch: both high-severity failures. Slots: create naming Sam Rivera. Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Ask Alice and Sam Rivera whether they're free for coffee next week.",
+  "context_agents": [
+    {
+      "id": "ag_tsekgzdv",
+      "name": "Nightly receipt summary",
+      "description": "Every day at 9pm, summarises the purchase receipts and sends the summary to the user. The order number is ORD-42801.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Summarise the purchase receipts",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 107.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_6qcrp7gd",
+      "name": "Follow up with Imani on price increase",
+      "description": "Emailed Imani Brennan about the announced price increase. Imani replied that the old rate holds until January. Reference number REF-52777 is on file.",
+      "contacts": [
+        {
+          "email": "imani.brennan@outlook.com",
+          "display_name": "Imani Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 17.0,
+      "last_run_days_ago": 17.0
+    }
+  ]
+}

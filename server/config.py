@@ -3,7 +3,7 @@
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -46,16 +46,25 @@ class Settings(BaseModel):
     app_name: str = Field(default=DEFAULT_APP_NAME)
     app_version: str = Field(default=DEFAULT_APP_VERSION)
 
+    # Roster shown to the interaction agent: all agents (`full`) or top-k retrieved + search tool (`hybrid`)
+    roster_mode: Literal["full", "hybrid"] = Field(
+        default=os.getenv("OPENPOKE_ROSTER_MODE", "hybrid"), validate_default=True
+    )
+    # Embedding model for agent retrieval; an empty string means BM25 only
+    embedding_model: str = Field(default=os.getenv("OPENPOKE_EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5"))
+
     # Server runtime
     server_host: str = Field(default=os.getenv("OPENPOKE_HOST", "0.0.0.0"))
     server_port: int = Field(default=_env_int("OPENPOKE_PORT", 8001))
 
     # LLM model selection
-    interaction_agent_model: str = Field(default="anthropic/claude-sonnet-4")
-    execution_agent_model: str = Field(default="anthropic/claude-sonnet-4")
-    execution_agent_search_model: str = Field(default="anthropic/claude-sonnet-4")
-    summarizer_model: str = Field(default="anthropic/claude-sonnet-4")
-    email_classifier_model: str = Field(default="anthropic/claude-sonnet-4")
+    interaction_agent_model: str = Field(default="anthropic/claude-sonnet-5.5")
+    execution_agent_model: str = Field(default="anthropic/claude-sonnet-5.5")
+    execution_agent_search_model: str = Field(default="anthropic/claude-sonnet-5.5")
+    summarizer_model: str = Field(default="anthropic/claude-sonnet-5.5")
+    email_classifier_model: str = Field(default="anthropic/claude-sonnet-5.5")
+    description_model: str = Field(default="anthropic/claude-haiku-5.5")
+    eval_dev_model: str = Field(default="anthropic/claude-haiku-5.5")
 
     # Credentials / integrations
     openrouter_api_key: Optional[str] = Field(default=os.getenv("OPENROUTER_API_KEY"))
@@ -70,6 +79,14 @@ class Settings(BaseModel):
     # Summarisation controls
     conversation_summary_threshold: int = Field(default=100)
     conversation_summary_tail_size: int = Field(default=10)
+
+    # Agent retrieval (fixed, not tuned). k=20: one person can have 6-7+ agents, and the IA
+    # handled 300 agents in `full` mode. rrf_k=60 is the standard
+    # RRF constant. history_turns=2 is the last exchange only (enough for "did she reply?", and the
+    # only place referenced agent ids are taken from).
+    retrieval_k: int = Field(default=20)
+    retrieval_rrf_k: int = Field(default=60)
+    retrieval_history_turns: int = Field(default=2)
 
     @property
     def cors_allow_origins(self) -> List[str]:

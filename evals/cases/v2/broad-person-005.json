@@ -1,0 +1,116 @@
+{
+  "id": "broad-person-005",
+  "category": "broad_question_person",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_6qcrp7gd",
+      "name": "Follow up with Imani on price increase",
+      "description": "Emailed Imani Brennan about the announced price increase. Imani replied that the old rate holds until January. Reference number REF-52777 is on file.",
+      "contacts": [
+        {
+          "email": "imani.brennan@outlook.com",
+          "display_name": "Imani Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 17.0,
+      "last_run_days_ago": 17.0
+    },
+    {
+      "id": "ag_ivh5ynui",
+      "name": "Find emails from Imani about conference schedule",
+      "description": "Searched the inbox for emails from Imani Brennan about the conference schedule and listed 8 matches. Thread MSG-92756 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "imani.brennan@outlook.com",
+          "display_name": "Imani Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 33.0,
+      "last_run_days_ago": 33.0
+    },
+    {
+      "id": "ag_jjm6nfqy",
+      "name": "Find emails from Imani about shipping delay",
+      "description": "Searched the inbox for emails from Imani Brennan about the shipping delay and listed 3 matches. Order ORD-26547 covers it.",
+      "contacts": [
+        {
+          "email": "imani.brennan@outlook.com",
+          "display_name": "Imani Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 96.0,
+      "last_run_days_ago": 96.0
+    },
+    {
+      "id": "ag_msz3aew4",
+      "name": "Email Imani about Q4 roadmap",
+      "description": "Emailed Imani Brennan about the Q4 roadmap draft. Imani replied that they will send comments by Thursday. The thread is saved as MSG-39846.",
+      "contacts": [
+        {
+          "email": "imani.brennan@outlook.com",
+          "display_name": "Imani Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 36.0,
+      "last_run_days_ago": 36.0
+    },
+    {
+      "id": "ag_qodxxymf",
+      "name": "Find emails from Imani about new pricing",
+      "description": "Searched the inbox for emails from Imani Brennan about the new pricing and listed 6 matches. The thread is saved as MSG-11131.",
+      "contacts": [
+        {
+          "email": "imani.brennan@outlook.com",
+          "display_name": "Imani Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 104.0,
+      "last_run_days_ago": 104.0
+    },
+    {
+      "id": "ag_uaxmayvy",
+      "name": "Follow up with Greta on Q4 roadmap",
+      "description": "Emailed Greta Silva about the Q4 roadmap draft. Greta replied that they will send comments by Thursday. Thread MSG-38817 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "greta.silva@acme-corp.com",
+          "display_name": "Greta Silva",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 116.0,
+      "last_run_days_ago": 116.0
+    }
+  ],
+  "message": "Anything new with Imani?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What day is the first of next month?"
+    },
+    {
+      "role": "assistant",
+      "text": "It falls on a Monday."
+    }
+  ],
+  "acceptable": [
+    "answer_set([ag_6qcrp7gd, ag_ivh5ynui, ag_msz3aew4, ag_jjm6nfqy, ag_qodxxymf])"
+  ],
+  "unique_facts": {
+    "ag_6qcrp7gd": "REF-52777",
+    "ag_ivh5ynui": "MSG-92756",
+    "ag_jjm6nfqy": "ORD-26547",
+    "ag_msz3aew4": "MSG-39846",
+    "ag_qodxxymf": "MSG-11131"
+  },
+  "notes": "Broad question about Imani Brennan: cover all 5 agents linked to them. Covered = messaged OR unique fact in the reply (code-style facts; 0 agent(s) have no code fact and must be messaged). Oldest agent: 104 days since the user's last activity. Distractor: 'Follow up with Greta on Q4 roadmap' shares a topic but not the person.",
+  "original_message": "What's going on with Imani?"
+}

@@ -1,0 +1,407 @@
+{
+  "purpose": "Task 15 dev check: full vs hybrid at N=100/300 (Haiku), search rate and crossover",
+  "command": "python -m evals.run routing --modes full,hybrid --sizes 100,300 --split dev --runs 3 --embedder fastembed --max-cost 3 --purpose 'Task 15 dev check: full vs hybrid at N=100/300 (Haiku), search rate and crossover' --yes",
+  "date_utc": "2026-11-09T20:06:08Z",
+  "run_folder": "20261109T200608Z-task-15-dev-check-full-vs-hybrid-at-n-10",
+  "model": "anthropic/claude-haiku-5.5",
+  "git": "uncommitted working tree on HEAD 83e84f2",
+  "case_set": {
+    "dir": "evals/cases/v1",
+    "version": "v1",
+    "manifest_sha256": "688388e57eb5980fa06046a7e384b5449d9b1c71134c817bbf7d20d166fbcbda",
+    "frozen_on": "2026-11-07",
+    "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6"
+  },
+  "split": "dev",
+  "case_ids": [
+    "amb-person-006",
+    "amb-person-007",
+    "broad-person-005",
+    "broad-person-006",
+    "clear-person-005",
+    "clear-person-006",
+    "followup-005",
+    "followup-006",
+    "multi-intent-005",
+    "multi-intent-006",
+    "multi-person-005",
+    "multi-person-006",
+    "newtask-005",
+    "newtask-006",
+    "trigger-005",
+    "trigger-006"
+  ],
+  "n_cases": 16,
+  "modes": [
+    "full",
+    "hybrid"
+  ],
+  "sizes": [
+    100,
+    300
+  ],
+  "runs": 3,
+  "max_cost": 3.0,
+  "concurrency": 4,
+  "descriptions": {
+    "source": "regen",
+    "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+    "covered": 310,
+    "total": 310
+  },
+  "embedder": "fastembed",
+  "search": {
+    "hybrid": {
+      "100": {
+        "graded": 48,
+        "searched": 1,
+        "search_errors": 0,
+        "target_in_initial": 42,
+        "target_found_by_search": 0
+      },
+      "300": {
+        "graded": 48,
+        "searched": 2,
+        "search_errors": 0,
+        "target_in_initial": 39,
+        "target_found_by_search": 0
+      }
+    }
+  },
+  "counts": {
+    "planned": 192,
+    "completed": 192,
+    "graded": 192,
+    "infra_errors": 0,
+    "retried": 0,
+    "skipped_max_cost": 0
+  },
+  "cost": {
+    "actual_usd": 1.150364,
+    "estimated_usd": 1.097227,
+    "prompt_tokens": 10820391,
+    "completion_tokens": 136649,
+    "reservation_margin": 1.2,
+    "unmetered_attempts": 0,
+    "unmetered_usd": 0.0
+  },
+  "latency": {
+    "mean_latency_s": 5.525,
+    "mean_round_trips": 2.318
+  },
+  "pass_rate": {
+    "full": {
+      "100": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "300": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      }
+    },
+    "hybrid": {
+      "100": {
+        "passed": 48,
+        "graded": 48,
+        "rate": 1.0
+      },
+      "300": {
+        "passed": 45,
+        "graded": 48,
+        "rate": 0.9375
+      }
+    }
+  },
+  "by_category": {
+    "ambiguous_person": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "broad_question_person": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "clear_person": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "email_followup": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_intent": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_person": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 3,
+          "graded": 6,
+          "rate": 0.5
+        }
+      }
+    },
+    "new_task_lookalike": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    },
+    "trigger_management": {
+      "full": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "100": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 6,
+          "graded": 6,
+          "rate": 1.0
+        }
+      }
+    }
+  },
+  "flags": {
+    "full": {
+      "100": {},
+      "300": {}
+    },
+    "hybrid": {
+      "100": {
+        "invalid_call": 1
+      },
+      "300": {}
+    }
+  },
+  "structural": {
+    "full": {
+      "100": 0,
+      "300": 0
+    },
+    "hybrid": {
+      "100": 0,
+      "300": 0
+    }
+  },
+  "infra_errors": {
+    "full": {
+      "100": 0,
+      "300": 0
+    },
+    "hybrid": {
+      "100": 0,
+      "300": 0
+    }
+  },
+  "skipped": {
+    "full": {
+      "100": 0,
+      "300": 0
+    },
+    "hybrid": {
+      "100": 0,
+      "300": 0
+    }
+  },
+  "error_kinds": {},
+  "iteration_limit": [],
+  "failing": [
+    {
+      "case_id": "multi-person-006",
+      "category": "multi_person",
+      "mode": "hybrid",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Alice Chen] + ask); got create (message_user, dispatch→Email Sam Rivera about joining running club, dispatch→Email Alice Chen about joining running club); slots 1/1"
+    },
+    {
+      "case_id": "multi-person-006",
+      "category": "multi_person",
+      "mode": "hybrid",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Alice Chen] + ask); got create (message_user, dispatch→Email Sam Rivera about Sunday running club, dispatch→Email Alice Chen about Sunday running club); slots 1/1"
+    },
+    {
+      "case_id": "multi-person-006",
+      "category": "multi_person",
+      "mode": "hybrid",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Alice Chen] + ask); got create (message_user, dispatch→Email Sam Rivera about Sunday running club, dispatch→Email Alice Chen about Sunday running club); slots 1/1"
+    }
+  ]
+}

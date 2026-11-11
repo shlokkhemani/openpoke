@@ -1,0 +1,91 @@
+{
+  "id": "followup-006",
+  "category": "email_followup",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_lqg7lp3m",
+      "name": "Find emails from Theo about apartment viewing",
+      "description": "Searched the inbox for emails from Theo Brennan about the apartment viewing and listed 9 matches. Confirmation CONF-ILDBE6 was issued.",
+      "contacts": [
+        {
+          "email": "theo.brennan@northwind.io",
+          "display_name": "Theo Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 19.0,
+      "last_run_days_ago": 19.0
+    },
+    {
+      "id": "ag_m7zywmxw",
+      "name": "Follow up with Theo on project deadline",
+      "description": "Emailed Theo Brennan about moving the project deadline by a week. Theo replied that the new date works. The thread is saved as MSG-88040.",
+      "contacts": [
+        {
+          "email": "theo.brennan@northwind.io",
+          "display_name": "Theo Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 3.0,
+      "last_run_days_ago": 3.0
+    },
+    {
+      "id": "ag_mzp253s4",
+      "name": "Email Theo re warranty replacement",
+      "description": "Emailed Theo Brennan about the warranty replacement for the monitor. Theo replied that a new unit will ship. Ticket #Q-46498 was opened for it.",
+      "contacts": [
+        {
+          "email": "theo.brennan@northwind.io",
+          "display_name": "Theo Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 35.0,
+      "last_run_days_ago": 35.0
+    }
+  ],
+  "message": "Did Theo ever reply about the deadline extension? Can you look?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any updates I should know about?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your expense summary: 2 new items, nothing that needs an answer today.",
+      "agent_id": "ag_mtagzkm7",
+      "agent_name": "Weekday expense summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your expense summary: 2 new items, nothing that needs an answer today."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_m7zywmxw)"
+  ],
+  "expect_person": "Theo Brennan",
+  "notes": "Reuse the thread agent 'Follow up with Theo on project deadline'. The message names Theo Brennan and paraphrases the topic ('project deadline'); Theo Brennan's other agents have different topics, so only the topic separates them (fresh: user activity 3 days ago).",
+  "original_message": "Check if Theo ever got back to me regarding the deadline extension.",
+  "context_agents": [
+    {
+      "id": "ag_mtagzkm7",
+      "name": "Weekday expense summary",
+      "description": "Every weekday at 6pm, summarises the card and receipt emails and sends the summary to the user. It is filed under reference REF-21069.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 6pm",
+          "payload": "Summarise the receipt emails",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 63.0,
+      "last_run_days_ago": 3.0
+    }
+  ]
+}

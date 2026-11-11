@@ -8,6 +8,14 @@ from dataclasses import dataclass
 from .agent import ExecutionAgent
 from .tools import get_tool_schemas, get_tool_registry
 from ...config import get_settings
+from ...services.agents.contacts import (
+    contacts_from_tool_call,
+    extract_subjects,
+    record_contact_names_from_tool_call,
+    record_contacts_from_tool_call,
+)
+from ...services.agents.descriptions import RunFacts, merge_subjects
+from ...services.agents.store import AgentStore, get_agent_store
 from ...openrouter_client import request_chat_completion
 from ...logging_config import logger
 
@@ -15,11 +23,13 @@ from ...logging_config import logger
 @dataclass
 class ExecutionResult:
     """Result from an execution agent."""
+    agent_id: str
     agent_name: str
     success: bool
     response: str
     error: Optional[str] = None
     tools_executed: List[str] = None
+    facts: Optional[RunFacts] = None
 
 
 class ExecutionAgentRuntime:
@@ -28,12 +38,14 @@ class ExecutionAgentRuntime:
     MAX_TOOL_ITERATIONS = 8
 
     # Initialize execution agent runtime with settings, tools, and agent instance
-    def __init__(self, agent_name: str):
+    def __init__(self, agent_id: str, store: Optional[AgentStore] = None):
         settings = get_settings()
-        self.agent = ExecutionAgent(agent_name)
+        self.store = store if store is not None else get_agent_store()
+        self.agent = ExecutionAgent(agent_id, store=self.store)
+        self.agent_id = agent_id
         self.api_key = settings.openrouter_api_key
         self.model = settings.execution_agent_model
-        self.tool_registry = get_tool_registry(agent_name=agent_name)
+        self.tool_registry = get_tool_registry(agent_id=agent_id)
         self.tool_schemas = get_tool_schemas()
 
         if not self.api_key:
@@ -50,6 +62,7 @@ class ExecutionAgentRuntime:
             messages = [{"role": "user", "content": instructions}]
             tools_executed: List[str] = []
             final_response: Optional[str] = None
+            facts = RunFacts()
 
             for iteration in range(self.MAX_TOOL_ITERATIONS):
                 logger.info(
@@ -102,6 +115,11 @@ class ExecutionAgentRuntime:
                     if success:
                         logger.info(f"[{self.agent.name}] Tool {tool_name} completed successfully")
                         record_payload = self._safe_json_dump(result)
+                        record_contacts_from_tool_call(
+                            self.store, self.agent_id, tool_name, tool_args, result
+                        )
+                        record_contact_names_from_tool_call(self.store, self.agent_id, tool_name, result)
+                        self._collect_facts(facts, tool_name, tool_args, result)
                     else:
                         error_detail = result.get("error") if isinstance(result, dict) else str(result)
                         logger.warning(f"[{self.agent.name}] Tool {tool_name} failed: {error_detail}")
@@ -129,10 +147,12 @@ class ExecutionAgentRuntime:
             self.agent.record_response(final_response)
 
             return ExecutionResult(
+                agent_id=self.agent_id,
                 agent_name=self.agent.name,
                 success=True,
                 response=final_response,
-                tools_executed=tools_executed
+                tools_executed=tools_executed,
+                facts=facts,
             )
 
         except Exception as e:
@@ -142,11 +162,22 @@ class ExecutionAgentRuntime:
             self.agent.record_response(f"Error: {error_msg}")
 
             return ExecutionResult(
+                agent_id=self.agent_id,
                 agent_name=self.agent.name,
                 success=False,
                 response=failure_text,
                 error=error_msg
             )
+
+    # Add this call's recorded contacts and email subjects to the run facts
+    def _collect_facts(self, facts: RunFacts, tool_name: str, args: Any, result: Any) -> None:
+        facts.subjects = merge_subjects(facts.subjects, extract_subjects(tool_name, args, result))
+        try:
+            for contact in contacts_from_tool_call(tool_name, args, result):
+                if contact not in facts.contacts:
+                    facts.contacts.append(contact)
+        except Exception as exc:
+            logger.warning(f"[{self.agent_id}] could not collect contacts for run facts: {exc}")
 
     # Execute OpenRouter API call with system prompt, messages, and optional tool schemas
     async def _make_llm_call(self, system_prompt: str, messages: List[Dict], with_tools: bool) -> Dict:

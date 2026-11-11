@@ -1,0 +1,68 @@
+{
+  "id": "clear-person-005",
+  "category": "clear_person",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_avdgfagy",
+      "name": "Email Farah the transcript",
+      "description": "Sent Farah Moreau the transcript from the interview. Farah acknowledged it. Thread MSG-61816 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "farah.moreau@studiolune.co",
+          "display_name": "Farah Moreau",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 39.0,
+      "last_run_days_ago": 39.0
+    },
+    {
+      "id": "ag_dcl3r2h4",
+      "name": "Email Farah re offer letter",
+      "description": "Emailed Farah Kowalski about the signed offer letter. Farah replied that it arrived and looks fine. Reference number REF-43857 is on file.",
+      "contacts": [
+        {
+          "email": "farah.kowalski@northwind.io",
+          "display_name": "Farah Kowalski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9.0,
+      "last_run_days_ago": 9.0
+    },
+    {
+      "id": "ag_ofvnsum6",
+      "name": "Email Farah the reading list",
+      "description": "Sent Farah Moreau the reading list. Farah acknowledged it. The thread is saved as MSG-33394.",
+      "contacts": [
+        {
+          "email": "farah.moreau@studiolune.co",
+          "display_name": "Farah Moreau",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 88.0,
+      "last_run_days_ago": 88.0
+    }
+  ],
+  "message": "Did Farah Moreau mention anything about the interview write-up?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's on my calendar tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "A team lunch at noon and a one-on-one at 3:30."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_avdgfagy)"
+  ],
+  "expect_person": "Farah Moreau",
+  "notes": "Full name (Farah Moreau) plus a topic that is unique among their agents: reuse 'Email Farah the transcript', don't ask which Farah.",
+  "original_message": "What did Farah Moreau say about the interview write-up?"
+}

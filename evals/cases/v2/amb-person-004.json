@@ -1,0 +1,51 @@
+{
+  "id": "amb-person-004",
+  "category": "ambiguous_person",
+  "split": "test",
+  "source": "hand",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_chen_budget",
+      "name": "Email Alice re Q3 budget",
+      "description": "Emailed Alice Chen the Q3 budget spreadsheet and asked for sign-off by Friday. She replied asking for the vendor breakdown; sent it. Waiting on approval.",
+      "contacts": [
+        {
+          "email": "alice.chen@northwind.io",
+          "display_name": "Alice Chen",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 3
+    },
+    {
+      "id": "ag_park_dinner",
+      "name": "Email Alice about dinner",
+      "description": "Asked Alice Park whether Saturday 7pm works for her birthday dinner at Lupa. She confirmed; reservation details sent.",
+      "contacts": [
+        {
+          "email": "alice.park@gmail.com",
+          "display_name": "Alice Park",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9
+    }
+  ],
+  "message": "Email her and ask if she's free for an offsite planning call Thursday",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Did Alice Chen approve the Q3 budget yet?"
+    },
+    {
+      "role": "assistant",
+      "text": "Not yet. She asked for the vendor breakdown, which was sent on Tuesday. Still waiting on her sign-off."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Alice Chen",
+  "notes": "Pronoun only, no name: the first-name rule doesn't apply, so context decides. The last exchange was about Alice Chen, so 'her' = Alice Chen: create with expect_person Alice Chen, no question. Asking is over-clarification. High severity: two Alices exist and a guess (e.g. by recency) emails the wrong person. Unlike trigger-002, the reference resolves to a person in a create case, with no agent to reuse as a hint."
+}

@@ -1,0 +1,75 @@
+{
+ "purpose": "Task 16f layer-1 retrieval dev fastembed v2, A3 message weighting",
+ "command": "python -m evals.run retrieval --embedder fastembed --purpose 'Task 16f layer-1 retrieval dev fastembed v2, A3 message weighting'",
+ "date_utc": "2026-11-09T23:58:38Z",
+ "run_folder": "20261109T235838Z-task-16f-layer-1-retrieval-dev-fastembed",
+ "git": "uncommitted working tree on HEAD 840293f",
+ "split": "dev",
+ "sizes": [
+  10,
+  30,
+  100,
+  300
+ ],
+ "queries": "all",
+ "embedder": "fastembed",
+ "case_set_sha256": "d0c9a4ca5b94e38c5c16bc428609f90cd25ba1b03d8adf80e733689c4649cc3c",
+ "descriptions": {
+  "source": "regen",
+  "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+  "covered": 310,
+  "total": 310
+ },
+ "seeds": {
+  "used": [
+   100,
+   101,
+   102,
+   103,
+   104,
+   106,
+   107,
+   108,
+   110,
+   111,
+   112,
+   113,
+   115,
+   117,
+   119,
+   121,
+   122,
+   123,
+   124,
+   126
+  ],
+  "skipped": [
+   105,
+   109,
+   114,
+   116,
+   118,
+   120,
+   125
+  ],
+  "count": 301,
+  "dropped": 459
+ },
+ "counts": {
+  "frozen": 16,
+  "original": 14,
+  "unrelated_history": 4,
+  "template": 301,
+  "frozen_cases_in_split": 16,
+  "skipped_empty_expected": 0,
+  "referenced": 252,
+  "skipped_n_below_required": 0
+ },
+ "timings": {
+  "load_s": 0.004863499998464249,
+  "queries_s": 0.27346599999873433,
+  "evaluate_s": 139.55305583399604,
+  "write_s": 0.028056875002221204
+ },
+ "headline": "dev recall@20 (rrf) at N=10/30/100/300: 1.00/1.00/1.00/1.00"
+}

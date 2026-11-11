@@ -1,0 +1,118 @@
+{
+  "id": "multi-intent-002",
+  "category": "multi_intent",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_c6obzuoh",
+      "name": "Email Omar re warranty replacement",
+      "description": "Emailed Omar Underwood about the warranty replacement for the monitor. Omar replied that a new unit will ship. Support case #Q-66436 tracks it.",
+      "contacts": [
+        {
+          "email": "omar.underwood@gmail.com",
+          "display_name": "Omar Underwood",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 17.0,
+      "last_run_days_ago": 17.0
+    },
+    {
+      "id": "ag_twmbhspq",
+      "name": "Standing desk reminder",
+      "description": "Reminds the user every day at 9pm to reset the standing desk height. It is saved as reminder RMD-63913.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Remind the user to reset the standing desk height",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 64.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_rmm7mteg",
+      "name": "Standing desk reminder",
+      "description": "Reminds the user every weekday at 5pm to reset the standing desk height. The reminder id is RMD-35450.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to reset the standing desk height",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 47.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_mzp253s4",
+      "name": "Email Theo re warranty replacement",
+      "description": "Emailed Theo Brennan about the warranty replacement for the monitor. Theo replied that a new unit will ship. Ticket #Q-46498 was opened for it.",
+      "contacts": [
+        {
+          "email": "theo.brennan@northwind.io",
+          "display_name": "Theo Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 35.0,
+      "last_run_days_ago": 35.0
+    }
+  ],
+  "message": "Let Omar Underwood know I'll be home Saturday morning for the new monitor delivery, and set a reminder for 9:30am that day to clear my desk.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Anything new in my inbox?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your receipt summary: 7 new items, nothing that needs an answer today.",
+      "agent_id": "ag_e6zme236",
+      "agent_name": "Weekday receipt summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your receipt summary: 7 new items, nothing that needs an answer today."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "reuse(ag_c6obzuoh)",
+          "must_mention": []
+        },
+        {
+          "target": "create",
+          "must_mention": []
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "The email continues Omar's warranty thread (reuse); the one-off reminder is new (create), not a second duty for the standing desk reminders. Theo's warranty thread is the wrong person. Slots: reuse 'Email Omar re warranty replacement'; create (the reminder). Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Tell Omar Underwood I'll be home on Saturday morning to take delivery of the new monitor, and remind me at 9:30am on Saturday to clear space on my desk.",
+  "context_agents": [
+    {
+      "id": "ag_e6zme236",
+      "name": "Weekday receipt summary",
+      "description": "Every weekday at 6pm, summarises the purchase receipts and sends the summary to the user. The order number is ORD-10406.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 6pm",
+          "payload": "Summarise the purchase receipts",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 86.0,
+      "last_run_days_ago": 0.0
+    }
+  ]
+}

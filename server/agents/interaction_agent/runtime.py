@@ -2,14 +2,24 @@
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
-from .agent import build_system_prompt, prepare_message_with_history
-from .tools import ToolResult, get_tool_schemas, handle_tool_call
+from .agent import prepare_message_with_history
+from .tools import ToolResult, get_tool_schemas, handle_tool_call, search_turn, turn_type
+from .turn_inputs import build_turn_inputs
+from ...services.agents import indexer
+from ...services.agents.retrieval import RetrievalConfig, history_from_log
+from ...services.agents.store import get_agent_store
+from ...services.triggers import get_trigger_service
 from ...config import get_settings
 from ...services.conversation import get_conversation_log, get_working_memory_log
 from ...openrouter_client import request_chat_completion
 from ...logging_config import logger
+
+# Injectable dependencies (defaults are the production ones). ``LLMCall`` takes the keyword
+# arguments of ``request_chat_completion``; ``ToolHandler`` has the signature of ``handle_tool_call``.
+LLMCall = Callable[..., Awaitable[Dict[str, Any]]]
+ToolHandler = Callable[[str, Dict[str, Any]], ToolResult]
 
 
 @dataclass
@@ -39,6 +49,9 @@ class _LoopSummary:
     user_messages: List[str] = field(default_factory=list)
     tool_names: List[str] = field(default_factory=list)
     execution_agents: Set[str] = field(default_factory=set)
+    round_trips: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 class InteractionAgentRuntime:
@@ -47,16 +60,28 @@ class InteractionAgentRuntime:
     MAX_TOOL_ITERATIONS = 8
 
     # Initialize interaction agent runtime with settings and service dependencies
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        llm: Optional[LLMCall] = None,
+        tool_handler: Optional[ToolHandler] = None,
+        tool_schemas: Optional[List[Dict[str, Any]]] = None,
+        require_api_key: bool = True,
+    ) -> None:
         settings = get_settings()
         self.api_key = settings.openrouter_api_key
         self.model = settings.interaction_agent_model
         self.settings = settings
         self.conversation_log = get_conversation_log()
         self.working_memory_log = get_working_memory_log()
-        self.tool_schemas = get_tool_schemas()
+        # A constructor override always wins; otherwise each turn brings its own (mode-dependent) tools.
+        self._tool_schemas_override = tool_schemas
+        self.tool_schemas = tool_schemas if tool_schemas is not None else get_tool_schemas()
+        # None means "use the module-level production function", resolved at call time.
+        self._llm = llm
+        self._tool_handler = tool_handler
 
-        if not self.api_key:
+        if require_api_key and not self.api_key:
             raise ValueError(
                 "OpenRouter API key not configured. Set OPENROUTER_API_KEY environment variable."
             )
@@ -66,16 +91,8 @@ class InteractionAgentRuntime:
         """Handle a user-authored message."""
 
         try:
-            transcript_before = self._load_conversation_transcript()
-            self.conversation_log.record_user_message(user_message)
-
-            system_prompt = build_system_prompt()
-            messages = prepare_message_with_history(
-                user_message, transcript_before, message_type="user"
-            )
-
             logger.info("Processing user message through interaction agent")
-            summary = await self._run_interaction_loop(system_prompt, messages)
+            summary = await self._run_turn(user_message, "user")
 
             final_response = self._finalize_response(summary)
 
@@ -101,16 +118,8 @@ class InteractionAgentRuntime:
         """Process a status update emitted by an execution agent."""
 
         try:
-            transcript_before = self._load_conversation_transcript()
-            self.conversation_log.record_agent_message(agent_message)
-
-            system_prompt = build_system_prompt()
-            messages = prepare_message_with_history(
-                agent_message, transcript_before, message_type="agent"
-            )
-
             logger.info("Processing execution agent results")
-            summary = await self._run_interaction_loop(system_prompt, messages)
+            summary = await self._run_turn(agent_message, "agent")
 
             final_response = self._finalize_response(summary)
 
@@ -131,18 +140,63 @@ class InteractionAgentRuntime:
                 error=str(exc),
             )
 
+    # Shared body of a user turn and an agent turn: record the message, build the mode's inputs, run
+    async def _run_turn(self, message: str, kind: str) -> "_LoopSummary":
+        transcript_before = self._load_conversation_transcript()
+        # History comes from the log before the new message is recorded, so it never contains it.
+        history = history_from_log(self.conversation_log.iter_entries())
+        if kind == "agent":
+            self.conversation_log.record_agent_message(message)
+        else:
+            self.conversation_log.record_user_message(message)
+
+        inputs = build_turn_inputs(
+            self.settings.roster_mode,
+            get_agent_store(),
+            indexer.ready_embedder(),
+            message,
+            history,
+            triggers_for=get_trigger_service().list_for_agent,
+            cfg=RetrievalConfig.from_settings(self.settings),
+        )
+        messages = prepare_message_with_history(
+            message, transcript_before, message_type=kind, roster_block=inputs.roster_block
+        )
+        with turn_type(kind), search_turn(inputs.search_tool):
+            return await self._run_interaction_loop(
+                inputs.system_prompt, messages, tool_schemas=inputs.tool_schemas
+            )
+
+    # Public entry point to the loop for callers that build their own prompt (e.g. evals)
+    async def run_loop(
+        self,
+        system_prompt: str,
+        messages: List[Dict[str, Any]],
+        summary: Optional[_LoopSummary] = None,
+    ) -> _LoopSummary:
+        """Run the interaction loop on a prepared prompt.
+
+        Pass ``summary`` to keep the partial counts (round trips, tokens) if the loop raises.
+        """
+        return await self._run_interaction_loop(system_prompt, messages, summary)
+
     # Core interaction loop that handles LLM calls and tool executions until completion
     async def _run_interaction_loop(
         self,
         system_prompt: str,
         messages: List[Dict[str, Any]],
+        summary: Optional[_LoopSummary] = None,
+        tool_schemas: Optional[List[Dict[str, Any]]] = None,
     ) -> _LoopSummary:
         """Iteratively query the LLM until it issues a final response."""
 
-        summary = _LoopSummary()
+        if summary is None:
+            summary = _LoopSummary()
 
         for iteration in range(self.MAX_TOOL_ITERATIONS):
-            response = await self._make_llm_call(system_prompt, messages)
+            response = await self._make_llm_call(system_prompt, messages, tool_schemas)
+            summary.round_trips += 1
+            self._record_usage(summary, response)
             assistant_message = self._extract_assistant_message(response)
 
             assistant_content = (assistant_message.get("content") or "").strip()
@@ -166,12 +220,14 @@ class InteractionAgentRuntime:
             for tool_call in parsed_tool_calls:
                 summary.tool_names.append(tool_call.name)
 
-                if tool_call.name == "send_message_to_agent":
-                    agent_name = tool_call.arguments.get("agent_name")
-                    if isinstance(agent_name, str) and agent_name:
-                        summary.execution_agents.add(agent_name)
-
                 result = self._execute_tool(tool_call)
+
+                if tool_call.name == "send_message_to_agent" and result.success:
+                    # The real tool returns the agent's id; the eval's legacy stub only the name.
+                    payload = result.payload if isinstance(result.payload, dict) else {}
+                    agent_key = payload.get("agent_id") or payload.get("agent_name")
+                    if isinstance(agent_key, str) and agent_key:
+                        summary.execution_agents.add(agent_key)
 
                 if result.user_message:
                     summary.user_messages.append(result.user_message)
@@ -190,6 +246,17 @@ class InteractionAgentRuntime:
 
         return summary
 
+    # Add the token counts of one LLM response to the loop summary (missing usage counts as 0)
+    @staticmethod
+    def _record_usage(summary: _LoopSummary, response: Any) -> None:
+        usage = response.get("usage") if isinstance(response, dict) else None
+        if not isinstance(usage, dict):
+            return
+        for key in ("prompt_tokens", "completion_tokens"):
+            value = usage.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                setattr(summary, key, getattr(summary, key) + int(value))
+
     # Load conversation history, preferring summarized version if available
     def _load_conversation_transcript(self) -> str:
         if self.settings.summarization_enabled:
@@ -203,19 +270,23 @@ class InteractionAgentRuntime:
         self,
         system_prompt: str,
         messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
-        """Make an LLM call via OpenRouter."""
+        """Make an LLM call via OpenRouter; ``tools`` is the turn's schemas (None: ``self.tool_schemas``)."""
 
+        if self._tool_schemas_override is not None or tools is None:
+            tools = self.tool_schemas
         logger.debug(
             "Interaction agent calling LLM",
-            extra={"model": self.model, "tools": len(self.tool_schemas)},
+            extra={"model": self.model, "tools": len(tools)},
         )
-        return await request_chat_completion(
+        llm = self._llm if self._llm is not None else request_chat_completion
+        return await llm(
             model=self.model,
             messages=messages,
             system=system_prompt,
             api_key=self.api_key,
-            tools=self.tool_schemas,
+            tools=tools,
         )
 
     # Extract the assistant's message from the OpenRouter API response structure
@@ -294,7 +365,8 @@ class InteractionAgentRuntime:
 
         try:
             self._log_tool_invocation(tool_call, stage="start")
-            result = handle_tool_call(tool_call.name, tool_call.arguments)
+            handler = self._tool_handler if self._tool_handler is not None else handle_tool_call
+            result = handler(tool_call.name, tool_call.arguments)
         except Exception as exc:  # pragma: no cover - defensive
             logger.error(
                 "Tool execution crashed",

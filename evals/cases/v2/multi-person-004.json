@@ -1,0 +1,158 @@
+{
+  "id": "multi-person-004",
+  "category": "multi_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_g2fqxn3g",
+      "name": "Email Paloma re onboarding checklist",
+      "description": "Emailed Paloma Zielinski about the onboarding checklist for the new hire. Paloma replied that the laptop ships Monday. Order ORD-19419 covers it.",
+      "contacts": [
+        {
+          "email": "paloma.zielinski@studiolune.co",
+          "display_name": "Paloma Zielinski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 97.0,
+      "last_run_days_ago": 97.0
+    },
+    {
+      "id": "ag_ltkyeqa6",
+      "name": "Send Paloma the slide deck",
+      "description": "Sent Paloma Zielinski the final slide deck. Paloma acknowledged it. Thread MSG-69785 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "paloma.zielinski@studiolune.co",
+          "display_name": "Paloma Zielinski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 20.0,
+      "last_run_days_ago": 20.0
+    },
+    {
+      "id": "ag_rkkchakw",
+      "name": "Email Paloma the lease copy",
+      "description": "Sent Paloma Zielinski a copy of the lease. Paloma acknowledged it. It is filed under reference REF-67782.",
+      "contacts": [
+        {
+          "email": "paloma.zielinski@studiolune.co",
+          "display_name": "Paloma Zielinski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 99.0,
+      "last_run_days_ago": 99.0
+    },
+    {
+      "id": "ag_uzt5gmkw",
+      "name": "Send Mateo the press kit",
+      "description": "Sent Mateo Petrov the press kit. Mateo acknowledged it. The thread is saved as MSG-99759.",
+      "contacts": [
+        {
+          "email": "mateo.petrov@outlook.com",
+          "display_name": "Mateo Petrov",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 18.0,
+      "last_run_days_ago": 18.0
+    },
+    {
+      "id": "ag_zwldc5g3",
+      "name": "Email Mateo the resume",
+      "description": "Sent Mateo Petrov an updated resume. Mateo acknowledged it. Thread MSG-42503 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "mateo.petrov@outlook.com",
+          "display_name": "Mateo Petrov",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 7.0,
+      "last_run_days_ago": 7.0
+    }
+  ],
+  "message": "Can you ping Paloma Zielinski about getting the new hire set up, and also see if Mateo Petrov has had a look at my revised CV yet?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Did anything come in overnight?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your support ticket summary: 2 new items, nothing that needs an answer today.",
+      "agent_id": "ag_y36jj43i",
+      "agent_name": "Morning support ticket summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your support ticket summary: 2 new items, nothing that needs an answer today."
+    },
+    {
+      "role": "user",
+      "text": "Any news from Kemal Kowalski on the countersigned offer?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on the countersigned offer: Kemal replied that it arrived and looks fine.",
+      "agent_id": "ag_iqbteomv",
+      "agent_name": "Email Kemal about offer letter"
+    },
+    {
+      "role": "assistant",
+      "text": "Kemal replied that it arrived and looks fine."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "reuse(ag_g2fqxn3g)",
+          "must_mention": []
+        },
+        {
+          "target": "reuse(ag_zwldc5g3)",
+          "must_mention": []
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "Two follow-ups, each on its person's existing thread: reuse both, one dispatch each. Sending both follow-ups through one thread (no second dispatch) is merged_intents. Slots: reuse 'Email Paloma re onboarding checklist'; reuse 'Email Mateo the resume'. Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Follow up with Paloma Zielinski on getting the new employee set up, and check whether Mateo Petrov has looked at my updated CV.",
+  "context_agents": [
+    {
+      "id": "ag_y36jj43i",
+      "name": "Morning support ticket summary",
+      "description": "Every day at 7am, summarises the support ticket emails and sends the summary to the user. Support case #Q-48675 tracks it.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 7am",
+          "payload": "Summarise the support ticket emails",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 113.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_iqbteomv",
+      "name": "Email Kemal about offer letter",
+      "description": "Emailed Kemal Kowalski about the signed offer letter. Kemal replied that it arrived and looks fine. It is filed under reference REF-33773.",
+      "contacts": [
+        {
+          "email": "kemal.kowalski@fastmail.com",
+          "display_name": "Kemal Kowalski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 0.0,
+      "last_run_days_ago": 0.0
+    }
+  ]
+}

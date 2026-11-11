@@ -1,0 +1,69 @@
+{
+  "id": "newtask-003",
+  "category": "new_task_lookalike",
+  "split": "test",
+  "source": "template",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_ixutvgok",
+      "name": "Stand-up prep reminder",
+      "description": "Reminds the user every day at 12pm to write notes for stand-up. The reminder id is RMD-56977.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 12pm",
+          "payload": "Remind the user to write notes for stand-up",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 67.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_rnt4pgwm",
+      "name": "Medication reminder",
+      "description": "Reminds the user every Wednesday at 10am to take the evening medication. Prescription RX-413708 is on file.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekly on Wednesday at 10am",
+          "payload": "Remind the user to take the evening medication",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 70.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_sx52hkww",
+      "name": "Update roadmap reminder",
+      "description": "Reminds the user every weekday at 9am to update the roadmap doc. It is saved as reminder RMD-74875.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 9am",
+          "payload": "Remind the user to update the roadmap doc",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 81.0,
+      "last_run_days_ago": 1.0
+    }
+  ],
+  "message": "Remind me to check the tire pressure every Sunday at 6pm.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Thanks, that's all for now."
+    },
+    {
+      "role": "assistant",
+      "text": "You're welcome. I'm here if anything comes up."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "notes": "A new reminder ('check the tire pressure') that resembles the existing 'Car registration' reminder only in vocabulary: create. Reusing a reminder agent would add a second duty to it."
+}

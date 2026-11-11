@@ -1,0 +1,113 @@
+{
+  "id": "followup-005",
+  "category": "email_followup",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_4vdh7oh4",
+      "name": "Find emails from Amara about birthday plans",
+      "description": "Searched the inbox for emails from Amara Abara about the birthday plans and listed 4 matches. The thread is saved as MSG-43127.",
+      "contacts": [
+        {
+          "email": "amara.abara@fastmail.com",
+          "display_name": "Amara Abara",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 10.0,
+      "last_run_days_ago": 10.0
+    },
+    {
+      "id": "ag_eulhjzm6",
+      "name": "Follow up with Amara on project deadline",
+      "description": "Emailed Amara Abara about moving the project deadline by a week. Amara replied that the new date works. The thread is saved as MSG-36215.",
+      "contacts": [
+        {
+          "email": "amara.abara@fastmail.com",
+          "display_name": "Amara Abara",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 77.0,
+      "last_run_days_ago": 77.0
+    },
+    {
+      "id": "ag_lgmfuakj",
+      "name": "Find emails from Amara about refund",
+      "description": "Searched the inbox for emails from Amara Abara about the refund and listed 3 matches. Reference number REF-48653 is on file.",
+      "contacts": [
+        {
+          "email": "amara.abara@fastmail.com",
+          "display_name": "Amara Abara",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 20.0,
+      "last_run_days_ago": 20.0
+    },
+    {
+      "id": "ag_yoonwaw4",
+      "name": "Follow up with Amara on password reset",
+      "description": "Emailed Amara Abara about the shared account password reset. Amara replied that access has been restored. Ticket #Q-18474 was opened for it.",
+      "contacts": [
+        {
+          "email": "amara.abara@fastmail.com",
+          "display_name": "Amara Abara",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 4.0,
+      "last_run_days_ago": 4.0
+    }
+  ],
+  "message": "Could you look through my email again for any new messages from Amara about the party plans?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any updates I should know about?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your receipt summary: 7 new items, nothing that needs an answer today.",
+      "agent_id": "ag_upxeow5g",
+      "agent_name": "Weekly receipt summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your receipt summary: 7 new items, nothing that needs an answer today."
+    },
+    {
+      "role": "user",
+      "text": "Thanks, that's all for now."
+    },
+    {
+      "role": "assistant",
+      "text": "You're welcome. I'm here if anything comes up."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_4vdh7oh4)"
+  ],
+  "expect_person": "Amara Abara",
+  "notes": "Reuse the search agent 'Find emails from Amara about birthday plans'. The message names Amara Abara and paraphrases the topic ('the birthday plans'); Amara Abara's other agents have different topics, so only the topic separates them (long-tail: user activity 10 days ago).",
+  "original_message": "Check my inbox again for anything new from Amara on the party planning.",
+  "context_agents": [
+    {
+      "id": "ag_upxeow5g",
+      "name": "Weekly receipt summary",
+      "description": "Every sunday at 7pm, summarises the purchase receipts and sends the summary to the user. Order ORD-33766 covers it.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekly on Sunday at 7pm",
+          "payload": "Summarise the purchase receipts",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 103.0,
+      "last_run_days_ago": 0.0
+    }
+  ]
+}

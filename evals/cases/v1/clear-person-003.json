@@ -1,0 +1,90 @@
+{
+  "id": "clear-person-003",
+  "category": "clear_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_dqood4mp",
+      "name": "Find emails from Elena about flight confirmation",
+      "description": "Searched the inbox for emails from Elena Zielinski about the flight confirmation and listed 4 matches. The confirmation code is CONF-WSAUWY.",
+      "contacts": [
+        {
+          "email": "elena.zielinski@acme-corp.com",
+          "display_name": "Elena Zielinski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 49.0,
+      "last_run_days_ago": 49.0
+    },
+    {
+      "id": "ag_mehguqob",
+      "name": "Email Elena the reading list",
+      "description": "Sent Elena Zielinski the reading list. Elena acknowledged it. Thread MSG-28652 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "elena.zielinski@acme-corp.com",
+          "display_name": "Elena Zielinski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 2.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_phcq2cjh",
+      "name": "Follow up with Elena on parent-teacher meeting",
+      "description": "Emailed Elena Sandoval about the parent-teacher meeting time. Elena replied that Thursday afternoon works. The confirmation code is CONF-KAFKP6.",
+      "contacts": [
+        {
+          "email": "elena.sandoval@studiolune.co",
+          "display_name": "Elena Sandoval",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 22.0,
+      "last_run_days_ago": 22.0
+    },
+    {
+      "id": "ag_pxztlwmc",
+      "name": "Find emails from Elena about flight confirmation",
+      "description": "Searched the inbox for emails from Elena Zielinski about the flight confirmation and listed 3 matches. The confirmation code is CONF-YKC26E.",
+      "contacts": [
+        {
+          "email": "elena.zielinski@acme-corp.com",
+          "display_name": "Elena Zielinski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 0.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Could you drop Elena Zielinski a note and ask if she'd suggest a few books I should pick up?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Is it going to rain in Seattle tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "Light rain in the morning, clearing by noon."
+    },
+    {
+      "role": "user",
+      "text": "What did Elena Sandoval say about the school conference time?"
+    },
+    {
+      "role": "assistant",
+      "text": "Elena replied that Thursday afternoon works. Nothing else is needed from you right now."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Elena Zielinski",
+  "notes": "The last exchange was about Elena Sandoval, but the message names Elena Zielinski in full: don't ask, and don't email Elena Sandoval. A new ask, so create.",
+  "original_message": "Can you write to Elena Zielinski asking for a couple of book recommendations?"
+}

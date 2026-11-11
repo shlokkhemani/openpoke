@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import json
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -10,6 +12,7 @@ from fastapi.responses import JSONResponse
 from .config import get_settings
 from .logging_config import configure_logging, logger
 from .routes import api_router
+from .services.agents import indexer
 from .services import get_important_email_watcher, get_trigger_scheduler
 
 
@@ -65,6 +68,9 @@ register_exception_handlers(app)
 app.include_router(api_router)
 
 
+_warmup_task: Optional["asyncio.Task[None]"] = None
+
+
 @app.on_event("startup")
 # Initialize background services (trigger scheduler and email watcher) when the app starts
 async def _start_trigger_scheduler() -> None:
@@ -72,6 +78,9 @@ async def _start_trigger_scheduler() -> None:
     await scheduler.start()
     watcher = get_important_email_watcher()
     await watcher.start()
+    # Load the embedding model and backfill off the event loop; startup does not wait for it
+    global _warmup_task
+    _warmup_task = asyncio.create_task(asyncio.to_thread(indexer.warm_and_backfill))
 
 
 @app.on_event("shutdown")

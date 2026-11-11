@@ -1,0 +1,62 @@
+{
+ "purpose": "layer-1 dense stress dev fastembed after fixes",
+ "command": "python -m evals.run retrieval --world dense --embedder fastembed --purpose 'layer-1 dense stress dev fastembed after fixes'",
+ "date_utc": "2026-11-09T19:23:04Z",
+ "run_folder": "20261109T192304Z-layer-1-dense-stress-dev-fastembed-after",
+ "git": "uncommitted working tree on HEAD 70e7091",
+ "split": "dev",
+ "sizes": [
+  100,
+  200,
+  300
+ ],
+ "queries": "all",
+ "embedder": "fastembed",
+ "case_set_sha256": "688388e57eb5980fa06046a7e384b5449d9b1c71134c817bbf7d20d166fbcbda",
+ "descriptions": {
+  "source": "world (forced for dense)",
+  "sha256": null,
+  "covered": 0,
+  "total": 310
+ },
+ "seeds": {
+  "used": [],
+  "skipped": [],
+  "count": 0,
+  "dropped": 0
+ },
+ "counts": {
+  "dense": 163,
+  "target_exact": 48,
+  "target_para": 46,
+  "topic_noname": 23,
+  "history_pull": 46,
+  "referenced": 46,
+  "skipped_n_below_required": 0
+ },
+ "timings": {
+  "load_s": 0.004716041999927256,
+  "queries_s": 0.005398041997977998,
+  "evaluate_s": 9.130846584004757,
+  "write_s": 0.01280941600271035
+ },
+ "headline": "dense dev target_para recall@20 at N=100/200/300: 0.67/0.67/0.72 (base@20 0.22/0.50/0.24)",
+ "world": "dense",
+ "paraphrases": {
+  "file": "dense_paraphrases.json",
+  "sha256": "ec5ae4f8eb9958d2b4e6bcba9333ee6c13ccd607bd6a317efde5f53cb17e3db0",
+  "dropped_at_load": [
+   {
+    "topic": "w-9 form",
+    "paraphrase": "that W-9 thing",
+    "leaked": [
+     "9",
+     "w"
+    ]
+   }
+  ],
+  "skipped_topics": [
+   "w-9 form"
+  ]
+ }
+}

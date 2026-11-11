@@ -1,0 +1,69 @@
+{
+  "id": "newtask-002",
+  "category": "new_task_lookalike",
+  "split": "test",
+  "source": "template",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_rxyi7fwm",
+      "name": "Weekday expense summary",
+      "description": "Every weekday at 6pm, summarises the card and receipt emails and sends the summary to the user. Reference number REF-61137 is on file.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 6pm",
+          "payload": "Summarise the receipt emails",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 84.0,
+      "last_run_days_ago": 3.0
+    },
+    {
+      "id": "ag_ncrn36ad",
+      "name": "Nightly travel summary",
+      "description": "Every day at 6pm, summarises the travel confirmation emails and sends the summary to the user. Confirmation CONF-GTBBUF was issued.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 6pm",
+          "payload": "Summarise the travel confirmations",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 27.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_eo5v3hl6",
+      "name": "Nightly calendar summary",
+      "description": "Every day at 9pm, summarises the upcoming calendar events and sends the summary to the user. The most recent one is DGT-70947.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Summarise the upcoming calendar events",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 54.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "I want a recap of my Figma comments every weekday at 8am.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's the weather like this weekend?"
+    },
+    {
+      "role": "assistant",
+      "text": "Mostly sunny on Saturday, with showers likely on Sunday afternoon."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "notes": "A recurring summary of a source no existing agent covers (Figma comments): create. Lookalikes are existing scheduled summaries sharing 'summary' and cadence."
+}

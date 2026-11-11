@@ -1,0 +1,77 @@
+{
+  "id": "amb-person-001",
+  "category": "ambiguous_person",
+  "split": "test",
+  "source": "hand",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_chen_budget",
+      "name": "Email Alice re Q3 budget",
+      "description": "Emailed Alice Chen the Q3 budget spreadsheet and asked for sign-off by Friday. She replied asking for the vendor breakdown; sent it. Waiting on approval.",
+      "contacts": [
+        {
+          "email": "alice.chen@northwind.io",
+          "display_name": "Alice Chen",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 3
+    },
+    {
+      "id": "ag_park_dinner",
+      "name": "Email Alice about dinner",
+      "description": "Asked Alice Park whether Saturday 7pm works for her birthday dinner at Lupa. She confirmed; reservation details sent.",
+      "contacts": [
+        {
+          "email": "alice.park@gmail.com",
+          "display_name": "Alice Park",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9
+    }
+  ],
+  "message": "Can you email Alice and ask if she's free for an offsite planning call on Thursday?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Did any of my reminders go off?"
+    },
+    {
+      "role": "agent",
+      "text": "Reminder: review open pull requests.",
+      "agent_id": "ag_tvsjosvs",
+      "agent_name": "Review PRs reminder"
+    },
+    {
+      "role": "assistant",
+      "text": "Reminder: review open pull requests."
+    }
+  ],
+  "acceptable": [
+    "clarify"
+  ],
+  "clarify_should_name": [
+    "Alice Chen",
+    "Alice Park"
+  ],
+  "notes": "Two contacts share the first name, message gives first name only, nothing in the conversation points to either. Must ask before any dispatch. Alice Chen is more recent: checks the IA doesn't settle the tie on recency. 'Assume and proceed' fails.",
+  "context_agents": [
+    {
+      "id": "ag_tvsjosvs",
+      "name": "Review PRs reminder",
+      "description": "Reminds the user every day at 8am to review open pull requests. The pull request is PR-3543.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 8am",
+          "payload": "Remind the user to review open pull requests",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 117.0,
+      "last_run_days_ago": 0.0
+    }
+  ]
+}

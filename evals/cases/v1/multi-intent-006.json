@@ -1,0 +1,139 @@
+{
+  "id": "multi-intent-006",
+  "category": "multi_intent",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_nv6oynvy",
+      "name": "Find emails from Greta about birthday plans",
+      "description": "Searched the inbox for emails from Greta Silva about the birthday plans and listed 2 matches. Thread MSG-56648 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "greta.silva@acme-corp.com",
+          "display_name": "Greta Silva",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 45.0,
+      "last_run_days_ago": 45.0
+    },
+    {
+      "id": "ag_uaxmayvy",
+      "name": "Follow up with Greta on Q4 roadmap",
+      "description": "Emailed Greta Silva about the Q4 roadmap draft. Greta replied that they will send comments by Thursday. Thread MSG-38817 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "greta.silva@acme-corp.com",
+          "display_name": "Greta Silva",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 116.0,
+      "last_run_days_ago": 116.0
+    },
+    {
+      "id": "ag_x37ckuqg",
+      "name": "Email Greta re budget approval",
+      "description": "Emailed Greta Silva about approval for the marketing budget. Greta replied that finance needs one more sign-off. It is filed under reference REF-28553.",
+      "contacts": [
+        {
+          "email": "greta.silva@acme-corp.com",
+          "display_name": "Greta Silva",
+          "role": "to"
+        },
+        {
+          "email": "nikhil.fontaine@gmail.com",
+          "display_name": "Nikhil Fontaine",
+          "role": "cc"
+        }
+      ],
+      "last_user_activity_days_ago": 12.0,
+      "last_run_days_ago": 12.0
+    },
+    {
+      "id": "ag_wyehdpnc",
+      "name": "Bike service reminder",
+      "description": "Reminds the user every day at 9pm to take the bike in for service. Confirmation CONF-GFKNZ4 was issued.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Remind the user to take the bike in for service",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 41.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_rhrccm3w",
+      "name": "Call mom reminder",
+      "description": "Reminds the user every day at 9pm to call their mother. It is saved as reminder RMD-21352.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Remind the user to call their mother",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 51.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_orcr36a4",
+      "name": "Language practice reminder",
+      "description": "Reminds the user every day at 9pm to do the daily Spanish lesson. It is saved as reminder RMD-59546.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Remind the user to do the daily Spanish lesson",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 69.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Shoot Greta Silva an email asking if I can borrow her bike pump this weekend, and also push my bike tune-up reminder back to 8pm.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What day is the first of next month?"
+    },
+    {
+      "role": "assistant",
+      "text": "It falls on a Monday."
+    },
+    {
+      "role": "user",
+      "text": "Is it going to rain in Seattle tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "Light rain in the morning, clearing by noon."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Greta Silva"
+          ]
+        },
+        {
+          "target": "reuse(ag_wyehdpnc)",
+          "must_mention": []
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "A new email to Greta (create) and a change to the existing bike service reminder (reuse). Slots: create naming Greta Silva; reuse 'Bike service reminder'. Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Email Greta Silva and ask if she can lend me her bike pump this weekend, and move my bike tune-up reminder to 8pm."
+}

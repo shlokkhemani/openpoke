@@ -1,0 +1,73 @@
+{
+  "id": "clear-person-001",
+  "category": "clear_person",
+  "split": "test",
+  "source": "hand",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_chen_budget",
+      "name": "Email Alice re Q3 budget",
+      "description": "Emailed Alice Chen the Q3 budget spreadsheet and asked for sign-off by Friday. She replied asking for the vendor breakdown; sent it. Waiting on approval.",
+      "contacts": [
+        {
+          "email": "alice.chen@northwind.io",
+          "display_name": "Alice Chen",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 3
+    },
+    {
+      "id": "ag_park_dinner",
+      "name": "Email Alice about dinner",
+      "description": "Asked Alice Park whether Saturday 7pm works for her birthday dinner at Lupa. She confirmed; reservation details sent.",
+      "contacts": [
+        {
+          "email": "alice.park@gmail.com",
+          "display_name": "Alice Park",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9
+    }
+  ],
+  "message": "Can you email Alice Chen and ask if she's free for an offsite planning call on Thursday?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any news from Zane Tanaka on the paperwork for taxes?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on the paperwork for taxes: Zane replied that the accountant has what is needed.",
+      "agent_id": "ag_oho5z2l5",
+      "agent_name": "Follow up with Zane on tax documents"
+    },
+    {
+      "role": "assistant",
+      "text": "Zane replied that the accountant has what is needed."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Alice Chen",
+  "notes": "Pair of amb-person-001: full name given, so no question. Asking is over-clarification. Must not reuse the budget agent (different task).",
+  "context_agents": [
+    {
+      "id": "ag_oho5z2l5",
+      "name": "Follow up with Zane on tax documents",
+      "description": "Emailed Zane Tanaka about the tax documents for last year. Zane replied that the accountant has what is needed. Reference number REF-26031 is on file.",
+      "contacts": [
+        {
+          "email": "zane.tanaka@studiolune.co",
+          "display_name": "Zane Tanaka",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 18.0,
+      "last_run_days_ago": 18.0
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "id": "broad-person-002",
+  "category": "broad_question_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_4xkuil2t",
+      "name": "Email Tomas about password reset",
+      "description": "Emailed Tomas Gallagher about the shared account password reset. Tomas replied that access has been restored. Support case #Q-63769 tracks it.",
+      "contacts": [
+        {
+          "email": "tomas.gallagher@outlook.com",
+          "display_name": "Tomas Gallagher",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 2.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_bnyohsoe",
+      "name": "Email Tomas re wedding rsvp",
+      "description": "Emailed Tomas Gallagher about the RSVP for the wedding. Tomas replied that a seat has been reserved. The confirmation code is CONF-UFO55I.",
+      "contacts": [
+        {
+          "email": "tomas.gallagher@outlook.com",
+          "display_name": "Tomas Gallagher",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 112.0,
+      "last_run_days_ago": 112.0
+    },
+    {
+      "id": "ag_mklcelcf",
+      "name": "Send Tomas the photos",
+      "description": "Sent Tomas Gallagher the photos from the weekend trip. Tomas acknowledged it. Thread MSG-55598 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "tomas.gallagher@outlook.com",
+          "display_name": "Tomas Gallagher",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 43.0,
+      "last_run_days_ago": 43.0
+    },
+    {
+      "id": "ag_t4622w3n",
+      "name": "Email Tomas about car service",
+      "description": "Emailed Tomas Gallagher about booking the car service. Tomas replied that the slot is confirmed. Confirmation CONF-F54YUP was issued.",
+      "contacts": [
+        {
+          "email": "tomas.gallagher@outlook.com",
+          "display_name": "Tomas Gallagher",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 41.0,
+      "last_run_days_ago": 41.0
+    },
+    {
+      "id": "ag_uqekjugd",
+      "name": "Email Tomas the itinerary",
+      "description": "Sent Tomas Gallagher the trip itinerary. Tomas acknowledged it. Confirmation CONF-4CYQOQ was issued.",
+      "contacts": [
+        {
+          "email": "tomas.gallagher@outlook.com",
+          "display_name": "Tomas Gallagher",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 40.0,
+      "last_run_days_ago": 40.0
+    },
+    {
+      "id": "ag_z67l3fm3",
+      "name": "Email Tomas about tax documents",
+      "description": "Emailed Tomas Gallagher about the tax documents for last year. Tomas replied that the accountant has what is needed. It is filed under reference REF-67982.",
+      "contacts": [
+        {
+          "email": "tomas.gallagher@outlook.com",
+          "display_name": "Tomas Gallagher",
+          "role": "to"
+        },
+        {
+          "email": "owen.nakamura@gmail.com",
+          "display_name": "Owen Nakamura",
+          "role": "cc"
+        }
+      ],
+      "last_user_activity_days_ago": 29.0,
+      "last_run_days_ago": 29.0
+    },
+    {
+      "id": "ag_fgoj3532",
+      "name": "Find emails from Isaac about flight confirmation",
+      "description": "Searched the inbox for emails from Isaac Varga about the flight confirmation and listed 5 matches. The confirmation code is CONF-CXDEXD.",
+      "contacts": [
+        {
+          "email": "isaac.varga@fastmail.com",
+          "display_name": "Isaac Varga",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 9.0,
+      "last_run_days_ago": 9.0
+    }
+  ],
+  "message": "Is there anything still open with Tomas Gallagher?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's the weather like this weekend?"
+    },
+    {
+      "role": "assistant",
+      "text": "Mostly sunny on Saturday, with showers likely on Sunday afternoon."
+    }
+  ],
+  "acceptable": [
+    "answer_set([ag_4xkuil2t, ag_z67l3fm3, ag_uqekjugd, ag_t4622w3n, ag_mklcelcf, ag_bnyohsoe])"
+  ],
+  "unique_facts": {
+    "ag_4xkuil2t": "#Q-63769",
+    "ag_bnyohsoe": "CONF-UFO55I",
+    "ag_mklcelcf": "MSG-55598",
+    "ag_t4622w3n": "CONF-F54YUP",
+    "ag_uqekjugd": "CONF-4CYQOQ",
+    "ag_z67l3fm3": "REF-67982"
+  },
+  "notes": "Broad question about Tomas Gallagher: cover all 6 agents linked to them. Covered = messaged OR unique fact in the reply (code-style facts; 0 agent(s) have no code fact and must be messaged). Oldest agent: 112 days since the user's last activity. Distractor: 'Find emails from Isaac about flight confirmation' shares a topic but not the person.",
+  "original_message": "Anything outstanding with Tomas Gallagher?"
+}

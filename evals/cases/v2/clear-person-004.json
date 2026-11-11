@@ -1,0 +1,146 @@
+{
+  "id": "clear-person-004",
+  "category": "clear_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_bzxcbyn5",
+      "name": "Email Priya about design review",
+      "description": "Emailed Priya Raman about feedback on the design review slides. Priya replied that two slides need rework. Thread MSG-82410 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 18.0,
+      "last_run_days_ago": 18.0
+    },
+    {
+      "id": "ag_dgnu5mlk",
+      "name": "Email Priya about wedding rsvp",
+      "description": "Emailed Priya Raman about the RSVP for the wedding. Priya replied that a seat has been reserved. The confirmation code is CONF-K33EQB.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 60.0,
+      "last_run_days_ago": 60.0
+    },
+    {
+      "id": "ag_dpq74iot",
+      "name": "Find emails from Priya about flight confirmation",
+      "description": "Searched the inbox for emails from Priya Raman about the flight confirmation and listed 7 matches. The confirmation code is CONF-BEKLNY.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 46.0,
+      "last_run_days_ago": 46.0
+    },
+    {
+      "id": "ag_f2mexitj",
+      "name": "Email Priya the proposal",
+      "description": "Sent Priya Raman the draft proposal. Priya acknowledged it. Thread MSG-34951 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "priya.raman@gmail.com",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 2.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_qpngcw2c",
+      "name": "Find emails from Priya about tax return",
+      "description": "Searched the inbox for emails from Priya Raman about the tax return and listed 2 matches. Reference number REF-77314 is on file.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 91.0,
+      "last_run_days_ago": 91.0
+    },
+    {
+      "id": "ag_sqbzmbwn",
+      "name": "Email Priya about invoice dispute",
+      "description": "Emailed Priya Raman about the disputed invoice. Priya replied that the charge will be reversed. The paperwork is filed under INV-93067.",
+      "contacts": [
+        {
+          "email": "priya.raman@northwind.io",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 32.0,
+      "last_run_days_ago": 32.0
+    },
+    {
+      "id": "ag_yho6t5wz",
+      "name": "Find emails from Priya about quarterly report",
+      "description": "Searched the inbox for emails from Priya Raman about the quarterly report and listed 4 matches. Reference number REF-45938 is on file.",
+      "contacts": [
+        {
+          "email": "priya.raman@gmail.com",
+          "display_name": "Priya Raman",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 90.0,
+      "last_run_days_ago": 90.0
+    }
+  ],
+  "message": "Could you shoot Priya Raman a text and find out when they're next coming to town?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any news from Gabriel Eriksen on lending me the packing boxes?"
+    },
+    {
+      "role": "agent",
+      "text": "Update on lending me the packing boxes: Gabriel replied that they can drop them off on Saturday.",
+      "agent_id": "ag_w3t6uzbi",
+      "agent_name": "Email Gabriel re moving boxes"
+    },
+    {
+      "role": "assistant",
+      "text": "Gabriel replied that they can drop them off on Saturday."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Priya Raman",
+  "notes": "Priya Raman has two email addresses but is one person: don't ask which address or which person. A new ask, so create.",
+  "original_message": "Can you message Priya Raman asking when they're next in town?",
+  "context_agents": [
+    {
+      "id": "ag_w3t6uzbi",
+      "name": "Email Gabriel re moving boxes",
+      "description": "Emailed Gabriel Eriksen about borrowing the moving boxes. Gabriel replied that they can drop them off on Saturday. The thread is saved as MSG-56654.",
+      "contacts": [
+        {
+          "email": "gabriel.eriksen@outlook.com",
+          "display_name": "Gabriel Eriksen",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 117.0,
+      "last_run_days_ago": 117.0
+    }
+  ]
+}

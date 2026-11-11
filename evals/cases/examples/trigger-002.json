@@ -1,0 +1,84 @@
+{
+  "id": "trigger-002",
+  "category": "trigger_management",
+  "split": "test",
+  "source": "hand",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_nightly_digest",
+      "name": "Nightly digest",
+      "description": "Every night at 9pm, summarises the day's important unread emails and sends the summary to the user.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Summarise today's important unread emails",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 40,
+      "last_run_days_ago": 0
+    },
+    {
+      "id": "ag_weekly_digest",
+      "name": "Weekly recruiting summary",
+      "description": "Every Monday at 8am, summarises the past week's recruiting email threads (recruiters, interview scheduling).",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekly on Monday at 8am",
+          "payload": "Summarise last week's recruiting emails",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 12,
+      "last_run_days_ago": 4
+    },
+    {
+      "id": "ag_log_hours",
+      "name": "Evening reminder",
+      "description": "Reminds the user every weekday at 8pm to log their hours in the timesheet.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 8pm",
+          "payload": "Remind the user to log their hours",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 6,
+      "last_run_days_ago": 0
+    },
+    {
+      "id": "ag_bob_summary",
+      "name": "Email Bob the meeting summary",
+      "description": "Sent Bob Martinez the summary of Wednesday's product review, with action items. He acknowledged.",
+      "contacts": [
+        {
+          "email": "bob.martinez@northwind.io",
+          "display_name": "Bob Martinez",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 2
+    }
+  ],
+  "ia_history": [
+    {
+      "role": "agent",
+      "agent_id": "ag_nightly_digest",
+      "agent_name": "Nightly digest",
+      "text": "Tonight's digest: 3 important unread emails. (1) Northwind invoice #4471 is overdue. (2) Alice Chen asked for the vendor breakdown. (3) Your flight to Denver on the 14th has a gate change."
+    },
+    {
+      "role": "assistant",
+      "text": "Here's tonight's digest: 3 important unread emails. Northwind invoice #4471 is overdue, Alice Chen asked for the vendor breakdown, and your Denver flight on the 14th has a gate change."
+    }
+  ],
+  "message": "stop sending me these",
+  "acceptable": [
+    "reuse(ag_nightly_digest)"
+  ],
+  "notes": "Reacting right after a trigger fires. The message names nothing; only the conversation (the agent's own message, tagged with its id) identifies the target. The log-hours reminder also fires in the evening, so 'these' must resolve to the agent whose message is on screen. A wrong create can't see the trigger (listTriggers is per agent) and the digests keep coming. Conversation mirrors the real log: the agent's report (agent_message, rendered today as '[SUCCESS] Nightly digest: ...', with the agent id added in the new modes), then Poke relaying it to the user (poke_reply). The user only ever sees the relay."
+}

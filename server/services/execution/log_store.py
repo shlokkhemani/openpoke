@@ -17,8 +17,8 @@ _EXECUTION_LOG_DIR = _DATA_DIR / "execution_agents"
 
 
 def _slugify(name: str) -> str:
-    """Convert agent name to filesystem-safe slug."""
-    slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in name.strip()).strip("-")
+    """Convert an agent id (or legacy name) to a filesystem-safe slug; ``ag_xxxxxxxx`` ids pass through."""
+    slug = "".join(ch.lower() if ch.isalnum() or ch == "_" else "-" for ch in name.strip()).strip("-")
     while "--" in slug:
         slug = slug.replace("--", "-")
     return slug or "agent"

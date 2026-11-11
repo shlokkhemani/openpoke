@@ -1,0 +1,67 @@
+{
+  "id": "clear-person-006",
+  "category": "clear_person",
+  "split": "dev",
+  "source": "template",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_27trrgec",
+      "name": "Send Daniel the signed NDA",
+      "description": "Sent Daniel Walsh the signed NDA. Daniel acknowledged it. It is filed under reference REF-74721.",
+      "contacts": [
+        {
+          "email": "daniel.walsh@gmail.com",
+          "display_name": "Daniel Walsh",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 70.0,
+      "last_run_days_ago": 70.0
+    },
+    {
+      "id": "ag_e544hlzo",
+      "name": "Email Daniel about lab results",
+      "description": "Emailed Daniel Walsh about the lab results appointment. Daniel replied that the results are available in the portal. It is filed under reference REF-13823.",
+      "contacts": [
+        {
+          "email": "daniel.walsh@gmail.com",
+          "display_name": "Daniel Walsh",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 40.0,
+      "last_run_days_ago": 40.0
+    },
+    {
+      "id": "ag_vgbzlvg7",
+      "name": "Find emails from Daniel about conference schedule",
+      "description": "Searched the inbox for emails from Daniel Kaplan about the conference schedule and listed 9 matches. Thread MSG-14665 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "daniel.kaplan@gmail.com",
+          "display_name": "Daniel Kaplan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 4.0,
+      "last_run_days_ago": 4.0
+    }
+  ],
+  "message": "Email Daniel Walsh and ask if they're coming to the barbecue on Saturday.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Do I have anything on Friday afternoon?"
+    },
+    {
+      "role": "assistant",
+      "text": "Nothing scheduled. Your calendar is clear after 1pm."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Daniel Walsh",
+  "notes": "Full name given (Daniel Walsh); another Daniel exists, which is why this is a clear-person case: don't ask. A new ask, so create."
+}

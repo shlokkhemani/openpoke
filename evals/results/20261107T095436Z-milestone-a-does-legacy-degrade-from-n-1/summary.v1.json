@@ -1,0 +1,469 @@
+{
+  "purpose": "Milestone A: does legacy degrade from N=10 to N=300 (dev, Haiku)",
+  "command": "python -m evals.run routing --modes legacy --sizes 10,300 --split dev --runs 1 --purpose 'Milestone A: does legacy degrade from N=10 to N=300 (dev, Haiku)' --yes",
+  "date_utc": "2026-11-07T09:54:36Z",
+  "run_folder": "20261107T095436Z-milestone-a-does-legacy-degrade-from-n-1",
+  "model": "anthropic/claude-haiku-5.5",
+  "git": "uncommitted working tree on HEAD c1bc207",
+  "case_set": {
+    "dir": "evals/cases/v1",
+    "version": "v1",
+    "manifest_sha256": "eb5f510b2a88a0eea0fadce016515fab81f582c0d360da9f00096134d88be8f7",
+    "frozen_on": "2026-11-07"
+  },
+  "split": "dev",
+  "case_ids": [
+    "amb-person-006",
+    "amb-person-007",
+    "broad-person-005",
+    "broad-person-006",
+    "clear-person-005",
+    "clear-person-006",
+    "followup-005",
+    "followup-006",
+    "multi-intent-005",
+    "multi-intent-006",
+    "multi-person-005",
+    "multi-person-006",
+    "newtask-005",
+    "newtask-006",
+    "trigger-005",
+    "trigger-006"
+  ],
+  "n_cases": 16,
+  "modes": [
+    "legacy"
+  ],
+  "sizes": [
+    10,
+    300
+  ],
+  "runs": 1,
+  "max_cost": 35.0,
+  "concurrency": 4,
+  "recency_cutoff": 20,
+  "counts": {
+    "planned": 32,
+    "completed": 32,
+    "graded": 32,
+    "infra_errors": 0,
+    "retried": 0,
+    "skipped_max_cost": 0,
+    "reused": 0
+  },
+  "cost": {
+    "actual_usd": 0.06097,
+    "estimated_usd": 0.0376,
+    "prompt_tokens": 515052,
+    "completion_tokens": 18930
+  },
+  "latency": {
+    "mean_latency_s": 4.375,
+    "mean_round_trips": 2.125
+  },
+  "pass_rate": {
+    "legacy": {
+      "10": {
+        "passed": 6,
+        "graded": 16,
+        "rate": 0.375
+      },
+      "300": {
+        "passed": 6,
+        "graded": 16,
+        "rate": 0.375
+      }
+    }
+  },
+  "by_category": {
+    "ambiguous_person": {
+      "legacy": {
+        "10": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        },
+        "300": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        }
+      }
+    },
+    "broad_question_person": {
+      "legacy": {
+        "10": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        },
+        "300": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        }
+      }
+    },
+    "clear_person": {
+      "legacy": {
+        "10": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        }
+      }
+    },
+    "email_followup": {
+      "legacy": {
+        "10": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        },
+        "300": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        }
+      }
+    },
+    "multi_intent": {
+      "legacy": {
+        "10": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        }
+      }
+    },
+    "multi_person": {
+      "legacy": {
+        "10": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 0,
+          "graded": 2,
+          "rate": 0.0
+        }
+      }
+    },
+    "new_task_lookalike": {
+      "legacy": {
+        "10": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 2,
+          "graded": 2,
+          "rate": 1.0
+        }
+      }
+    },
+    "trigger_management": {
+      "legacy": {
+        "10": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 1,
+          "graded": 2,
+          "rate": 0.5
+        }
+      }
+    }
+  },
+  "flags": {
+    "legacy": {
+      "10": {
+        "wrong_reuse": 2,
+        "duplicate_create": 2,
+        "ambiguous_dispatch": 1,
+        "trigger_duplicate": 1
+      },
+      "300": {
+        "duplicate_create": 4,
+        "trigger_duplicate": 1,
+        "ambiguous_dispatch": 1
+      }
+    }
+  },
+  "structural": {
+    "legacy": {
+      "10": 0,
+      "300": 0
+    }
+  },
+  "infra_errors": {
+    "legacy": {
+      "10": 0,
+      "300": 0
+    }
+  },
+  "skipped": {
+    "legacy": {
+      "10": 0,
+      "300": 0
+    }
+  },
+  "failing": [
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (message_user, dispatch→Find emails from Daniel about conference schedule)"
+    },
+    {
+      "case_id": "amb-person-006",
+      "category": "ambiguous_person",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Check Daniel reply)"
+    },
+    {
+      "case_id": "amb-person-007",
+      "category": "ambiguous_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected reuse(ag_dcl3r2h4); got reuse (message_user, dispatch→Email Farah re offer letter); wrong person in instructions"
+    },
+    {
+      "case_id": "broad-person-005",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_6qcrp7gd, ag_ivh5ynui, ag_msz3aew4, ag_jjm6nfqy, ag_qodxxymf]); got create (message_user, dispatch→Imani latest updates, wait)"
+    },
+    {
+      "case_id": "broad-person-005",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_6qcrp7gd, ag_ivh5ynui, ag_msz3aew4, ag_jjm6nfqy, ag_qodxxymf]); got create (message_user, dispatch→Imani latest updates)"
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got create (message_user, dispatch→Helena Rossi open items, wait)"
+    },
+    {
+      "case_id": "broad-person-006",
+      "category": "broad_question_person",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_hy76qnfy, ag_m57q5oei, ag_qyhcermq, ag_ibojksyx]); got create (message_user, dispatch→Open items with Helena Rossi)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Farah Moreau interview write-up search)"
+    },
+    {
+      "case_id": "clear-person-005",
+      "category": "clear_person",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_avdgfagy); got create (message_user, dispatch→Search Farah Moreau interview write-up)"
+    },
+    {
+      "case_id": "followup-005",
+      "category": "email_followup",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected reuse(ag_4vdh7oh4); got reuse (message_user, dispatch→Find emails from Amara about birthday plans); wrong person in instructions"
+    },
+    {
+      "case_id": "followup-005",
+      "category": "email_followup",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_4vdh7oh4); got create (message_user, dispatch→Find emails from Amara about party plans); wrong person in instructions"
+    },
+    {
+      "case_id": "followup-006",
+      "category": "email_followup",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected reuse(ag_m7zywmxw); got reuse (message_user, dispatch→Follow up with Theo on project deadline); wrong person in instructions"
+    },
+    {
+      "case_id": "followup-006",
+      "category": "email_followup",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected reuse(ag_m7zywmxw); got reuse (message_user, dispatch→Follow up with Theo on project deadline); wrong person in instructions"
+    },
+    {
+      "case_id": "multi-intent-005",
+      "category": "multi_intent",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "mixed",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(create[Jamal Kowalski]; create); got mixed (message_user, dispatch→Find emails from Jamal about quarterly report, dispatch→Friday lunch table reminder, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-006",
+      "category": "multi_intent",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create",
+        "trigger_duplicate"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(create[Greta Silva]; reuse(ag_wyehdpnc)); got create (message_user, dispatch→Email Greta bike pump request, dispatch→Bike tune-up reminder reschedule); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-005",
+      "category": "multi_person",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3syqqzg7); create[Amara Abara]); got create (message_user, dispatch→Liam Bianchi billing dispute update, dispatch→Email Amara Abara about hairdresser); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-006",
+      "category": "multi_person",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Alice Chen] + ask); got create (message_user, dispatch→Running club invite Sam and Alice Chen); slots 1/1"
+    },
+    {
+      "case_id": "multi-person-006",
+      "category": "multi_person",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Alice Chen] + ask); got create (message_user, dispatch→Running club invite Sam and Alice); slots 1/1"
+    },
+    {
+      "case_id": "trigger-006",
+      "category": "trigger_management",
+      "mode": "legacy",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create",
+        "trigger_duplicate"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_ohyhhbka); got create (dispatch→Reminder scheduler, message_user, wait)"
+    },
+    {
+      "case_id": "trigger-006",
+      "category": "trigger_management",
+      "mode": "legacy",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "none",
+      "flags": [],
+      "structural": false,
+      "reason": "expected reuse(ag_ohyhhbka); got none (no tool calls)"
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "id": "multi-intent-004",
+  "category": "multi_intent",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_jzczcyjg",
+      "name": "Email Rafael about deposit refund",
+      "description": "Emailed Rafael Yilmaz about the security deposit refund. Rafael replied that the refund was processed. Reference number REF-25441 is on file.",
+      "contacts": [
+        {
+          "email": "rafael.yilmaz@studiolune.co",
+          "display_name": "Rafael Yilmaz",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 89.0,
+      "last_run_days_ago": 89.0
+    },
+    {
+      "id": "ag_n3ipn2mp",
+      "name": "Email Rafael about podcast interview",
+      "description": "Emailed Rafael Gallagher about scheduling the podcast interview. Rafael replied that the recording is set for next Wednesday. The confirmation code is CONF-S6J5DK.",
+      "contacts": [
+        {
+          "email": "rafael.gallagher@acme-corp.com",
+          "display_name": "Rafael Gallagher",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 3.0,
+      "last_run_days_ago": 3.0
+    },
+    {
+      "id": "ag_xawuqnhy",
+      "name": "Follow up with Rafael on dentist appointment",
+      "description": "Emailed Rafael Yilmaz about rescheduling the dentist appointment. Rafael replied that Tuesday at 3pm is open. The confirmation code is CONF-22BETR.",
+      "contacts": [
+        {
+          "email": "rafael.yilmaz@studiolune.co",
+          "display_name": "Rafael Yilmaz",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 25.0,
+      "last_run_days_ago": 25.0
+    },
+    {
+      "id": "ag_pwqhcleb",
+      "name": "Dentist checkup reminder",
+      "description": "Reminds the user every weekday at 5pm to book the dentist checkup. The confirmation code is CONF-PT5OXC.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to book the dentist checkup",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 56.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_3ei6vv2d",
+      "name": "Check savings reminder",
+      "description": "Reminds the user every weekday at 5pm to check the savings account. The reminder id is RMD-10804.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to check the savings account",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 101.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_rmm7mteg",
+      "name": "Standing desk reminder",
+      "description": "Reminds the user every weekday at 5pm to reset the standing desk height. The reminder id is RMD-35450.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to reset the standing desk height",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 47.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Tell Rafael Yilmaz that Tuesday at 3pm is fine for the dentist, and push the dentist booking reminder back to 6pm.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Anything new in my inbox?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your calendar summary: 8 new items, nothing that needs an answer today.",
+      "agent_id": "ag_42wz3cre",
+      "agent_name": "Weekday calendar summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your calendar summary: 8 new items, nothing that needs an answer today."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "reuse(ag_xawuqnhy)",
+          "must_mention": []
+        },
+        {
+          "target": "reuse(ag_pwqhcleb)",
+          "must_mention": []
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "Both parts have an agent already: Rafael's dentist thread and the dentist checkup reminder. Reuse both, one dispatch each. Slots: reuse 'Follow up with Rafael on dentist appointment'; reuse 'Dentist checkup reminder'. Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Let Rafael Yilmaz know that Tuesday at 3pm works for the dentist, and move the dentist booking reminder to 6pm.",
+  "context_agents": [
+    {
+      "id": "ag_42wz3cre",
+      "name": "Weekday calendar summary",
+      "description": "Every weekday at 8am, summarises the upcoming calendar events and sends the summary to the user. The latest digest is DGT-72678.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 8am",
+          "payload": "Summarise the upcoming calendar events",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 61.0,
+      "last_run_days_ago": 0.0
+    }
+  ]
+}

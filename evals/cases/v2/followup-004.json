@@ -1,0 +1,167 @@
+{
+  "id": "followup-004",
+  "category": "email_followup",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_6zes4ukw",
+      "name": "Email Quinn the transcript",
+      "description": "Sent Quinn Nakamura the transcript from the interview. Quinn acknowledged it. Thread MSG-60720 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "quinn.nakamura@outlook.com",
+          "display_name": "Quinn Nakamura",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 53.0,
+      "last_run_days_ago": 53.0
+    },
+    {
+      "id": "ag_ceeghgmc",
+      "name": "Email Quinn re research paper",
+      "description": "Emailed Quinn Nakamura about comments on the research paper draft. Quinn replied that the methods section needs detail. The thread is saved as MSG-34593.",
+      "contacts": [
+        {
+          "email": "quinn.nakamura@outlook.com",
+          "display_name": "Quinn Nakamura",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 2.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_disdwh2s",
+      "name": "Email Quinn about research paper",
+      "description": "Emailed Quinn Nakamura about comments on the research paper draft. Quinn replied that the methods section needs detail. Thread MSG-98109 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "quinn.nakamura@outlook.com",
+          "display_name": "Quinn Nakamura",
+          "role": "to"
+        },
+        {
+          "email": "josefina.pereira@studiolune.co",
+          "display_name": "Josefina Pereira",
+          "role": "cc"
+        }
+      ],
+      "last_user_activity_days_ago": 21.0,
+      "last_run_days_ago": 21.0
+    },
+    {
+      "id": "ag_e7rol3n4",
+      "name": "Email Quinn the slide deck",
+      "description": "Sent Quinn Nakamura the final slide deck. Quinn acknowledged it. The thread is saved as MSG-31024.",
+      "contacts": [
+        {
+          "email": "quinn.nakamura@outlook.com",
+          "display_name": "Quinn Nakamura",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 15.0,
+      "last_run_days_ago": 15.0
+    },
+    {
+      "id": "ag_ir5mvvrd",
+      "name": "Send Quinn the slide deck",
+      "description": "Sent Quinn Nakamura the final slide deck. Quinn acknowledged it. The thread is saved as MSG-89775.",
+      "contacts": [
+        {
+          "email": "quinn.nakamura@outlook.com",
+          "display_name": "Quinn Nakamura",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 77.0,
+      "last_run_days_ago": 77.0
+    },
+    {
+      "id": "ag_zsl35wn2",
+      "name": "Email Quinn about security audit",
+      "description": "Emailed Quinn Nakamura about the security audit findings. Quinn replied that remediation is underway. Ticket #Q-66556 was opened for it.",
+      "contacts": [
+        {
+          "email": "quinn.nakamura@outlook.com",
+          "display_name": "Quinn Nakamura",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 4.0,
+      "last_run_days_ago": 4.0
+    }
+  ],
+  "message": "Haven't heard back from Quinn Nakamura about the security review findings, can you follow up with them?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Anything I need to do today?"
+    },
+    {
+      "role": "agent",
+      "text": "Reminder: take the evening medication.",
+      "agent_id": "ag_vwf5arsr",
+      "agent_name": "Medication reminder"
+    },
+    {
+      "role": "assistant",
+      "text": "Reminder: take the evening medication."
+    },
+    {
+      "role": "user",
+      "text": "Anything new in my inbox?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your calendar summary: 5 new items, nothing that needs an answer today.",
+      "agent_id": "ag_42wz3cre",
+      "agent_name": "Weekday calendar summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your calendar summary: 5 new items, nothing that needs an answer today."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_zsl35wn2)"
+  ],
+  "expect_person": "Quinn Nakamura",
+  "notes": "Reuse the thread agent 'Email Quinn about security audit'. The message names Quinn Nakamura and paraphrases the topic ('security audit'); Quinn Nakamura's other agents have different topics, so only the topic separates them (fresh: user activity 4 days ago).",
+  "original_message": "Follow up with Quinn Nakamura on the findings from the security review, I haven't heard anything.",
+  "context_agents": [
+    {
+      "id": "ag_vwf5arsr",
+      "name": "Medication reminder",
+      "description": "Reminds the user every Monday at 8am to take the evening medication. Prescription RX-273812 is on file.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekly on Monday at 8am",
+          "payload": "Remind the user to take the evening medication",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 109.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_42wz3cre",
+      "name": "Weekday calendar summary",
+      "description": "Every weekday at 8am, summarises the upcoming calendar events and sends the summary to the user. The latest digest is DGT-72678.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 8am",
+          "payload": "Summarise the upcoming calendar events",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 61.0,
+      "last_run_days_ago": 0.0
+    }
+  ]
+}

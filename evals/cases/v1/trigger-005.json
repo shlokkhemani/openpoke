@@ -1,0 +1,115 @@
+{
+  "id": "trigger-005",
+  "category": "trigger_management",
+  "split": "dev",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_x37e3tdn",
+      "name": "Weekday travel summary",
+      "description": "Every weekday at 6pm, summarises the travel confirmation emails and sends the summary to the user. The confirmation code is CONF-NZC5D3.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 6pm",
+          "payload": "Summarise the travel confirmations",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 93.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_ncrn36ad",
+      "name": "Nightly travel summary",
+      "description": "Every day at 6pm, summarises the travel confirmation emails and sends the summary to the user. Confirmation CONF-GTBBUF was issued.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 6pm",
+          "payload": "Summarise the travel confirmations",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 27.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_4lbtowbk",
+      "name": "Nightly travel summary",
+      "description": "Every day at 9pm, summarises the travel confirmation emails and sends the summary to the user. The confirmation code is CONF-6BV6KL.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Summarise the travel confirmations",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 48.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_zmx3epzj",
+      "name": "Weekly travel summary",
+      "description": "Every friday at 5pm, summarises the travel confirmation emails and sends the summary to the user. The confirmation code is CONF-R43URX.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekly on Friday at 5pm",
+          "payload": "Summarise the travel confirmations",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 114.0,
+      "last_run_days_ago": 2.0
+    },
+    {
+      "id": "ag_j26aa7xl",
+      "name": "Weekday calendar summary",
+      "description": "Every weekday at 6pm, summarises the upcoming calendar events and sends the summary to the user. The most recent one is DGT-78058.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 6pm",
+          "payload": "Summarise the upcoming calendar events",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 28.0,
+      "last_run_days_ago": 3.0
+    },
+    {
+      "id": "ag_e6zme236",
+      "name": "Weekday receipt summary",
+      "description": "Every weekday at 6pm, summarises the purchase receipts and sends the summary to the user. The order number is ORD-10406.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 6pm",
+          "payload": "Summarise the purchase receipts",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 86.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Could you shift the weekday 6pm trip bookings digest over to 6am instead?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Convert 20 miles to kilometres."
+    },
+    {
+      "role": "assistant",
+      "text": "20 miles is about 32 kilometres."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_x37e3tdn)"
+  ],
+  "notes": "Trigger 'time' on 'Weekday travel summary' (every weekday at 6pm, active; user last touched it 93 days ago, so recency misses it). Named by topic and schedule; 3 same-label twin(s) on other schedules are required lookalikes. A wrong create duplicates the trigger.",
+  "original_message": "Can you move my trip bookings digest that goes out every weekday at 6pm to 6am?"
+}

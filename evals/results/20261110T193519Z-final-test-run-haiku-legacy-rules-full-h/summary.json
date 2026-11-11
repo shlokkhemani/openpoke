@@ -1,0 +1,2613 @@
+{
+  "purpose": "Final test run: Haiku, legacy_rules+full+hybrid x N=10,30,100,300 x 3 runs, frozen 39a1439",
+  "command": "python -m evals.run routing --modes legacy_rules,full,hybrid --sizes 10,30,100,300 --split test --runs 3 --embedder fastembed --max-cost 6 --purpose 'Final test run: Haiku, legacy_rules+full+hybrid x N=10,30,100,300 x 3 runs, frozen 39a1439' --yes",
+  "date_utc": "2026-11-10T19:35:19Z",
+  "run_folder": "20261110T193519Z-final-test-run-haiku-legacy-rules-full-h",
+  "model": "anthropic/claude-haiku-5.5",
+  "git": "uncommitted working tree on HEAD 39a1439",
+  "case_set": {
+    "dir": "evals/cases/v2",
+    "version": "v2",
+    "manifest_sha256": "d0c9a4ca5b94e38c5c16bc428609f90cd25ba1b03d8adf80e733689c4649cc3c",
+    "frozen_on": "2026-11-09",
+    "world_sha256": "6f5bf809433f33658f866687deb2046728581fb35c4ab6b3c17468e6e66135b6"
+  },
+  "split": "test",
+  "case_ids": [
+    "amb-person-001",
+    "amb-person-002",
+    "amb-person-003",
+    "amb-person-004",
+    "amb-person-005",
+    "broad-person-001",
+    "broad-person-002",
+    "broad-person-003",
+    "broad-person-004",
+    "clear-person-001",
+    "clear-person-002",
+    "clear-person-003",
+    "clear-person-004",
+    "followup-001",
+    "followup-002",
+    "followup-003",
+    "followup-004",
+    "multi-intent-001",
+    "multi-intent-002",
+    "multi-intent-003",
+    "multi-intent-004",
+    "multi-person-001",
+    "multi-person-002",
+    "multi-person-003",
+    "multi-person-004",
+    "newtask-001",
+    "newtask-002",
+    "newtask-003",
+    "newtask-004",
+    "trigger-001",
+    "trigger-002",
+    "trigger-003",
+    "trigger-004"
+  ],
+  "n_cases": 33,
+  "modes": [
+    "legacy_rules",
+    "full",
+    "hybrid"
+  ],
+  "sizes": [
+    10,
+    30,
+    100,
+    300
+  ],
+  "runs": 3,
+  "max_cost": 6.0,
+  "concurrency": 4,
+  "descriptions": {
+    "source": "regen",
+    "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+    "covered": 310,
+    "total": 310
+  },
+  "embedder": "fastembed",
+  "search": {
+    "hybrid": {
+      "10": {
+        "graded": 99,
+        "searched": 0,
+        "search_errors": 0,
+        "target_in_initial": 99,
+        "target_found_by_search": 0
+      },
+      "30": {
+        "graded": 99,
+        "searched": 7,
+        "search_errors": 0,
+        "target_in_initial": 99,
+        "target_found_by_search": 0
+      },
+      "100": {
+        "graded": 99,
+        "searched": 7,
+        "search_errors": 0,
+        "target_in_initial": 96,
+        "target_found_by_search": 0
+      },
+      "300": {
+        "graded": 99,
+        "searched": 7,
+        "search_errors": 0,
+        "target_in_initial": 87,
+        "target_found_by_search": 0
+      }
+    }
+  },
+  "counts": {
+    "planned": 1188,
+    "completed": 1188,
+    "graded": 1188,
+    "infra_errors": 0,
+    "retried": 0,
+    "skipped_max_cost": 0
+  },
+  "cost": {
+    "actual_usd": 4.115988,
+    "estimated_usd": 4.010975,
+    "prompt_tokens": 36883566,
+    "completion_tokens": 855263,
+    "reservation_margin": 1.2,
+    "unmetered_attempts": 0,
+    "unmetered_usd": 0.0
+  },
+  "latency": {
+    "mean_latency_s": 5.115,
+    "mean_round_trips": 2.244
+  },
+  "pass_rate": {
+    "legacy_rules": {
+      "10": {
+        "passed": 79,
+        "graded": 99,
+        "rate": 0.797979797979798
+      },
+      "30": {
+        "passed": 75,
+        "graded": 99,
+        "rate": 0.7575757575757576
+      },
+      "100": {
+        "passed": 73,
+        "graded": 99,
+        "rate": 0.7373737373737373
+      },
+      "300": {
+        "passed": 62,
+        "graded": 99,
+        "rate": 0.6262626262626263
+      }
+    },
+    "full": {
+      "10": {
+        "passed": 93,
+        "graded": 99,
+        "rate": 0.9393939393939394
+      },
+      "30": {
+        "passed": 92,
+        "graded": 99,
+        "rate": 0.9292929292929293
+      },
+      "100": {
+        "passed": 92,
+        "graded": 99,
+        "rate": 0.9292929292929293
+      },
+      "300": {
+        "passed": 92,
+        "graded": 99,
+        "rate": 0.9292929292929293
+      }
+    },
+    "hybrid": {
+      "10": {
+        "passed": 95,
+        "graded": 99,
+        "rate": 0.9595959595959596
+      },
+      "30": {
+        "passed": 97,
+        "graded": 99,
+        "rate": 0.9797979797979798
+      },
+      "100": {
+        "passed": 95,
+        "graded": 99,
+        "rate": 0.9595959595959596
+      },
+      "300": {
+        "passed": 96,
+        "graded": 99,
+        "rate": 0.9696969696969697
+      }
+    }
+  },
+  "by_category": {
+    "ambiguous_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 10,
+          "graded": 15,
+          "rate": 0.6666666666666666
+        },
+        "30": {
+          "passed": 10,
+          "graded": 15,
+          "rate": 0.6666666666666666
+        },
+        "100": {
+          "passed": 9,
+          "graded": 15,
+          "rate": 0.6
+        },
+        "300": {
+          "passed": 6,
+          "graded": 15,
+          "rate": 0.4
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 10,
+          "graded": 15,
+          "rate": 0.6666666666666666
+        },
+        "30": {
+          "passed": 10,
+          "graded": 15,
+          "rate": 0.6666666666666666
+        },
+        "100": {
+          "passed": 11,
+          "graded": 15,
+          "rate": 0.7333333333333333
+        },
+        "300": {
+          "passed": 10,
+          "graded": 15,
+          "rate": 0.6666666666666666
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 11,
+          "graded": 15,
+          "rate": 0.7333333333333333
+        },
+        "30": {
+          "passed": 13,
+          "graded": 15,
+          "rate": 0.8666666666666667
+        },
+        "100": {
+          "passed": 14,
+          "graded": 15,
+          "rate": 0.9333333333333333
+        },
+        "300": {
+          "passed": 15,
+          "graded": 15,
+          "rate": 1.0
+        }
+      }
+    },
+    "broad_question_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 6,
+          "graded": 12,
+          "rate": 0.5
+        },
+        "30": {
+          "passed": 6,
+          "graded": 12,
+          "rate": 0.5
+        },
+        "100": {
+          "passed": 6,
+          "graded": 12,
+          "rate": 0.5
+        },
+        "300": {
+          "passed": 6,
+          "graded": 12,
+          "rate": 0.5
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      }
+    },
+    "clear_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        },
+        "100": {
+          "passed": 10,
+          "graded": 12,
+          "rate": 0.8333333333333334
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 10,
+          "graded": 12,
+          "rate": 0.8333333333333334
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      }
+    },
+    "email_followup": {
+      "legacy_rules": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        },
+        "100": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        },
+        "300": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_intent": {
+      "legacy_rules": {
+        "10": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        },
+        "30": {
+          "passed": 10,
+          "graded": 12,
+          "rate": 0.8333333333333334
+        },
+        "100": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        },
+        "300": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      }
+    },
+    "multi_person": {
+      "legacy_rules": {
+        "10": {
+          "passed": 10,
+          "graded": 12,
+          "rate": 0.8333333333333334
+        },
+        "30": {
+          "passed": 10,
+          "graded": 12,
+          "rate": 0.8333333333333334
+        },
+        "100": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        },
+        "300": {
+          "passed": 4,
+          "graded": 12,
+          "rate": 0.3333333333333333
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      }
+    },
+    "new_task_lookalike": {
+      "legacy_rules": {
+        "10": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        },
+        "30": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        },
+        "100": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        },
+        "300": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        }
+      }
+    },
+    "trigger_management": {
+      "legacy_rules": {
+        "10": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        },
+        "30": {
+          "passed": 6,
+          "graded": 12,
+          "rate": 0.5
+        },
+        "100": {
+          "passed": 7,
+          "graded": 12,
+          "rate": 0.5833333333333334
+        },
+        "300": {
+          "passed": 4,
+          "graded": 12,
+          "rate": 0.3333333333333333
+        }
+      },
+      "full": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 11,
+          "graded": 12,
+          "rate": 0.9166666666666666
+        }
+      },
+      "hybrid": {
+        "10": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "30": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "100": {
+          "passed": 12,
+          "graded": 12,
+          "rate": 1.0
+        },
+        "300": {
+          "passed": 9,
+          "graded": 12,
+          "rate": 0.75
+        }
+      }
+    }
+  },
+  "flags": {
+    "legacy_rules": {
+      "10": {
+        "wrong_reuse": 3,
+        "invalid_call": 1,
+        "duplicate_create": 2,
+        "ambiguous_dispatch": 1
+      },
+      "30": {
+        "wrong_reuse": 3,
+        "duplicate_create": 5,
+        "over_clarify": 3,
+        "trigger_duplicate": 1
+      },
+      "100": {
+        "wrong_reuse": 3,
+        "duplicate_create": 7,
+        "ambiguous_dispatch": 1,
+        "trigger_duplicate": 2,
+        "over_clarify": 1
+      },
+      "300": {
+        "wrong_reuse": 3,
+        "duplicate_create": 9,
+        "ambiguous_dispatch": 3,
+        "over_clarify": 5,
+        "trigger_duplicate": 1
+      }
+    },
+    "full": {
+      "10": {
+        "wrong_reuse": 1,
+        "invalid_call": 1
+      },
+      "30": {
+        "over_clarify": 2
+      },
+      "100": {
+        "over_clarify": 3
+      },
+      "300": {
+        "over_clarify": 2
+      }
+    },
+    "hybrid": {
+      "10": {
+        "wrong_reuse": 1,
+        "invalid_call": 2
+      },
+      "30": {},
+      "100": {
+        "wrong_reuse": 2,
+        "duplicate_create": 1
+      },
+      "300": {
+        "over_clarify": 3
+      }
+    }
+  },
+  "structural": {
+    "legacy_rules": {
+      "10": 3,
+      "30": 2,
+      "100": 2,
+      "300": 2
+    },
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "hybrid": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "infra_errors": {
+    "legacy_rules": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "hybrid": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "skipped": {
+    "legacy_rules": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "full": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    },
+    "hybrid": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "300": 0
+    }
+  },
+  "error_kinds": {},
+  "iteration_limit": [],
+  "failing": [
+    {
+      "case_id": "amb-person-001",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-001",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-001",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-001",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-001",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice about offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-001",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice about offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re Thursday offsite call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re Thursday offsite planning call, wait)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call, wait)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-003",
+      "category": "ambiguous_person",
+      "mode": "hybrid",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call Thursday)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call, wait)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call, wait)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call Thursday)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about offsite planning call, wait)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about offsite planning call Thursday, wait)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen re offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Draft email to Alice Chen re offsite planning call Thursday)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "hybrid",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "hybrid",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify; got reuse (dispatch→ag_chen_budget, message_user)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "hybrid",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "hybrid",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about Thursday offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "hybrid",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Email Alice Chen about offsite planning call)"
+    },
+    {
+      "case_id": "amb-person-005",
+      "category": "ambiguous_person",
+      "mode": "hybrid",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected clarify; got create (message_user, dispatch→Draft email to Alice Chen re offsite planning call Thursday)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Email Dana about lease renewal, dispatch→Ask Dana about a parking spot)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Email Dana about lease renewal, dispatch→Ask Dana about a parking spot)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Email Dana about lease renewal, dispatch→Ask Dana about a parking spot)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal, wait)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal, wait)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal, wait)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal, wait)"
+    },
+    {
+      "case_id": "broad-person-001",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [],
+      "structural": false,
+      "reason": "expected answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking]); got reuse (message_user, dispatch→Ask Dana about a parking spot, dispatch→Email Dana about lease renewal)"
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "invalid_call",
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→?, dispatch→?, dispatch→?, dispatch→?, dispatch→?, dispatch→Find emails from Isaac about school form, dispatch→Email Isaa..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Find emails from Isaac about school form, dispatch→Email Isaac re catering order, dispatch→Follow up with Isaac on deposi..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Find emails from Isaac about school form, dispatch→Email Isaac re catering order, dispatch→Follow up with Isaac on deposi..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on deposit refund, dispatch→Find emails from Isaac about school form, dispatch→Follow up with Isaac ..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on deposit refund, dispatch→Find emails from Isaac about school form, dispatch→Follow up with Isaac ..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on deposit refund, dispatch→Find emails from Isaac about school form, dispatch→Follow up with Isaac ..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on Q4 roadmap, dispatch→Find emails from Isaac about flight confirmation, dispatch→Follow up with Is..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on Q4 roadmap, dispatch→Find emails from Isaac about flight confirmation, dispatch→Follow up with Is..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on Q4 roadmap, dispatch→Find emails from Isaac about flight confirmation, dispatch→Follow up with Is..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on deposit refund, dispatch→Find emails from Isaac about flight confirmation, dispatch→Follow up wit..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Follow up with Isaac on deposit refund, dispatch→Follow up with Isaac on Q4 roadmap, dispatch→Find emails from Isaac abou..."
+    },
+    {
+      "case_id": "broad-person-004",
+      "category": "broad_question_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected answer_set([ag_ydks7yml, ag_ubyfxd34, ag_w4lalqsk]); got reuse (message_user, dispatch→Find emails from Isaac about flight confirmation, dispatch→Email Isaac re catering order, dispatch→Follow up with Isaac o..."
+    },
+    {
+      "case_id": "clear-person-003",
+      "category": "clear_person",
+      "mode": "hybrid",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected create; got reuse (message_user, dispatch→ag_mehguqob, wait)"
+    },
+    {
+      "case_id": "clear-person-003",
+      "category": "clear_person",
+      "mode": "hybrid",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected create; got reuse (message_user, dispatch→ag_mehguqob)"
+    },
+    {
+      "case_id": "clear-person-004",
+      "category": "clear_person",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected create; got clarify (no tool calls)"
+    },
+    {
+      "case_id": "clear-person-004",
+      "category": "clear_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected create; got clarify (no tool calls)"
+    },
+    {
+      "case_id": "clear-person-004",
+      "category": "clear_person",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected create; got clarify (no tool calls)"
+    },
+    {
+      "case_id": "followup-003",
+      "category": "email_followup",
+      "mode": "full",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_k6vvos7t); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "followup-003",
+      "category": "email_followup",
+      "mode": "full",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_k6vvos7t); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "followup-003",
+      "category": "email_followup",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_k6vvos7t); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "mixed",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got mixed (message_user, dispatch→Email Omar Underwood re Saturday monitor delivery, dispatch→Reminder clear desk Saturday 9:30am, dispatch→Email Omar Underwood re Saturd..."
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood re Saturday monitor delivery, dispatch→Reminder clear desk Saturday 9:30am); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood re Saturday monitor delivery, dispatch→Reminder clear desk Saturday 9:30am); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood about Saturday delivery, dispatch→Desk clearing reminder Saturday 9:30am, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood about monitor delivery, dispatch→Saturday 9:30am desk clearing reminder); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood about monitor delivery, dispatch→Reminder clear desk Saturday 9:30am, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood about monitor delivery, dispatch→Saturday 9:30am desk clearing reminder); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood about Saturday delivery, dispatch→Reminder Clear desk Saturday 9:30am, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-intent-002",
+      "category": "multi_intent",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_c6obzuoh); create); got create (message_user, dispatch→Email Omar Underwood about Saturday delivery, dispatch→Clear desk reminder Saturday 9:30am, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check Aaron Castillo pitch doc read status, dispatch→Ask Theo Brennan about plumber); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check if Aaron Castillo read pitch doc, dispatch→Ask Theo Brennan about plumber, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check Aaron Castillo pitch doc read status, dispatch→Ask Theo Brennan for plumber recommendation); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check Aaron Castillo pitch doc read status, dispatch→Email Theo Brennan for plumber recommendation); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check Aaron Castillo pitch doc read status, dispatch→Email Theo Brennan about plumber recommendation, wait); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check Aaron Castillo pitch doc status, dispatch→Email Theo Brennan asking for plumber); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check Aaron Castillo pitch doc status, dispatch→Email Theo Brennan about plumber recommendation); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check Aaron Castillo pitch doc read status, dispatch→Ask Theo Brennan for plumber recommendation); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-001",
+      "category": "multi_person",
+      "mode": "hybrid",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_3w3vngdn); create[Theo Brennan]); got create (message_user, dispatch→Check if Aaron Castillo read pitch doc, dispatch→Ask Theo Brennan for plumber recommendation); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-003",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Sam Rivera] + ask); got create (message_user, dispatch→Coffee availability Alice next week, dispatch→Coffee availability Sam Rivera next week, dispatch→Coffee availability Alice next..."
+    },
+    {
+      "case_id": "multi-person-003",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Sam Rivera] + ask); got create (message_user, dispatch→Check Alice coffee availability next week, dispatch→Check Sam Rivera coffee availability next week, dispatch→Check Alice coffee..."
+    },
+    {
+      "case_id": "multi-person-003",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Sam Rivera] + ask); got create (message_user, dispatch→Check Alice availability coffee next week, dispatch→Check Sam Rivera availability coffee next week, wait); slots 1/1"
+    },
+    {
+      "case_id": "multi-person-003",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Sam Rivera] + ask); got create (message_user, dispatch→Check Alice availability for coffee next week, dispatch→Check Sam Rivera availability for coffee next week, wait); slots 1/1"
+    },
+    {
+      "case_id": "multi-person-003",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "ambiguous_dispatch"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Sam Rivera] + ask); got create (message_user, dispatch→Coffee availability Alice next week, dispatch→Coffee availability Sam Rivera next week); slots 1/1"
+    },
+    {
+      "case_id": "multi-person-003",
+      "category": "multi_person",
+      "mode": "full",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "reuse",
+      "flags": [
+        "wrong_reuse"
+      ],
+      "structural": false,
+      "reason": "expected clarify | dispatch(create[Sam Rivera] + ask); got reuse (message_user, dispatch→ag_m7s4pnzj, wait); slots 0/1"
+    },
+    {
+      "case_id": "multi-person-004",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "mixed",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_g2fqxn3g); reuse(ag_zwldc5g3)); got mixed (message_user, dispatch→Email Paloma Zielinski about new hire setup, dispatch→Email Mateo the resume); slots 1/2"
+    },
+    {
+      "case_id": "multi-person-004",
+      "category": "multi_person",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create"
+      ],
+      "structural": false,
+      "reason": "expected dispatch(reuse(ag_g2fqxn3g); reuse(ag_zwldc5g3)); got create (message_user, dispatch→Ping Paloma Zielinski re new hire setup, dispatch→Check Mateo Petrov reply on revised CV); slots 0/2"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting, wait); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting, wait); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom paint, message_user); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting, wait); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re painting bedroom); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting); wrong person in instructions"
+    },
+    {
+      "case_id": "newtask-001",
+      "category": "new_task_lookalike",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "create",
+      "flags": [],
+      "structural": false,
+      "reason": "expected create; got create (message_user, dispatch→Email landlord re bedroom painting); wrong person in instructions"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (message_user)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (message_user)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create",
+        "trigger_duplicate"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got create (message_user, dispatch→Reschedule evening email recap to 8pm)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "hybrid",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (message_user, search_agents)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "hybrid",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (message_user)"
+    },
+    {
+      "case_id": "trigger-001",
+      "category": "trigger_management",
+      "mode": "hybrid",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-002",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (message_user)"
+    },
+    {
+      "case_id": "trigger-002",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (message_user)"
+    },
+    {
+      "case_id": "trigger-002",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (message_user)"
+    },
+    {
+      "case_id": "trigger-002",
+      "category": "trigger_management",
+      "mode": "full",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "clarify",
+      "flags": [
+        "over_clarify"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_nightly_digest); got clarify (no tool calls)"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 0,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 1,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder, wait); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 10,
+      "run_idx": 2,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create",
+        "trigger_duplicate"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_jjrnptml); got create (message_user, dispatch→Re-enable weekday 5pm inbox cleanup reminder)"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 1,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder, wait); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 30,
+      "run_idx": 2,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder, wait); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create",
+        "trigger_duplicate"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_jjrnptml); got create (message_user, dispatch→Re-enable weekday 5pm inbox cleanup reminder)"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 1,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 100,
+      "run_idx": 2,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder, wait); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 0,
+      "outcome_kind": "create",
+      "flags": [
+        "duplicate_create",
+        "trigger_duplicate"
+      ],
+      "structural": false,
+      "reason": "expected reuse(ag_jjrnptml); got create (message_user, dispatch→Re-enable weekday 5pm inbox reminder)"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 1,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder, wait); structural: a dispatched name matches several agents"
+    },
+    {
+      "case_id": "trigger-004",
+      "category": "trigger_management",
+      "mode": "legacy_rules",
+      "n": 300,
+      "run_idx": 2,
+      "outcome_kind": "invalid",
+      "flags": [],
+      "structural": true,
+      "reason": "expected reuse(ag_jjrnptml); got invalid (message_user, dispatch→Inbox zero reminder); structural: a dispatched name matches several agents"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+ "purpose": "layer 1 retrieval, dev, fastembed",
+ "command": "python -m evals.run retrieval --embedder fastembed --purpose 'layer 1 retrieval, dev, fastembed'",
+ "date_utc": "2026-11-08T10:45:53Z",
+ "run_folder": "20261108T104553Z-layer-1-retrieval-dev-fastembed",
+ "git": "uncommitted working tree on HEAD ed62ba4",
+ "split": "dev",
+ "sizes": [
+  10,
+  30,
+  100,
+  300
+ ],
+ "queries": "all",
+ "embedder": "fastembed",
+ "case_set_sha256": "688388e57eb5980fa06046a7e384b5449d9b1c71134c817bbf7d20d166fbcbda",
+ "descriptions": {
+  "source": "regen",
+  "sha256": "5d4d6d7c5b20fa1c53c69d280e122d27804833e7dd04ac623bf1e8e1c93ec232",
+  "covered": 310,
+  "total": 310
+ },
+ "seeds": {
+  "used": [
+   100,
+   101,
+   102,
+   103,
+   104,
+   106,
+   107,
+   108,
+   110,
+   111,
+   112,
+   113,
+   115,
+   117,
+   119,
+   121,
+   122,
+   123,
+   124,
+   126
+  ],
+  "skipped": [
+   105,
+   109,
+   114,
+   116,
+   118,
+   120,
+   125
+  ],
+  "count": 301,
+  "dropped": 459
+ },
+ "counts": {
+  "frozen": 16,
+  "original": 14,
+  "lowercase": 16,
+  "template": 301,
+  "frozen_cases_in_split": 16,
+  "skipped_empty_expected": 0,
+  "referenced": 11,
+  "skipped_n_below_required": 0
+ },
+ "timings": {
+  "load_s": 0.004619833001925144,
+  "queries_s": 0.15492933399946196,
+  "evaluate_s": 275.3524613750051,
+  "write_s": 0.10527954200370004
+ },
+ "headline": "dev recall@5 (rrf_boosts) at N=10/30/100/300: 0.92/0.94/0.89/0.89"
+}

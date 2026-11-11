@@ -1,0 +1,51 @@
+{
+  "id": "followup-001",
+  "category": "email_followup",
+  "split": "test",
+  "source": "hand",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_dana_repair",
+      "name": "Email landlord re dishwasher",
+      "description": "Asked Dana Whitfield (property manager, Maple Rentals) to send someone to fix the broken dishwasher. She opened work order MR-2291 and said a technician would come next week.",
+      "contacts": [
+        {
+          "email": "dana@maplerentals.com",
+          "display_name": "Dana Whitfield",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 18
+    },
+    {
+      "id": "ag_dana_lease",
+      "name": "Email Dana about lease renewal",
+      "description": "Asked Dana Whitfield whether the lease can be renewed for 12 months at the current $2,150/month. Waiting on her reply.",
+      "contacts": [
+        {
+          "email": "dana@maplerentals.com",
+          "display_name": "Dana Whitfield",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 5
+    }
+  ],
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What's on my calendar tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "Two things: standup at 9:30 and a dentist appointment at 2pm."
+    }
+  ],
+  "message": "Any update from the landlord on the kitchen repair?",
+  "acceptable": [
+    "reuse(ag_dana_repair)"
+  ],
+  "expect_person": "Dana Whitfield",
+  "notes": "Both Dana agents share the same contact, so person matching can't separate them; only the topic can. Double paraphrase ('landlord' vs 'property manager', 'kitchen repair' vs 'dishwasher'), so BM25 alone has little to match. The more recent Dana agent (lease) is the wrong answer: leaning on recency fails."
+}

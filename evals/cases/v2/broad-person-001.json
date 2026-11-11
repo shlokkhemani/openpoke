@@ -1,0 +1,105 @@
+{
+  "id": "broad-person-001",
+  "category": "broad_question_person",
+  "split": "test",
+  "source": "hand",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_dana_repair",
+      "name": "Email landlord re dishwasher",
+      "description": "Asked Dana Whitfield (property manager, Maple Rentals) to send someone to fix the broken dishwasher. She opened work order MR-2291 and said a technician would come next week.",
+      "contacts": [
+        {
+          "email": "dana@maplerentals.com",
+          "display_name": "Dana Whitfield",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 18
+    },
+    {
+      "id": "ag_dana_lease",
+      "name": "Email Dana about lease renewal",
+      "description": "Asked Dana Whitfield whether the lease can be renewed for 12 months at the current $2,150/month. Waiting on her reply.",
+      "contacts": [
+        {
+          "email": "dana@maplerentals.com",
+          "display_name": "Dana Whitfield",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 5
+    },
+    {
+      "id": "ag_dana_parking",
+      "name": "Ask Dana about a parking spot",
+      "description": "Asked Dana Whitfield whether parking spot P14 is available to rent. She said yes and sent the form.",
+      "contacts": [
+        {
+          "email": "dana@maplerentals.com",
+          "display_name": "Dana Whitfield",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 60
+    },
+    {
+      "id": "ag_maple_packages",
+      "name": "Email Maple Rentals about the package room",
+      "description": "Reported to Maple Rentals maintenance that the package room door lock is broken. They replied it's on the list.",
+      "contacts": [
+        {
+          "email": "maintenance@maplerentals.com",
+          "display_name": "Maple Rentals Maintenance",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 7
+    }
+  ],
+  "message": "What's going on with Dana?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Any updates I should know about?"
+    },
+    {
+      "role": "agent",
+      "text": "Here's your shipping summary: 3 new items, nothing that needs an answer today.",
+      "agent_id": "ag_72oxneof",
+      "agent_name": "Nightly shipping summary"
+    },
+    {
+      "role": "assistant",
+      "text": "Here's your shipping summary: 3 new items, nothing that needs an answer today."
+    }
+  ],
+  "acceptable": [
+    "answer_set([ag_dana_repair, ag_dana_lease, ag_dana_parking])"
+  ],
+  "unique_facts": {
+    "ag_dana_repair": "MR-2291",
+    "ag_dana_lease": "$2,150",
+    "ag_dana_parking": "P14",
+    "ag_maple_packages": "package room door lock"
+  },
+  "notes": "Broad question about one person. Covered = the IA messaged the agent OR its unique fact appears in the reply (answering from descriptions alone counts; staleness is a known limit). Set recall = covered / 3. Set precision counts only messaged agents; messaging the package-room agent (same company, different contact) lowers it. Tests person expansion: the 60-day-old parking agent is the one top-k and `recency` miss. Unique first name, so no clarify.",
+  "context_agents": [
+    {
+      "id": "ag_72oxneof",
+      "name": "Nightly shipping summary",
+      "description": "Every day at 9pm, summarises the package and shipping updates and sends the summary to the user. Order ORD-46609 covers it.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Summarise the shipping updates",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 113.0,
+      "last_run_days_ago": 1.0
+    }
+  ]
+}

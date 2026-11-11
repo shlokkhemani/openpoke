@@ -1,0 +1,62 @@
+{
+ "purpose": "Task 16e layer-1 dense stress dev fastembed, BM25 stopwords dropped",
+ "command": "python -m evals.run retrieval --world dense --embedder fastembed --purpose 'Task 16e layer-1 dense stress dev fastembed, BM25 stopwords dropped'",
+ "date_utc": "2026-11-09T22:26:53Z",
+ "run_folder": "20261109T222653Z-task-16e-layer-1-dense-stress-dev-fastem",
+ "git": "uncommitted working tree on HEAD 17c1bd2",
+ "split": "dev",
+ "sizes": [
+  100,
+  200,
+  300
+ ],
+ "queries": "all",
+ "embedder": "fastembed",
+ "case_set_sha256": "d0c9a4ca5b94e38c5c16bc428609f90cd25ba1b03d8adf80e733689c4649cc3c",
+ "descriptions": {
+  "source": "world (forced for dense)",
+  "sha256": null,
+  "covered": 0,
+  "total": 310
+ },
+ "seeds": {
+  "used": [],
+  "skipped": [],
+  "count": 0,
+  "dropped": 0
+ },
+ "counts": {
+  "dense": 163,
+  "target_exact": 48,
+  "target_para": 46,
+  "topic_noname": 23,
+  "history_pull": 46,
+  "referenced": 46,
+  "skipped_n_below_required": 0
+ },
+ "timings": {
+  "load_s": 0.005176083999685943,
+  "queries_s": 0.006087832996854559,
+  "evaluate_s": 7.562632957997266,
+  "write_s": 0.01073441699554678
+ },
+ "headline": "dense dev target_para recall@20 at N=100/200/300: 0.70/0.70/0.70 (base@20 0.22/0.50/0.24)",
+ "world": "dense",
+ "paraphrases": {
+  "file": "dense_paraphrases.json",
+  "sha256": "ec5ae4f8eb9958d2b4e6bcba9333ee6c13ccd607bd6a317efde5f53cb17e3db0",
+  "dropped_at_load": [
+   {
+    "topic": "w-9 form",
+    "paraphrase": "that W-9 thing",
+    "leaked": [
+     "9",
+     "w"
+    ]
+   }
+  ],
+  "skipped_topics": [
+   "w-9 form"
+  ]
+ }
+}

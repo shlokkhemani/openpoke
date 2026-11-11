@@ -1,0 +1,68 @@
+{
+  "id": "newtask-004",
+  "category": "new_task_lookalike",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_27trrgec",
+      "name": "Send Daniel the signed NDA",
+      "description": "Sent Daniel Walsh the signed NDA. Daniel acknowledged it. It is filed under reference REF-74721.",
+      "contacts": [
+        {
+          "email": "daniel.walsh@gmail.com",
+          "display_name": "Daniel Walsh",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 70.0,
+      "last_run_days_ago": 70.0
+    },
+    {
+      "id": "ag_e544hlzo",
+      "name": "Email Daniel about lab results",
+      "description": "Emailed Daniel Walsh about the lab results appointment. Daniel replied that the results are available in the portal. It is filed under reference REF-13823.",
+      "contacts": [
+        {
+          "email": "daniel.walsh@gmail.com",
+          "display_name": "Daniel Walsh",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 40.0,
+      "last_run_days_ago": 40.0
+    },
+    {
+      "id": "ag_vgbzlvg7",
+      "name": "Find emails from Daniel about conference schedule",
+      "description": "Searched the inbox for emails from Daniel Kaplan about the conference schedule and listed 9 matches. Thread MSG-14665 holds the full exchange.",
+      "contacts": [
+        {
+          "email": "daniel.kaplan@gmail.com",
+          "display_name": "Daniel Kaplan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 4.0,
+      "last_run_days_ago": 4.0
+    }
+  ],
+  "message": "Can you dig through my inbox for anything Daniel Walsh sent me about the parking permit?",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What day is the first of next month?"
+    },
+    {
+      "role": "assistant",
+      "text": "It falls on a Monday."
+    }
+  ],
+  "acceptable": [
+    "create"
+  ],
+  "expect_person": "Daniel Walsh",
+  "notes": "A new inbox search about a topic none of Daniel Walsh's agents covers: create. Keyword lookalikes: the person's existing agents, some of them searches.",
+  "original_message": "Search my email for messages from Daniel Walsh about the parking permit."
+}

@@ -1,0 +1,97 @@
+{
+  "id": "multi-intent-001",
+  "category": "multi_intent",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_6profc2q",
+      "name": "Email Kemal about car service",
+      "description": "Emailed Kemal Kowalski about booking the car service. Kemal replied that the slot is confirmed. Confirmation CONF-6OG23X was issued.",
+      "contacts": [
+        {
+          "email": "kemal.kowalski@fastmail.com",
+          "display_name": "Kemal Kowalski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 21.0,
+      "last_run_days_ago": 21.0
+    },
+    {
+      "id": "ag_iqbteomv",
+      "name": "Email Kemal about offer letter",
+      "description": "Emailed Kemal Kowalski about the signed offer letter. Kemal replied that it arrived and looks fine. It is filed under reference REF-33773.",
+      "contacts": [
+        {
+          "email": "kemal.kowalski@fastmail.com",
+          "display_name": "Kemal Kowalski",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 0.0,
+      "last_run_days_ago": 0.0
+    },
+    {
+      "id": "ag_hn3twdnz",
+      "name": "Anniversary reminder",
+      "description": "Reminds the user every year on March 3 to book a dinner for the anniversary. Confirmation CONF-5ZEXIM was issued.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "yearly on March 3",
+          "payload": "Remind the user to book a dinner for the anniversary",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 100.0,
+      "last_run_days_ago": 75.0
+    },
+    {
+      "id": "ag_rhrccm3w",
+      "name": "Call mom reminder",
+      "description": "Reminds the user every day at 9pm to call their mother. It is saved as reminder RMD-21352.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "daily at 9pm",
+          "payload": "Remind the user to call their mother",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 51.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Hey, can you shoot Kemal Kowalski an email saying tomorrow's dinner is now at 9pm? Also, please set a reminder for 8pm tomorrow so I remember to head out.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Thanks, that's all for now."
+    },
+    {
+      "role": "assistant",
+      "text": "You're welcome. I'm here if anything comes up."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Kemal Kowalski"
+          ]
+        },
+        {
+          "target": "create",
+          "must_mention": []
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "An email and a reminder: two agents. Neither exists yet (Kemal's threads are about other things), so create both; one agent doing both is merged_intents. Reminder lookalikes share 'dinner' or the evening hour. Slots: create naming Kemal Kowalski; create (the reminder). Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Email Kemal Kowalski that tomorrow's dinner has moved to 9pm, and set a reminder for me at 8pm tomorrow to leave for dinner."
+}

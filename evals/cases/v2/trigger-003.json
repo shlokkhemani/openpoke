@@ -1,0 +1,70 @@
+{
+  "id": "trigger-003",
+  "category": "trigger_management",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "high",
+  "required_agents": [
+    {
+      "id": "ag_3ei6vv2d",
+      "name": "Check savings reminder",
+      "description": "Reminds the user every weekday at 5pm to check the savings account. The reminder id is RMD-10804.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to check the savings account",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 101.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_pwqhcleb",
+      "name": "Dentist checkup reminder",
+      "description": "Reminds the user every weekday at 5pm to book the dentist checkup. The confirmation code is CONF-PT5OXC.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to book the dentist checkup",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 56.0,
+      "last_run_days_ago": 1.0
+    },
+    {
+      "id": "ag_ie2goawu",
+      "name": "Stand-up prep reminder",
+      "description": "Reminds the user every weekday at 5pm to write notes for stand-up. The reminder id is RMD-67380.",
+      "contacts": [],
+      "triggers": [
+        {
+          "schedule": "weekdays at 5pm",
+          "payload": "Remind the user to write notes for stand-up",
+          "status": "active"
+        }
+      ],
+      "last_user_activity_days_ago": 90.0,
+      "last_run_days_ago": 0.0
+    }
+  ],
+  "message": "Please stop the weekday 5pm reminder that tells me to check my savings.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "Thanks, that's all for now."
+    },
+    {
+      "role": "assistant",
+      "text": "You're welcome. I'm here if anything comes up."
+    }
+  ],
+  "acceptable": [
+    "reuse(ag_3ei6vv2d)"
+  ],
+  "notes": "Trigger 'stop' on 'Check savings reminder' (every weekday at 5pm, active; user last touched it 101 days ago, so recency misses it). Named by topic and schedule; no same-label twin exists in the world. A wrong create duplicates the trigger.",
+  "original_message": "Cancel the nudge to look at my savings that goes out every weekday at 5pm."
+}

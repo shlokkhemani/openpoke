@@ -11,7 +11,7 @@ class TriggerRecord(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    agent_name: str
+    agent_id: str
     payload: str
     start_time: Optional[str] = None
     next_trigger: Optional[str] = None

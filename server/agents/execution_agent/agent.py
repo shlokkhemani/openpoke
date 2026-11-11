@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
+from ...services.agents.store import AgentStore, get_agent_store
 from ...services.execution import get_execution_agent_logs
 from ...logging_config import logger
 
@@ -32,27 +33,35 @@ Be thorough, accurate, and efficient in your execution."""
 class ExecutionAgent:
     """Manages state and history for an execution agent."""
 
-    # Initialize execution agent with name, conversation limits, and log store access
+    # Initialize execution agent by id, resolving its name and description from the agent store
     def __init__(
         self,
-        name: str,
-        conversation_limit: Optional[int] = None
+        agent_id: str,
+        conversation_limit: Optional[int] = None,
+        store: Optional[AgentStore] = None,
     ):
         """
         Initialize an execution agent.
 
         Args:
-            name: Human-readable agent name (e.g., 'conversation with keith')
+            agent_id: Agent id in the agent store (e.g. 'ag_abcd2345'); logs are keyed by it
             conversation_limit: Optional limit on past conversations to include (None = all)
+            store: Agent store to resolve the agent from (defaults to the global store)
         """
-        self.name = name
+        self.agent_id = agent_id
+        self._store = store if store is not None else get_agent_store()
+        record = self._store.get(agent_id)
+        if record is None:
+            raise ValueError(f"Unknown agent id: {agent_id}")
+        self.name = record.name
+        self.description = record.description
         self.conversation_limit = conversation_limit
         self._log_store = get_execution_agent_logs()
 
-    # Generate system prompt template with agent name and purpose derived from name
+    # Generate system prompt with the stored agent name and description
     def build_system_prompt(self) -> str:
         """Build the system prompt for this agent."""
-        agent_purpose = f"Handle tasks related to: {self.name}"
+        agent_purpose = self.description or f"Handle tasks related to: {self.name}"
 
         return SYSTEM_PROMPT_TEMPLATE.format(
             agent_name=self.name,
@@ -70,7 +79,7 @@ class ExecutionAgent:
         base_prompt = self.build_system_prompt()
 
         # Load history transcript
-        transcript = self._log_store.load_transcript(self.name)
+        transcript = self._log_store.load_transcript(self.agent_id)
 
         if transcript:
             # Apply conversation limit if needed
@@ -113,11 +122,11 @@ class ExecutionAgent:
     # Log the agent's final response to the execution log store
     def record_response(self, response: str) -> None:
         """Record agent's response to the log."""
-        self._log_store.record_agent_response(self.name, response)
+        self._log_store.record_agent_response(self.agent_id, response)
 
     # Log tool invocation and results with truncated content for readability
     def record_tool_execution(self, tool_name: str, arguments: str, result: str) -> None:
         """Record tool execution details."""
-        self._log_store.record_action(self.name, f"Calling {tool_name} with: {arguments[:200]}")
+        self._log_store.record_action(self.agent_id, f"Calling {tool_name} with: {arguments[:200]}")
         # Record the tool response
-        self._log_store.record_tool_response(self.name, tool_name, result[:500])
+        self._log_store.record_tool_response(self.agent_id, tool_name, result[:500])

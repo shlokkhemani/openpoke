@@ -1,0 +1,117 @@
+{
+  "id": "multi-person-001",
+  "category": "multi_person",
+  "split": "test",
+  "source": "paraphrased",
+  "severity": "normal",
+  "required_agents": [
+    {
+      "id": "ag_3w3vngdn",
+      "name": "Send Aaron the proposal",
+      "description": "Sent Aaron Castillo the draft proposal. Aaron acknowledged it. The thread is saved as MSG-62164.",
+      "contacts": [
+        {
+          "email": "aaron.castillo@gmail.com",
+          "display_name": "Aaron Castillo",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 7.0,
+      "last_run_days_ago": 7.0
+    },
+    {
+      "id": "ag_vuijx4e4",
+      "name": "Email Aaron the itinerary",
+      "description": "Sent Aaron Castillo the trip itinerary. Aaron acknowledged it. Confirmation CONF-AFW3ML was issued.",
+      "contacts": [
+        {
+          "email": "aaron.castillo@gmail.com",
+          "display_name": "Aaron Castillo",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 34.0,
+      "last_run_days_ago": 34.0
+    },
+    {
+      "id": "ag_lqg7lp3m",
+      "name": "Find emails from Theo about apartment viewing",
+      "description": "Searched the inbox for emails from Theo Brennan about the apartment viewing and listed 9 matches. Confirmation CONF-ILDBE6 was issued.",
+      "contacts": [
+        {
+          "email": "theo.brennan@northwind.io",
+          "display_name": "Theo Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 19.0,
+      "last_run_days_ago": 19.0
+    },
+    {
+      "id": "ag_m7zywmxw",
+      "name": "Follow up with Theo on project deadline",
+      "description": "Emailed Theo Brennan about moving the project deadline by a week. Theo replied that the new date works. The thread is saved as MSG-88040.",
+      "contacts": [
+        {
+          "email": "theo.brennan@northwind.io",
+          "display_name": "Theo Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 3.0,
+      "last_run_days_ago": 3.0
+    },
+    {
+      "id": "ag_mzp253s4",
+      "name": "Email Theo re warranty replacement",
+      "description": "Emailed Theo Brennan about the warranty replacement for the monitor. Theo replied that a new unit will ship. Ticket #Q-46498 was opened for it.",
+      "contacts": [
+        {
+          "email": "theo.brennan@northwind.io",
+          "display_name": "Theo Brennan",
+          "role": "to"
+        }
+      ],
+      "last_user_activity_days_ago": 35.0,
+      "last_run_days_ago": 35.0
+    }
+  ],
+  "message": "Hey, could you see if Aaron Castillo has gotten around to reading the pitch doc yet? Also, reach out to Theo Brennan and ask if he knows a decent plumber.",
+  "ia_history": [
+    {
+      "role": "user",
+      "text": "What day is the first of next month?"
+    },
+    {
+      "role": "assistant",
+      "text": "It falls on a Monday."
+    },
+    {
+      "role": "user",
+      "text": "Is it going to rain in Seattle tomorrow?"
+    },
+    {
+      "role": "assistant",
+      "text": "Light rain in the morning, clearing by noon."
+    }
+  ],
+  "acceptable": [
+    {
+      "slots": [
+        {
+          "target": "reuse(ag_3w3vngdn)",
+          "must_mention": []
+        },
+        {
+          "target": "create",
+          "must_mention": [
+            "@person:Theo Brennan"
+          ]
+        }
+      ],
+      "ask": false
+    }
+  ],
+  "notes": "Two people, two agents: Aaron already has the thread for the proposal I sent him (reuse it); Theo has no thread about a plumber (create). Slots: reuse 'Send Aaron the proposal'; create naming Theo Brennan. Graded on structure: one dispatch per slot, each to its slot's target, a create naming its person (full name or email); wording is not graded.",
+  "original_message": "Can you check whether Aaron Castillo has had a chance to look at the pitch document, and ask Theo Brennan if he can recommend a good plumber?"
+}
