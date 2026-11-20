@@ -2,7 +2,7 @@
 
 OpenPoke is a simplified, open-source take on [Interaction Company’s](https://interaction.co/about) [Poke](https://poke.com/) assistant—built to show how a multi-agent orchestration stack can feel genuinely useful. It keeps the handful of things Poke is great at (email triage, reminders, and persistent agents) while staying easy to spin up locally.
 
-- Multi-agent FastAPI backend that mirrors Poke's interaction/execution split, powered by [OpenRouter](https://openrouter.ai/).
+- Multi-agent FastAPI backend that mirrors Poke's interaction/execution split, powered by a local model server through [llama.cpp](https://github.com/ggml-org/llama.cpp) (`llama-server`) and its OpenAI-compatible API.
 - Gmail tooling via [Composio](https://composio.dev/) for drafting/replying/forwarding without leaving chat.
 - Trigger scheduler and background watchers for reminders and "important email" alerts.
 - Next.js web UI that proxies everything through the shared `.env`, so plugging in API keys is the only setup.
@@ -22,13 +22,21 @@ OpenPoke is a simplified, open-source take on [Interaction Company’s](https://
    ```bash
    cp .env.example .env
    ```
-3. **Get your API keys and add them to `.env`:**
-   
-   **OpenRouter (Required)**
-   - Create an account at [openrouter.ai](https://openrouter.ai/)
-   - Generate an API key
-   - Replace `your_openrouter_api_key_here` with your actual key in `.env`
-   
+3. **Configure the model endpoint and add your Gmail keys to `.env`:**
+
+   **Local model server (Required)**
+   - Run `llama-server` with the model you want to use, for example the bundled Qwen 9B:
+     ```bash
+     llama-server \
+       -m D:/Claude_Projects/local_LLM/models/Qwen3.5-9B-Q4_K_M.gguf \
+       --alias Qwen3.5-9B-Q4_K_M --jinja -c 131072 --reasoning-format deepseek --port 8080
+     ```
+   - `--jinja` is required: without it the server does not apply the model's tool-calling template.
+   - `-c` must be large enough for the system prompt, transcript, and 13 tool schemas. The interaction agent's prompt alone runs about 40k tokens with a populated transcript, so stay at `65536` or above. A too-small `-c` fails with a 400 "exceeds the available context size" error, not a crash.
+   - Reasoning is controlled by `--reasoning on|off` (or `--reasoning-format deepseek` so thoughts land in `reasoning_content`). The code falls back to `reasoning_content` when `content` is blank, but `--reasoning off` is the safer default for tool-heavy turns.
+   - Set `LLM_BASE_URL` (default `http://127.0.0.1:8080/v1`) and `LLM_MODEL` (default `Qwen3.5-9B-Q4_K_M`) in `.env` to match. `LLM_API_KEY` is optional and only needed if your endpoint requires a bearer token.
+   - Local generation is slow, so `LLM_TIMEOUT` (default `300`) also sets the per-agent execution budget. Raise it if agents time out.
+
    **Composio (Required for Gmail)**
    - Sign in at [composio.dev](https://composio.dev/)
    - Create an API key

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 from ....config import get_settings
 from ....logging_config import logger
-from ....openrouter_client import OpenRouterError, request_chat_completion
+from ....llm_client import LLMError, assistant_text, extract_assistant_message, request_chat_completion
 from .prompt_builder import SummaryPrompt, build_summarization_prompt
 from .state import LogEntry, SummaryState
 from .working_memory_log import get_working_memory_log
@@ -27,7 +27,7 @@ def _collect_entries(log) -> List[LogEntry]:
     return entries
 
 
-async def _call_openrouter(prompt: SummaryPrompt, model: str, api_key: Optional[str]) -> str:
+async def _call_llm(prompt: SummaryPrompt, model: str, base_url: str) -> str:
     last_error: Exception | None = None
     for attempt in range(2):
         try:
@@ -35,17 +35,16 @@ async def _call_openrouter(prompt: SummaryPrompt, model: str, api_key: Optional[
                 model=model,
                 messages=prompt.messages,
                 system=prompt.system_prompt,
-                api_key=api_key,
+                base_url=base_url,
             )
             choices = response.get("choices") or []
             if not choices:
-                raise OpenRouterError("OpenRouter response missing choices")
-            message = choices[0].get("message") or {}
-            content = (message.get("content") or "").strip()
+                raise LLMError("Model response missing choices")
+            content = assistant_text(extract_assistant_message(response))
             if content:
                 return content
-            raise OpenRouterError("OpenRouter response missing content")
-        except OpenRouterError as exc:
+            raise LLMError("Model response missing content")
+        except LLMError as exc:
             last_error = exc
             if attempt == 0:
                 logger.warning(
@@ -67,7 +66,7 @@ async def _call_openrouter(prompt: SummaryPrompt, model: str, api_key: Optional[
             break
     if last_error:
         raise last_error
-    raise OpenRouterError("Conversation summarization failed")
+    raise LLMError("Conversation summarization failed")
 
 
 async def summarize_conversation() -> bool:
@@ -107,7 +106,7 @@ async def summarize_conversation() -> bool:
         },
     )
 
-    summary_text = await _call_openrouter(prompt, settings.summarizer_model, settings.openrouter_api_key)
+    summary_text = await _call_llm(prompt, settings.summarizer_model, settings.llm_base_url)
     summary_body = summary_text if summary_text else state.summary_text
 
     refreshed_entries = _collect_entries(conversation_log)

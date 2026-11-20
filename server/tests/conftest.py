@@ -25,7 +25,7 @@ from server.services.execution import roster as roster_module
 
 
 def _response(content: str = "", tool_calls: Optional[List[dict]] = None) -> dict:
-    """Build an OpenRouter-shaped completion response."""
+    """Build an OpenAI-shaped completion response."""
     message: dict = {"role": "assistant", "content": content}
     if tool_calls:
         message["tool_calls"] = tool_calls
@@ -33,7 +33,7 @@ def _response(content: str = "", tool_calls: Optional[List[dict]] = None) -> dic
 
 
 def tool_call(name: str, arguments: Any = None, call_id: str = "call_1") -> dict:
-    """Build an OpenRouter-shaped tool call.
+    """Build an OpenAI-shaped tool call.
 
     ``arguments`` may be a dict, a JSON string, or raw invalid JSON text.
     """
@@ -143,9 +143,10 @@ def isolated_stores(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, data_dir: P
     monkeypatch.setattr(trigger_tools, "_LOG_STORE", execution_logs)
     monkeypatch.setattr(trigger_tools, "_TRIGGER_SERVICE", trigger_service)
 
-    # A missing API key would otherwise raise before the stubs are reached
-    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
-    monkeypatch.setenv("OPENPOKE_MODEL", "test/model")
+    # No API key is required for a local llama-server, only a base URL
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.setenv("LLM_BASE_URL", "http://127.0.0.1:8080/v1")
+    monkeypatch.setenv("LLM_MODEL", "test/model")
     get_settings.cache_clear()
 
     yield

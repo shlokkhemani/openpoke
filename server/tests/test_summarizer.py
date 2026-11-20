@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import pytest
 
 from server.config import Settings
-from server.openrouter_client import OpenRouterError
+from server.llm_client import LLMError
 from server.services.conversation.summarization import summarizer
 from server.services.conversation.summarization.state import LogEntry, SummaryState
 from server.services.conversation.summarization.working_memory_log import WorkingMemoryLog
@@ -71,7 +71,7 @@ async def test_empty_content_retries_once_then_raises(
     fake = scripted_llm(summarizer, [completion(""), completion("")])
     _seed(conversation_log, 2)
 
-    with pytest.raises(OpenRouterError):
+    with pytest.raises(LLMError):
         await summarizer.summarize_conversation()
 
     fake.assert_drained()

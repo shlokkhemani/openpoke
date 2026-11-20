@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from server.config import Settings
 from server.agents.execution_agent import batch_manager as batch_module
 from server.agents.execution_agent import runtime as execution_runtime
 from server.agents.execution_agent.batch_manager import ExecutionBatchManager
@@ -194,6 +195,81 @@ def test_batch_payload_handles_empty_response() -> None:
     )
 
     assert "(no response provided)" in payload
+
+
+def test_batch_timeout_follows_the_llm_timeout() -> None:
+    """Local generation is slow, so the 90s default would fake timeouts."""
+    assert ExecutionBatchManager().timeout_seconds == 300
+
+    manager = ExecutionBatchManager(timeout_seconds=45)
+    assert manager.timeout_seconds == 45
+
+
+async def test_batch_reports_a_timeout_without_hanging(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = ExecutionBatchManager(timeout_seconds=0)
+    monkeypatch.setattr(manager, "_dispatch_to_interaction_agent", _noop)
+
+    class _SlowRuntime:
+        def __init__(self, agent_name: str) -> None:
+            self.agent_name = agent_name
+
+        async def execute(self, instructions: str) -> ExecutionResult:  # pragma: no cover
+            raise AssertionError("the timeout should fire before execute returns")
+
+    monkeypatch.setattr(batch_module, "ExecutionAgentRuntime", _SlowRuntime)
+
+    result = await manager.execute_agent("Agent A", "do work")
+
+    assert result.success is False
+    assert "timed out" in result.response
+
+
+async def _noop(payload: str) -> None:
+    return None
+
+
+async def test_no_single_model_setting_is_ignored_when_base_url_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Only an unset LLM_BASE_URL blocks execution, never a missing API key."""
+    settings = Settings(llm_base_url="", llm_api_key=None)
+    monkeypatch.setattr(execution_runtime, "get_settings", lambda: settings)
+
+    with pytest.raises(ValueError, match="LLM_BASE_URL"):
+        execution_runtime.ExecutionAgentRuntime(agent_name="Email to Alice")
+
+
+def test_agent_works_without_an_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = Settings(llm_api_key=None)
+    monkeypatch.setattr(execution_runtime, "get_settings", lambda: settings)
+
+    runtime = execution_runtime.ExecutionAgentRuntime(agent_name="Email to Alice")
+
+    assert runtime.api_key is None
+    assert runtime.base_url == settings.llm_base_url
+
+
+async def test_reasoning_only_reply_finishes_the_run(scripted_llm, composio_calls, gmail_connected) -> None:
+    """A reasoning-only completion must not look like an empty final response."""
+    reasoning_only = {
+        "choices": [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "reasoning_content": "Nothing to do; the draft already exists.",
+                }
+            }
+        ]
+    }
+
+    result, fake = await _run_agent(scripted_llm, [reasoning_only])
+
+    fake.assert_drained()
+    assert result.success is True
+    assert "already exists" in result.response
 
 
 async def test_batch_dispatches_once_when_all_agents_finish(

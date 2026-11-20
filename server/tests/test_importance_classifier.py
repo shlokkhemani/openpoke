@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from server.openrouter_client import OpenRouterError
+from server.llm_client import LLMError
 from server.services.gmail import importance_classifier as classifier
 from server.services.gmail.processing import ProcessedEmail
 from server.tests.conftest import completion, tool_call
@@ -141,7 +141,7 @@ async def test_wrong_tool_name_is_ignored(scripted_llm) -> None:
 
 async def test_provider_error_is_swallowed(scripted_llm) -> None:
     """A classifier outage must never break the email watcher."""
-    scripted_llm(classifier, [OpenRouterError("OpenRouter request failed (429)")])
+    scripted_llm(classifier, [LLMError("Model request failed (500)")])
 
     assert await classifier.classify_email_importance(_email()) is None
 

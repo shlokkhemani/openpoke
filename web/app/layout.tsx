@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'OpenPoke Chat',
-  description: 'A beautiful OpenRouter chat powered by Vercel AI SDK',
+  description: 'A beautiful local-LLM chat powered by Vercel AI SDK',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

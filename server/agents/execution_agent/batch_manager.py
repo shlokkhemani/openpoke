@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from .runtime import ExecutionAgentRuntime, ExecutionResult
+from ...config import get_settings
 from ...logging_config import logger
 
 
@@ -36,12 +37,23 @@ class _BatchState:
 class ExecutionBatchManager:
     """Run execution agents and deliver their combined outcome."""
 
-    # Initialize batch manager with timeout and coordination state for execution agents
-    def __init__(self, timeout_seconds: int = 90) -> None:
-        self.timeout_seconds = timeout_seconds
+    # Initialize batch manager with a timeout budget for a whole execution run
+    def __init__(self, timeout_seconds: Optional[int] = None) -> None:
+        self._timeout_seconds = timeout_seconds
         self._pending: Dict[str, PendingExecution] = {}
         self._batch_lock = asyncio.Lock()
         self._batch_state: Optional[_BatchState] = None
+
+    @property
+    def timeout_seconds(self) -> int:
+        """Seconds one execution agent may run before it is reported as timed out.
+
+        Local generation with tool loops is far slower than a hosted API, so the
+        budget follows ``LLM_TIMEOUT`` unless a value was passed explicitly.
+        """
+        if self._timeout_seconds is not None:
+            return self._timeout_seconds
+        return get_settings().llm_timeout_seconds
 
     # Run execution agent with timeout handling and batch coordination for interaction agent
     async def execute_agent(

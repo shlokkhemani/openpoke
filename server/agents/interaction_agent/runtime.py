@@ -8,7 +8,14 @@ from .agent import build_system_prompt, prepare_message_with_history
 from .tools import ToolResult, get_tool_schemas, handle_tool_call
 from ...config import get_settings
 from ...services.conversation import get_conversation_log, get_working_memory_log
-from ...openrouter_client import request_chat_completion
+from ...llm_client import (
+    LLMConnectionError,
+    LLMError,
+    LLMTimeoutError,
+    assistant_text,
+    extract_assistant_message,
+    request_chat_completion,
+)
 from ...logging_config import logger
 
 
@@ -43,11 +50,30 @@ class _LoopSummary:
 
 def _user_visible_failure(exc: Exception) -> str:
     text = str(exc)
-    if "free-models-per-day" in text or "Rate limit exceeded" in text:
+    lowered = text.lower()
+    # A context overflow arrives as a 400, not a connectivity problem; check first.
+    if "exceeds the available context" in lowered or "context size" in lowered or "context_length" in lowered:
         return (
-            "The free model daily limit was reached, so I couldn't finish that. "
-            "Add OpenRouter credits, or try again after the limit resets."
+            "That conversation is too long for the local model's context window. "
+            "Restart llama-server with a larger -c, or start a fresh chat."
         )
+    if isinstance(exc, LLMTimeoutError):
+        return (
+            "The local model took too long to respond, so I couldn't finish that. "
+            "Try again, or raise LLM_TIMEOUT if your machine is slow."
+        )
+    if isinstance(exc, LLMConnectionError):
+        return (
+            "I couldn't reach the local model server. "
+            "Make sure llama-server is running and LLM_BASE_URL points at it."
+        )
+    if "401" in text or "403" in text or "unauthorized" in lowered:
+        return (
+            "The local model server rejected the request. "
+            "Check LLM_API_KEY if your server requires one."
+        )
+    if "llm_base_url" in lowered:
+        return "No model endpoint is configured. Set LLM_BASE_URL to your local llama-server."
     return "I couldn't complete that. Please try again."
 
 
@@ -59,16 +85,18 @@ class InteractionAgentRuntime:
     # Initialize interaction agent runtime with settings and service dependencies
     def __init__(self) -> None:
         settings = get_settings()
-        self.api_key = settings.openrouter_api_key
+        self.api_key = settings.llm_api_key
+        self.base_url = settings.llm_base_url
         self.model = settings.interaction_agent_model
         self.settings = settings
         self.conversation_log = get_conversation_log()
         self.working_memory_log = get_working_memory_log()
         self.tool_schemas = get_tool_schemas()
 
-        if not self.api_key:
+        if not self.base_url:
             raise ValueError(
-                "OpenRouter API key not configured. Set OPENROUTER_API_KEY environment variable."
+                "No model endpoint configured. Set the LLM_BASE_URL environment variable "
+                "(for example http://127.0.0.1:8080/v1)."
             )
 
     # Main entry point for processing user messages through the LLM interaction loop
@@ -160,7 +188,7 @@ class InteractionAgentRuntime:
             response = await self._make_llm_call(system_prompt, messages)
             assistant_message = self._extract_assistant_message(response)
 
-            assistant_content = (assistant_message.get("content") or "").strip()
+            assistant_content = assistant_text(assistant_message)
             if assistant_content:
                 summary.last_assistant_text = assistant_content
 
@@ -169,7 +197,7 @@ class InteractionAgentRuntime:
 
             assistant_entry: Dict[str, Any] = {
                 "role": "assistant",
-                "content": assistant_message.get("content", "") or "",
+                "content": assistant_content,
             }
             if raw_tool_calls:
                 assistant_entry["tool_calls"] = raw_tool_calls
@@ -224,13 +252,13 @@ class InteractionAgentRuntime:
                 return rendered
         return self.conversation_log.load_transcript()
 
-    # Execute API call to OpenRouter with system prompt, messages, and tool schemas
+    # Execute the chat completion call with system prompt, messages, and tool schemas
     async def _make_llm_call(
         self,
         system_prompt: str,
         messages: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        """Make an LLM call via OpenRouter."""
+        """Make an LLM call against the configured OpenAI-compatible endpoint."""
 
         logger.debug(
             "Interaction agent calling LLM",
@@ -242,17 +270,17 @@ class InteractionAgentRuntime:
             system=system_prompt,
             api_key=self.api_key,
             tools=self.tool_schemas,
+            base_url=self.base_url,
         )
 
-    # Extract the assistant's message from the OpenRouter API response structure
+    # Extract the assistant's message from the completion response structure
     def _extract_assistant_message(self, response: Dict[str, Any]) -> Dict[str, Any]:
-        """Return the assistant message from the raw response payload."""
+        """Return the assistant message, falling back to reasoning text."""
 
-        choice = (response.get("choices") or [{}])[0]
-        message = choice.get("message")
-        if not isinstance(message, dict):
-            raise RuntimeError("LLM response did not include an assistant message")
-        return message
+        try:
+            return extract_assistant_message(response)
+        except LLMError as exc:
+            raise RuntimeError(str(exc)) from exc
 
     # Convert raw LLM tool calls into structured _ToolCall objects with validation
     def _parse_tool_calls(self, raw_tool_calls: List[Dict[str, Any]]) -> List[_ToolCall]:

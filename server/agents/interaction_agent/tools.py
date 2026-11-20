@@ -20,7 +20,7 @@ class ToolResult:
     user_message: Optional[str] = None
     recorded_reply: bool = False
 
-# Tool schemas for OpenRouter
+# Tool schemas for the interaction agent
 TOOL_SCHEMAS = [
     {
         "type": "function",

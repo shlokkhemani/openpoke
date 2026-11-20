@@ -104,7 +104,7 @@ class ExecutionAgent:
             current_instruction: Current instruction from interaction agent
 
         Returns:
-            List of messages in OpenRouter format
+            List of messages in OpenAI format
         """
         return [
             {"role": "user", "content": current_instruction}

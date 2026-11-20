@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from server.config import get_settings
 from server.logging_config import logger
-from server.openrouter_client import request_chat_completion
+from server.llm_client import LLMError, assistant_text, extract_assistant_message, request_chat_completion
 from server.services.execution import get_execution_agent_logs
 from server.services.gmail import (
     EmailTextCleaner,
@@ -31,7 +31,7 @@ from .system_prompt import get_system_prompt
 # Constants
 MAX_LLM_ITERATIONS = 8
 ERROR_GMAIL_NOT_CONNECTED = "Gmail not connected. Please connect Gmail in settings first."
-ERROR_OPENROUTER_NOT_CONFIGURED = "OpenRouter API key not configured. Set OPENROUTER_API_KEY."
+ERROR_LLM_NOT_CONFIGURED = "No model endpoint configured. Set LLM_BASE_URL to your local llama-server."
 ERROR_EMPTY_QUERY = "search_query must not be empty"
 ERROR_QUERY_REQUIRED = "query parameter is required"
 ERROR_MESSAGE_IDS_REQUIRED = "message_ids parameter is required"
@@ -71,13 +71,13 @@ def _validate_gmail_connection() -> Optional[str]:
     return get_active_gmail_user_id()
 
 
-def _validate_openrouter_config() -> Tuple[Optional[str], Optional[str]]:
-    """Validate OpenRouter configuration and return (api_key, model) or (None, error)."""
+def _resolve_llm_config() -> Tuple[Optional[str], Optional[str]]:
+    """Return (base_url, model) for the search orchestrator, or (None, error)."""
     settings = get_settings()
-    api_key = settings.openrouter_api_key
-    if not api_key:
-        return None, ERROR_OPENROUTER_NOT_CONFIGURED
-    return api_key, settings.execution_agent_search_model
+    base_url = (settings.llm_base_url or "").strip()
+    if not base_url:
+        return None, ERROR_LLM_NOT_CONFIGURED
+    return base_url, settings.execution_agent_search_model
 
 
 # Return task tool callables
@@ -105,9 +105,9 @@ async def task_email_search(search_query: str) -> Any:
         logger.error(f"[EMAIL_SEARCH] Gmail not connected")
         return {"error": ERROR_GMAIL_NOT_CONNECTED}
     
-    api_key, model_or_error = _validate_openrouter_config()
-    if not api_key:
-        logger.error(f"[EMAIL_SEARCH] OpenRouter not configured: {model_or_error}")
+    base_url, model_or_error = _resolve_llm_config()
+    if not base_url:
+        logger.error(f"[EMAIL_SEARCH] Model endpoint not configured: {model_or_error}")
         return {"error": model_or_error}
     
     try:
@@ -115,7 +115,7 @@ async def task_email_search(search_query: str) -> Any:
             search_query=cleaned_query,
             composio_user_id=composio_user_id,
             model=model_or_error,
-            api_key=api_key,
+            base_url=base_url,
         )
         logger.info(f"[EMAIL_SEARCH] Found {len(result) if isinstance(result, list) else 0} emails")
         return result
@@ -130,7 +130,7 @@ async def _run_email_search(
     search_query: str,
     composio_user_id: str,
     model: str,
-    api_key: str,
+    base_url: str,
 ) -> List[Dict[str, Any]]:
     """Execute the main email search orchestration loop."""
     messages: List[Dict[str, Any]] = [
@@ -151,7 +151,7 @@ async def _run_email_search(
             model=model,
             messages=messages,
             system=get_system_prompt(),
-            api_key=api_key,
+            base_url=base_url,
             tools=[GMAIL_FETCH_EMAILS_SCHEMA, _COMPLETION_TOOL_SCHEMA],
         )
         
@@ -162,7 +162,7 @@ async def _run_email_search(
         # Add assistant message to conversation
         assistant_entry = {
             "role": "assistant",
-            "content": assistant.get("content", "") or "",
+            "content": assistant_text(assistant),
         }
         if tool_calls:
             assistant_entry["tool_calls"] = tool_calls
@@ -379,8 +379,11 @@ def _build_response(
 
 
 def _extract_assistant_message(response: Dict[str, Any]) -> Dict[str, Any]:
-    """Extract assistant message from OpenRouter API response."""
-    return response.get("choices", [{}])[0].get("message", {})
+    """Extract the assistant message, tolerating reasoning-only replies."""
+    try:
+        return extract_assistant_message(response)
+    except LLMError:
+        return {}
 
 
 def _parse_arguments(raw_arguments: Any) -> Tuple[Dict[str, Any], Optional[str]]:
