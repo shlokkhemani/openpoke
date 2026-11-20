@@ -41,6 +41,16 @@ class _LoopSummary:
     execution_agents: Set[str] = field(default_factory=set)
 
 
+def _user_visible_failure(exc: Exception) -> str:
+    text = str(exc)
+    if "free-models-per-day" in text or "Rate limit exceeded" in text:
+        return (
+            "The free model daily limit was reached, so I couldn't finish that. "
+            "Add OpenRouter credits, or try again after the limit resets."
+        )
+    return "I couldn't complete that. Please try again."
+
+
 class InteractionAgentRuntime:
     """Manages the interaction agent's request processing."""
 
@@ -89,10 +99,15 @@ class InteractionAgentRuntime:
             )
 
         except Exception as exc:
-            logger.error("Interaction agent failed", extra={"error": str(exc)})
+            logger.error("Interaction agent failed: %s", exc)
+            failure = _user_visible_failure(exc)
+            try:
+                self.conversation_log.record_reply(failure)
+            except Exception:
+                logger.exception("Failed to record interaction error reply")
             return InteractionResult(
                 success=False,
-                response="",
+                response=failure,
                 error=str(exc),
             )
 
@@ -182,8 +197,19 @@ class InteractionAgentRuntime:
                     "content": self._format_tool_result(tool_call, result),
                 }
                 messages.append(tool_message)
+
+            # The model polls with wait while an execution agent is still running.
+            # Stop here so that wait loop is not reported as a failed reply.
+            if all(call.name == "wait" for call in parsed_tool_calls) and (
+                summary.execution_agents or summary.user_messages
+            ):
+                logger.info("Stopping interaction loop while execution work is in flight")
+                break
         else:
-            raise RuntimeError("Reached tool iteration limit without final response")
+            if summary.user_messages or summary.execution_agents:
+                logger.warning("Interaction loop hit the tool limit after work was already started")
+            else:
+                raise RuntimeError("Reached tool iteration limit without final response")
 
         if not summary.user_messages and not summary.last_assistant_text:
             logger.warning("Interaction loop exited without assistant content")

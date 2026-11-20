@@ -117,6 +117,7 @@ export default function SettingsModal({
   const [gmailConnected, setGmailConnected] = useState(false);
   const [gmailEmail, setGmailEmail] = useState('');
   const [gmailConnId, setGmailConnId] = useState('');
+  const [gmailAuthUrl, setGmailAuthUrl] = useState('');
   const [gmailProfile, setGmailProfile] = useState<Record<string, unknown> | null>(null);
 
   const readStoredUserId = useCallback(() => {
@@ -191,9 +192,18 @@ export default function SettingsModal({
   }, [gmailProfile]);
 
   const handleConnectGmail = useCallback(async () => {
+    // Open during the click. Firefox blocks window.open after await, and the
+    // noopener feature makes that call a popup instead of a tab.
+    const popup = window.open('about:blank', '_blank');
+
+    const closePopup = () => {
+      if (popup && !popup.closed) popup.close();
+    };
+
     try {
       setConnectingGmail(true);
       setGmailStatusMessage('');
+      setGmailAuthUrl('');
       const userId = ensureUserId();
       const resp = await fetch('/api/gmail/connect', {
         method: 'POST',
@@ -202,6 +212,7 @@ export default function SettingsModal({
       });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok || !data?.ok) {
+        closePopup();
         const msg = data?.error || `Failed (${resp.status})`;
         setGmailStatusMessage(msg);
         return;
@@ -218,12 +229,19 @@ export default function SettingsModal({
       setGmailEmail('');
       setGmailProfile(null);
       if (url) {
-        window.open(url, '_blank', 'noopener');
-        setGmailStatusMessage('Gmail authorization opened in a new tab. Complete it, then press “Refresh status”.');
+        setGmailAuthUrl(url);
+        if (popup && !popup.closed) {
+          popup.location.replace(url);
+          setGmailStatusMessage('Gmail authorization opened in a new tab. Complete it, then press “Refresh status”.');
+        } else {
+          setGmailStatusMessage('The browser blocked the new tab. Use the authorization link below, then press “Refresh status”.');
+        }
       } else {
+        closePopup();
         setGmailStatusMessage('Connection initiated. Refresh status once authorization completes.');
       }
     } catch (e: any) {
+      closePopup();
       setGmailStatusMessage(e?.message || 'Failed to connect Gmail');
     } finally {
       setConnectingGmail(false);
@@ -334,6 +352,7 @@ export default function SettingsModal({
       setGmailEmail('');
       setGmailProfile(null);
       setGmailConnId('');
+      setGmailAuthUrl('');
       setGmailStatusMessage('Gmail disconnected.');
       try {
         localStorage.removeItem('gmail_connected');
@@ -453,6 +472,16 @@ export default function SettingsModal({
                 >
                   {refreshButtonLabel}
                 </button>
+                {gmailAuthUrl && (
+                  <a
+                    href={gmailAuthUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  >
+                    Open Gmail authorization
+                  </a>
+                )}
                 {gmailConnected && (
                   <button
                     type="button"

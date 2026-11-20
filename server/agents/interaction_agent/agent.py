@@ -16,17 +16,19 @@ def build_system_prompt() -> str:
     return SYSTEM_PROMPT
 
 
-# Build structured message with conversation history, active agents, and current turn
+# Build structured message with conversation history, focused agents, and current turn
 def prepare_message_with_history(
     latest_text: str,
     transcript: str,
     message_type: str = "user",
 ) -> List[Dict[str, str]]:
-    """Compose a message that bundles history, roster, and the latest turn."""
+    """Compose a message that bundles history, relevant agents, and the latest turn."""
     sections: List[str] = []
 
     sections.append(_render_conversation_history(transcript))
-    sections.append(f"<active_agents>\n{_render_active_agents()}\n</active_agents>")
+    sections.append(
+        f"<active_agents>\n{_render_active_agents(latest_text, transcript)}\n</active_agents>"
+    )
     sections.append(_render_current_turn(latest_text, message_type))
 
     content = "\n\n".join(sections)
@@ -41,21 +43,32 @@ def _render_conversation_history(transcript: str) -> str:
     return f"<conversation_history>\n{history}\n</conversation_history>"
 
 
-# Format currently active execution agents into XML tags for LLM awareness
-def _render_active_agents() -> str:
+# Format the agents most relevant to this turn into XML tags for the LLM
+def _render_active_agents(latest_text: str = "", transcript: str = "") -> str:
     roster = get_agent_roster()
     roster.load()
-    agents = roster.get_agents()
+    agents = roster.select_for_prompt(latest_text, transcript)
 
     if not agents:
         return "None"
 
     rendered: List[str] = []
-    for agent_name in agents:
-        name = escape(agent_name or "agent", quote=True)
-        rendered.append(f'<agent name="{name}" />')
+    for record in agents:
+        name = escape(record.name or "agent", quote=True)
+        hint = _escape_attribute(record.last_instructions)
+        if hint:
+            rendered.append(f'<agent name="{name}" last_request="{hint}" />')
+        else:
+            rendered.append(f'<agent name="{name}" />')
 
     return "\n".join(rendered)
+
+
+# Escape text for safe use inside a single XML attribute
+def _escape_attribute(value: str) -> str:
+    if not value:
+        return ""
+    return escape(" ".join(value.split()), quote=True)
 
 
 # Wrap the current message in appropriate XML tags based on sender type

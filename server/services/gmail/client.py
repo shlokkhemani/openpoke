@@ -4,6 +4,7 @@ import json
 import os
 import threading
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import status
@@ -28,15 +29,34 @@ def _normalized(value: Optional[str]) -> str:
     return (value or "").strip()
 
 
+_GMAIL_USER_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "gmail_user_id.txt"
+
+
 def _set_active_gmail_user_id(user_id: Optional[str]) -> None:
     sanitized = _normalized(user_id)
     with _ACTIVE_USER_ID_LOCK:
         global _ACTIVE_USER_ID
         _ACTIVE_USER_ID = sanitized or None
+        try:
+            if sanitized:
+                _GMAIL_USER_PATH.parent.mkdir(parents=True, exist_ok=True)
+                _GMAIL_USER_PATH.write_text(sanitized, encoding="utf-8")
+            elif _GMAIL_USER_PATH.exists():
+                _GMAIL_USER_PATH.unlink()
+        except Exception:
+            logger.warning("Failed to persist Gmail user id")
 
 
 def get_active_gmail_user_id() -> Optional[str]:
     with _ACTIVE_USER_ID_LOCK:
+        global _ACTIVE_USER_ID
+        if _ACTIVE_USER_ID:
+            return _ACTIVE_USER_ID
+        try:
+            stored = _normalized(_GMAIL_USER_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            stored = ""
+        _ACTIVE_USER_ID = stored or None
         return _ACTIVE_USER_ID
 
 
@@ -206,18 +226,18 @@ def _fetch_profile_from_composio(user_id: Optional[str]) -> Optional[Dict[str, A
 # Start Gmail OAuth connection process and return redirect URL
 def initiate_connect(payload: GmailConnectPayload, settings: Settings) -> JSONResponse:
     auth_config_id = payload.auth_config_id or settings.composio_gmail_auth_config_id or ""
-    if not auth_config_id:
-        return error_response(
-            "Missing auth_config_id. Set COMPOSIO_GMAIL_AUTH_CONFIG_ID or pass auth_config_id.",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
 
     user_id = payload.user_id or f"web-{os.getpid()}"
     _set_active_gmail_user_id(user_id)
     _clear_cached_profile(user_id)
     try:
         client = _get_composio_client(settings)
-        req = client.connected_accounts.initiate(user_id=user_id, auth_config_id=auth_config_id)
+        if auth_config_id:
+            req = client.connected_accounts.initiate(user_id=user_id, auth_config_id=auth_config_id)
+        else:
+            # Managed auth does not need a pre-created auth config.
+            session = client.sessions.create(user_id=user_id, toolkits=["gmail"])
+            req = session.authorize("gmail")
         data = {
             "ok": True,
             "redirect_url": getattr(req, "redirect_url", None) or getattr(req, "redirectUrl", None),
@@ -259,7 +279,7 @@ def fetch_status(payload: GmailStatusPayload) -> JSONResponse:
         if account is None and user_id:
             try:
                 items = client.connected_accounts.list(
-                    user_ids=[user_id], toolkit_slugs=["GMAIL"], statuses=["ACTIVE"]
+                    user_ids=[user_id], toolkit_slugs=["gmail"], statuses=["ACTIVE"]
                 )
                 data = getattr(items, "data", None)
                 if data is None and isinstance(items, dict):
@@ -379,7 +399,7 @@ def disconnect_account(payload: GmailDisconnectPayload) -> JSONResponse:
         _delete_connection(connection_id)
     else:
         try:
-            items = client.connected_accounts.list(user_ids=[user_id], toolkit_slugs=["GMAIL"])
+            items = client.connected_accounts.list(user_ids=[user_id], toolkit_slugs=["gmail"])
             data = getattr(items, "data", None)
             if data is None and isinstance(items, dict):
                 data = items.get("data")

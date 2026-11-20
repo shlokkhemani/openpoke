@@ -149,7 +149,7 @@ export default function Page() {
       } finally {
         // Poll until we get the assistant's response
         let pollAttempts = 0;
-        const maxPollAttempts = 30; // Max 30 attempts (30 seconds)
+        const maxPollAttempts = 120; // Max 120 attempts (2 minutes)
         
         const pollForAssistantResponse = async () => {
           pollAttempts++;
