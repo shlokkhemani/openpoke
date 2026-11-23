@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from html import escape
 from typing import List, Optional, Sequence
 
 from ..triggers import TriggerRecord
@@ -61,12 +62,26 @@ class ReminderDigest:
 _SUMMARY_LIMIT = 90
 
 
+def _escape(value: str) -> str:
+    """Escape tag-breaking characters so a payload cannot forge prompt structure.
+
+    Reminder payloads originate from user text and from model output, so they
+    must be treated as untrusted. Without this a payload containing
+    ``</reminders>`` could close the block and inject a fake turn.
+    """
+    return escape(value, quote=False)
+
+
 def _summarize(payload: str) -> str:
-    """Collapse a reminder payload into one short line."""
+    """Collapse a reminder payload into one short, tag-safe line."""
     collapsed = " ".join((payload or "").split())
     if len(collapsed) <= _SUMMARY_LIMIT:
-        return collapsed
-    return collapsed[: _SUMMARY_LIMIT - 1].rstrip() + "…"
+        return _escape(collapsed)
+    return escape(collapsed[: _SUMMARY_LIMIT - 1].rstrip()) + "…"
+
+
+# Public alias so every render path shares one escaping rule.
+summarize_payload = _summarize
 
 
 def _when_label(when: Optional[datetime], now: datetime) -> str:

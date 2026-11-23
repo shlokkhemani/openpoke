@@ -105,6 +105,8 @@ def get_schemas() -> List[Dict[str, Any]]:
 def _trigger_record_to_payload(record: TriggerRecord) -> Dict[str, Any]:
     return {
         "id": record.id,
+        # Which identity owns this trigger: the calling agent, or "Reminders".
+        "owner": record.agent_name,
         "payload": record.payload,
         "start_time": record.start_time,
         "next_trigger": record.next_trigger,
@@ -163,7 +165,7 @@ def _create_trigger_tool(
     }
 
 
-# Update or pause an existing trigger owned by this execution agent
+# Update or pause a trigger this agent owns, or a shared reminder
 def _update_trigger_tool(
     *,
     agent_name: str,
@@ -178,11 +180,15 @@ def _update_trigger_tool(
     except (TypeError, ValueError):
         return {"error": "trigger_id must be an integer"}
 
+    owner = _resolve_trigger_owner(trigger_id_int, agent_name=agent_name)
+    if owner is None:
+        return {"error": f"Trigger {trigger_id_int} not found"}
+
     try:
         timezone_value = get_timezone_store().get_timezone()
         record = _TRIGGER_SERVICE.update_trigger(
             trigger_id_int,
-            agent_name=agent_name,
+            agent_name=owner,
             payload=payload,
             recurrence_rule=recurrence_rule,
             start_time=start_time,
@@ -214,10 +220,26 @@ def _update_trigger_tool(
     }
 
 
-# List all triggers belonging to this execution agent
+# List triggers owned by this agent plus the shared reminders it can manage
 def _list_triggers_tool(*, agent_name: str) -> Dict[str, Any]:
+    # Imported lazily: the reminders package depends on this module at import time.
+    from server.services.reminders import REMINDER_AGENT_NAME, is_reminder_agent
+
     try:
-        records = _TRIGGER_SERVICE.list_triggers(agent_name=agent_name)
+        # Reminders are created under the reserved identity, so an agent must
+        # also see those or it would be told it has no reminders it just made.
+        owners = [agent_name]
+        if not is_reminder_agent(agent_name):
+            owners.append(REMINDER_AGENT_NAME)
+
+        records: List[TriggerRecord] = []
+        seen: set[int] = set()
+        for owner in owners:
+            for record in _TRIGGER_SERVICE.list_triggers(agent_name=owner):
+                if record.id in seen:
+                    continue
+                seen.add(record.id)
+                records.append(record)
     except Exception as exc:  # pragma: no cover - defensive
         _LOG_STORE.record_action(
             agent_name,
@@ -243,6 +265,26 @@ def _default_reminder_owner(agent_name: str) -> str:
     from server.services.reminders import REMINDER_AGENT_NAME
 
     return REMINDER_AGENT_NAME
+
+
+# Find who owns a trigger this agent is allowed to touch
+def _resolve_trigger_owner(trigger_id: int, *, agent_name: str) -> Optional[str]:
+    """Return the owning identity for a trigger, or None if this agent has no access.
+
+    An agent may modify its own triggers and the shared reminders. It may not
+    reach another agent's triggers, even though they live in the same table.
+    """
+    # Imported lazily: the reminders package depends on this module at import time.
+    from server.services.reminders import REMINDER_AGENT_NAME, is_reminder_agent
+
+    candidates = [agent_name]
+    if not is_reminder_agent(agent_name):
+        candidates.append(REMINDER_AGENT_NAME)
+
+    for owner in candidates:
+        if _TRIGGER_SERVICE.fetch_trigger(trigger_id, agent_name=owner) is not None:
+            return owner
+    return None
 
 
 # Return trigger tool callables bound to a specific agent

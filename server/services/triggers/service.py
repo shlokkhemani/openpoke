@@ -183,6 +183,10 @@ class TriggerService:
     def list_triggers(self, *, agent_name: str) -> List[TriggerRecord]:
         return self._store.list_for_agent(agent_name)
 
+    def fetch_trigger(self, trigger_id: int, *, agent_name: str) -> Optional[TriggerRecord]:
+        """Return one trigger owned by *agent_name*, or None."""
+        return self._store.fetch_one(trigger_id, agent_name)
+
     def get_due_triggers(
         self, *, before: datetime, agent_name: Optional[str] = None
     ) -> List[TriggerRecord]:

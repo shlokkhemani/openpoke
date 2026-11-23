@@ -17,7 +17,7 @@ from typing import Dict, List, Optional
 from ...agents.execution_agent.tools.triggers import _create_trigger_tool
 from ..triggers import TriggerRecord, get_trigger_service
 from ..timezone_store import get_timezone_store
-from .organizer import ReminderDigest, ReminderItem, build_digest
+from .organizer import ReminderDigest, ReminderItem, build_digest, summarize_payload
 
 # The one roster identity all reminders are stored under.
 REMINDER_AGENT_NAME = "Reminders"
@@ -160,7 +160,7 @@ class ReminderService:
         just_fired = [
             ReminderItem(
                 id=record.id,
-                summary=" ".join((record.payload or "").split())[:90],
+                summary=summarize_payload(record.payload),
                 when=None,
                 when_label="just now",
                 recurrence_rule=record.recurrence_rule,
