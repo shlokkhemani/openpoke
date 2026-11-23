@@ -257,3 +257,44 @@ async def test_missing_configuration_reports_clearly(
 
     with pytest.raises(ValueError, match="LLM_BASE_URL"):
         interaction_runtime.InteractionAgentRuntime()
+
+
+def test_approve_draft_marks_a_created_draft() -> None:
+    from server.services.gmail import draft_guard
+    from server.agents.interaction_agent import tools as interaction_tools
+
+    draft_guard.reset()
+    draft_guard.register_created_draft({"draft_id": "d-1"})
+
+    result = interaction_tools.approve_draft_for_sending("d-1")
+
+    assert result.success is True
+    assert draft_guard.is_approved("d-1")
+    draft_guard.reset()
+
+
+def test_approve_draft_rejects_an_unknown_draft() -> None:
+    """Approval cannot be manufactured for a draft that was never created."""
+    from server.services.gmail import draft_guard
+    from server.agents.interaction_agent import tools as interaction_tools
+
+    draft_guard.reset()
+
+    result = interaction_tools.approve_draft_for_sending("ghost")
+
+    assert result.success is False
+    assert "not created in this session" in result.payload["error"]
+    assert draft_guard.is_approved("ghost") is False
+
+
+def test_approve_draft_tool_routes_through_the_router() -> None:
+    from server.services.gmail import draft_guard
+    from server.agents.interaction_agent import tools as interaction_tools
+
+    draft_guard.reset()
+    draft_guard.register_created_draft({"draft_id": "d-9"})
+
+    result = interaction_tools.handle_tool_call("approve_draft", {"draft_id": "d-9"})
+
+    assert result.success is True
+    draft_guard.reset()

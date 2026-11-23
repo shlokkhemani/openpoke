@@ -84,6 +84,27 @@ class ExecutionAgentRuntime:
                     tool_name = tool_call.get("name", "")
                     tool_args = tool_call.get("arguments", {})
                     call_id = tool_call.get("id")
+                    argument_error = tool_call.get("argument_error")
+
+                    # Never run a tool whose arguments failed to parse.
+                    if argument_error:
+                        logger.warning(
+                            f"[{self.agent.name}] Malformed arguments for {tool_name}: {argument_error}"
+                        )
+                        failure = {
+                            "error": f"Tool arguments were not valid JSON: {argument_error}. "
+                            "Re-issue the call with a well-formed JSON object."
+                        }
+                        messages.append(
+                            {
+                                "role": "tool",
+                                "tool_call_id": call_id or tool_name or "unknown_tool",
+                                "content": self._format_tool_result(
+                                    tool_name or "<unknown>", False, failure, {}
+                                ),
+                            }
+                        )
+                        continue
 
                     if not tool_name:
                         logger.warning("Tool call missing name: %s", tool_call)
@@ -177,25 +198,41 @@ class ExecutionAgentRuntime:
 
     # Parse and validate tool calls from LLM response into structured format
     def _extract_tool_calls(self, raw_tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract tool calls from an assistant message."""
+        """Extract tool calls from an assistant message.
+
+        Malformed arguments are surfaced as an error rather than silently
+        replaced with ``{}``: executing a tool with empty arguments can look
+        like success while doing the wrong thing.
+        """
         tool_calls: List[Dict[str, Any]] = []
 
         for tool in raw_tools:
             function = tool.get("function", {})
             name = function.get("name", "")
             args = function.get("arguments", "")
+            argument_error: Optional[str] = None
 
             if isinstance(args, str):
-                try:
-                    args = json.loads(args) if args else {}
-                except json.JSONDecodeError:
+                if args.strip():
+                    try:
+                        args = json.loads(args)
+                    except json.JSONDecodeError as exc:
+                        args = {}
+                        argument_error = f"invalid json: {exc}"
+                else:
                     args = {}
+            elif args is None:
+                args = {}
+            elif not isinstance(args, dict):
+                argument_error = f"unsupported argument type: {type(args).__name__}"
+                args = {}
 
             if name:
                 tool_calls.append({
                     "id": tool.get("id"),
                     "name": name,
                     "arguments": args,
+                    "argument_error": argument_error,
                 })
 
         return tool_calls

@@ -15,7 +15,7 @@ from ...logging_config import logger
 # Agents idle for longer than this are archived and kept out of the prompt.
 ARCHIVE_AFTER_DAYS = 7
 # Upper bound on how many agents reach the interaction agent each turn.
-MAX_PROMPT_AGENTS = 15
+MAX_PROMPT_AGENTS = 8
 # Characters kept from the last instruction, used as a relevance hint.
 INSTRUCTION_SNIPPET_LENGTH = 80
 

@@ -6,7 +6,7 @@ import json
 from typing import Any, Callable, Dict, List, Optional
 
 from server.services.execution import get_execution_agent_logs
-from server.services.gmail import execute_gmail_tool, get_active_gmail_user_id
+from server.services.gmail import draft_guard, execute_gmail_tool, get_active_gmail_user_id
 
 _GMAIL_AGENT_NAME = "gmail-execution-agent"
 
@@ -369,13 +369,24 @@ def gmail_create_draft(
     composio_user_id = get_active_gmail_user_id()
     if not composio_user_id:
         return {"error": "Gmail not connected. Please connect Gmail in settings first."}
-    return _execute("GMAIL_CREATE_EMAIL_DRAFT", composio_user_id, arguments)
+    result = _execute("GMAIL_CREATE_EMAIL_DRAFT", composio_user_id, arguments)
+
+    # Remember the draft so a later send can be tied back to it.
+    draft_id = draft_guard.register_created_draft(result, recipient=recipient_email)
+    if draft_id and isinstance(result, dict) and "draft_id" not in result:
+        result = {**result, "draft_id": draft_id}
+    return result
 
 
 # Send a previously created Gmail draft using Composio
 def gmail_execute_draft(
     draft_id: str,
 ) -> Dict[str, Any]:
+    # Structural guard: only drafts created here, and only after user approval.
+    refusal = draft_guard.check_send_allowed(draft_id)
+    if refusal:
+        return {"error": refusal}
+
     arguments = {"draft_id": draft_id}
     composio_user_id = get_active_gmail_user_id()
     if not composio_user_id:

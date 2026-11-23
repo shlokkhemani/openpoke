@@ -74,6 +74,47 @@ async def test_draft_is_created_without_sending(
 async def test_send_uses_draft_id_from_previous_step(
     scripted_llm, composio_calls, gmail_connected
 ) -> None:
+    from server.services.gmail import draft_guard
+
+    draft_guard.reset()
+    responses = [
+        completion(
+            tool_calls=[
+                tool_call("gmail_create_draft", {"recipient_email": "a@b.com", "subject": "s", "body": "b"})
+            ]
+        ),
+        # The user has confirmed in between, so the draft is approved.
+        completion("Draft ready for review."),
+    ]
+
+    first, fake = await _run_agent(scripted_llm, responses)
+    fake.assert_drained()
+
+    assert [name for name, _ in composio_calls] == ["GMAIL_CREATE_EMAIL_DRAFT"]
+    assert draft_guard.was_created("stub-1"), "creating a draft must register its id"
+
+    # Approval happens outside the agent loop, on the user's confirmation.
+    assert draft_guard.approve_draft("stub-1") is True
+
+    second = [
+        completion(tool_calls=[tool_call("gmail_execute_draft", {"draft_id": "stub-1"}, call_id="call_2")]),
+        completion("Sent."),
+    ]
+    sent, fake2 = await _run_agent(scripted_llm, second)
+    fake2.assert_drained()
+
+    assert [name for name, _ in composio_calls] == ["GMAIL_CREATE_EMAIL_DRAFT", "GMAIL_SEND_DRAFT"]
+    assert composio_calls[1][1]["draft_id"] == "stub-1"
+    assert sent.success is True
+
+
+async def test_send_without_approval_is_refused(
+    scripted_llm, composio_calls, gmail_connected
+) -> None:
+    """Regression: creating a draft and sending it in one turn must not send."""
+    from server.services.gmail import draft_guard
+
+    draft_guard.reset()
     responses = [
         completion(
             tool_calls=[
@@ -81,14 +122,55 @@ async def test_send_uses_draft_id_from_previous_step(
             ]
         ),
         completion(tool_calls=[tool_call("gmail_execute_draft", {"draft_id": "stub-1"}, call_id="call_2")]),
-        completion("Sent."),
+        completion("I need your confirmation before sending."),
     ]
 
     result, fake = await _run_agent(scripted_llm, responses)
 
     fake.assert_drained()
-    assert [name for name, _ in composio_calls] == ["GMAIL_CREATE_EMAIL_DRAFT", "GMAIL_SEND_DRAFT"]
-    assert composio_calls[1][1]["draft_id"] == "stub-1"
+    assert [name for name, _ in composio_calls] == ["GMAIL_CREATE_EMAIL_DRAFT"], "must not send"
+    assert result.success is True
+
+    # The refusal reached the model as a tool result
+    tool_messages = [m for m in fake.calls[2]["messages"] if m.get("role") == "tool"]
+    assert any("not approved" in str(m.get("content", "")).lower() for m in tool_messages)
+
+
+async def test_send_of_unknown_draft_is_refused(
+    scripted_llm, composio_calls, gmail_connected
+) -> None:
+    """A draft id that was never created here cannot be sent."""
+    from server.services.gmail import draft_guard
+
+    draft_guard.reset()
+    responses = [
+        completion(tool_calls=[tool_call("gmail_execute_draft", {"draft_id": "made-up-id"})]),
+        completion("That draft does not exist."),
+    ]
+
+    result, fake = await _run_agent(scripted_llm, responses)
+
+    fake.assert_drained()
+    assert composio_calls == [], "no Gmail send should occur"
+    tool_messages = [m for m in fake.calls[1]["messages"] if m.get("role") == "tool"]
+    assert any("not created in this session" in str(m.get("content", "")) for m in tool_messages)
+
+
+async def test_malformed_tool_arguments_are_not_executed(
+    scripted_llm, composio_calls, gmail_connected
+) -> None:
+    """Regression: invalid JSON must be rejected, not silently run with {}."""
+    responses = [
+        completion(tool_calls=[tool_call("gmail_create_draft", "{not valid json")]),
+        completion("The draft call was malformed, so I stopped."),
+    ]
+
+    result, fake = await _run_agent(scripted_llm, responses)
+
+    fake.assert_drained()
+    assert composio_calls == [], "a malformed call must not reach Gmail"
+    tool_messages = [m for m in fake.calls[1]["messages"] if m.get("role") == "tool"]
+    assert any("not valid JSON" in str(m.get("content", "")) for m in tool_messages)
     assert result.success is True
 
 

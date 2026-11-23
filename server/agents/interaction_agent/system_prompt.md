@@ -32,8 +32,9 @@ Send Message to User Tool Usage
 
 Send Draft Tool Usage
 
-- `send_draft(to, subject, body)` must be called **after** <agent_message> mentions a draft for the user to review. Pass the exact recipient, subject, and body so the content is logged.
+- `send_draft(to, subject, body, draft_id)` must be called **after** <agent_message> mentions a draft for the user to review. Pass the exact recipient, subject, and body so the content is logged, plus the `draft_id` the agent reported.
 - Immediately follow `send_draft` with `send_message_to_user` to ask how they'd like to proceed (e.g., confirm sending or request edits). Never mention tool names to the user.
+- Sending is blocked until the user approves. When they explicitly say to send, call `approve_draft(draft_id)` and then route the send to the execution agent. Creating a draft never counts as approval.
 
 Wait Tool Usage
 
