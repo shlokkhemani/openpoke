@@ -175,6 +175,26 @@ def test_generic_request_still_surfaces_the_general_agent(roster) -> None:
     assert [r.name for r in selected] == ["Email Inbox Watcher"]
 
 
+def test_general_agent_never_matches_on_its_polluted_hint(roster) -> None:
+    """Regression: a general agent's hint describes past work, not its purpose.
+
+    The inbox watcher absorbed a Best Buy gift card task, which left that text in
+    its hint. Later gift-card requests then appeared to match it topically.
+    """
+    roster._records.append(
+        _record(
+            "Email Inbox Watcher",
+            "Search for any Best Buy gift card emails or related communications",
+            general=True,
+        )
+    )
+
+    selected = roster.select_for_prompt("Is my best buy gift card still active?", "")
+
+    assert selected == [], "a general agent must not match a topic request"
+    assert roster.find_reusable_agent("Is my bestbuy gift card still active?", "") is None
+
+
 # --------------------------------------------------------------------------
 # general_purpose persistence
 # --------------------------------------------------------------------------

@@ -100,6 +100,15 @@ def _handle_response_error(exc: httpx.HTTPStatusError) -> None:
     raise LLMError(f"Model request failed ({response.status_code}): {detail}") from exc
 
 
+def _note_context(label: str, response: Dict[str, Any]) -> None:
+    """Check token usage against the context window and log near-limit notices."""
+    from ..services.context_monitor import observe, report_from_usage
+
+    report = report_from_usage(label, response.get("usage"))
+    if report is not None:
+        observe(report)
+
+
 def extract_assistant_message(response: Dict[str, Any]) -> Dict[str, Any]:
     """Return the assistant message, tolerating reasoning-only replies.
 
@@ -141,8 +150,13 @@ async def request_chat_completion(
     tools: Optional[List[Dict[str, Any]]] = None,
     base_url: Optional[str] = None,
     timeout: Optional[float] = None,
+    context_label: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Request a chat completion and return the raw JSON payload."""
+    """Request a chat completion and return the raw JSON payload.
+
+    When ``context_label`` is set, the response's token usage is checked against
+    the configured context window and a notice is emitted near the limit.
+    """
 
     endpoint = _resolve_base_url(base_url)
     request_timeout = _resolve_timeout(timeout)
@@ -169,7 +183,10 @@ async def request_chat_completion(
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
                 _handle_response_error(exc)
-            return response.json()
+            data = response.json()
+            if context_label:
+                _note_context(context_label, data)
+            return data
         except httpx.HTTPStatusError as exc:  # pragma: no cover - handled above
             _handle_response_error(exc)
         except httpx.TimeoutException as exc:

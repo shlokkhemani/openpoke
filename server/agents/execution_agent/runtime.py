@@ -185,6 +185,7 @@ class ExecutionAgentRuntime:
             api_key=self.api_key,
             tools=tools_to_send,
             base_url=self.base_url,
+            context_label=f"agent:{self.agent.name}",
         )
 
     # Extract the assistant message, tolerating reasoning-only replies

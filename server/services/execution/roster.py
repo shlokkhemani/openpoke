@@ -577,12 +577,14 @@ class AgentRoster:
         # Word overlap recalls dormant agents that still match this request.
         # Matching uses topic words only: channel vocabulary like "email" would
         # otherwise surface a general inbox watcher for any mail-adjacent task.
+        # General-purpose agents are excluded entirely: their hint describes the
+        # channel they watch, so any topical request would appear to match them.
         if len(selected) < limit:
             query_topics = _topic_tokens(latest_text)
             if query_topics:
                 scored: List[tuple[int, bool, float, AgentRecord]] = []
                 for record in candidates:
-                    if record.name in chosen:
+                    if record.name in chosen or record.general_purpose:
                         continue
                     overlap = len(query_topics & record.topic_tokens())
                     if overlap:

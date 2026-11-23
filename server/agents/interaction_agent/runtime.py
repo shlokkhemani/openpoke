@@ -188,6 +188,9 @@ class InteractionAgentRuntime:
             response = await self._make_llm_call(system_prompt, messages)
             assistant_message = self._extract_assistant_message(response)
 
+            # Debug mode: surface a near-limit context warning to the user.
+            self._maybe_record_context_notice(response)
+
             assistant_content = assistant_text(assistant_message)
             if assistant_content:
                 summary.last_assistant_text = assistant_content
@@ -271,6 +274,7 @@ class InteractionAgentRuntime:
             api_key=self.api_key,
             tools=self.tool_schemas,
             base_url=self.base_url,
+            context_label="interaction_agent",
         )
 
     # Extract the assistant's message from the completion response structure
@@ -281,6 +285,38 @@ class InteractionAgentRuntime:
             return extract_assistant_message(response)
         except LLMError as exc:
             raise RuntimeError(str(exc)) from exc
+
+    # Debug aid: tell the user when the context is near its limit
+    def _maybe_record_context_notice(self, response: Dict[str, Any]) -> None:
+        """Record a user-visible note when context crosses a threshold.
+
+        Only active when OPENPOKE_DEBUG_CONTEXT is set. Logging happens
+        regardless, inside the client, so warnings exist without debug mode.
+        """
+        try:
+            from ...services.context_monitor import (
+                debug_enabled,
+                describe,
+                observe,
+                report_from_usage,
+            )
+
+            if not debug_enabled():
+                return
+
+            report = report_from_usage("interaction_agent:user", response.get("usage"))
+            if report is None or report.level == "ok":
+                return
+
+            # A distinct label from the client's own notice, so both fire.
+            notice = observe(report)
+            if not notice:
+                return
+
+            self.conversation_log.record_reply(f"[context] {notice}")
+            logger.info("[context-debug] surfaced notice to user: %s", describe(report))
+        except Exception as exc:  # pragma: no cover - debug aid must never break a turn
+            logger.debug("context notice skipped", extra={"error": str(exc)})
 
     # Convert raw LLM tool calls into structured _ToolCall objects with validation
     def _parse_tool_calls(self, raw_tool_calls: List[Dict[str, Any]]) -> List[_ToolCall]:
