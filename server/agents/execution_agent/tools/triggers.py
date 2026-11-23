@@ -232,12 +232,25 @@ def _list_triggers_tool(*, agent_name: str) -> Dict[str, Any]:
     return {"triggers": [_trigger_record_to_payload(record) for record in records]}
 
 
+# Route new reminders to the single reserved reminder identity.
+def _default_reminder_owner(agent_name: str) -> str:
+    """Return the identity new reminders are stored under.
+
+    Previously every reminder was created against the calling execution agent,
+    so N reminders meant N roster entries competing for prompt slots. Sending
+    them all to one reserved identity removes that competition.
+    """
+    from server.services.reminders import REMINDER_AGENT_NAME
+
+    return REMINDER_AGENT_NAME
+
+
 # Return trigger tool callables bound to a specific agent
 def build_registry(agent_name: str) -> Dict[str, Callable[..., Any]]:
     """Return trigger tool callables bound to a specific agent."""
 
     return {
-        "createTrigger": partial(_create_trigger_tool, agent_name=agent_name),
+        "createTrigger": partial(_create_trigger_tool, agent_name=_default_reminder_owner(agent_name)),
         "updateTrigger": partial(_update_trigger_tool, agent_name=agent_name),
         "listTriggers": partial(_list_triggers_tool, agent_name=agent_name),
     }

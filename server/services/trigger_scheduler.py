@@ -9,6 +9,7 @@ from typing import Optional, Set
 from ..agents.execution_agent.batch_manager import ExecutionBatchManager
 from ..agents.execution_agent.runtime import ExecutionResult
 from ..logging_config import logger
+from .reminders import get_reminder_service, is_reminder_agent
 from .triggers import TriggerRecord, get_trigger_service
 
 
@@ -71,11 +72,25 @@ class TriggerScheduler:
         if not due_triggers:
             return
 
-        for trigger in due_triggers:
+        # Reminders go through their own pathway: they are collected and
+        # dispatched as one digest instead of one full execution agent each.
+        reminder_triggers = [t for t in due_triggers if is_reminder_agent(t.agent_name)]
+        other_triggers = [t for t in due_triggers if not is_reminder_agent(t.agent_name)]
+
+        for trigger in other_triggers:
             if trigger.id in self._in_flight:
                 continue
             self._in_flight.add(trigger.id)
             asyncio.create_task(self._execute_trigger(trigger), name=f"trigger-{trigger.id}")
+
+        fresh_reminders = [t for t in reminder_triggers if t.id not in self._in_flight]
+        if fresh_reminders:
+            for trigger in fresh_reminders:
+                self._in_flight.add(trigger.id)
+            asyncio.create_task(
+                self._fire_reminders(fresh_reminders),
+                name="reminder-digest",
+            )
 
     async def _execute_trigger(self, trigger: TriggerRecord) -> None:
         try:
@@ -130,6 +145,52 @@ class TriggerScheduler:
         else:
             self._service.clear_next_fire(trigger.id, agent_name=trigger.agent_name)
 
+    async def _fire_reminders(self, triggers: list[TriggerRecord]) -> None:
+        """Dispatch due reminders as a single digest notification.
+
+        Reminders skip the per-trigger execution agent entirely: no tool loop,
+        no batch dispatch, and one interaction-agent turn for the whole group.
+        """
+        fired_at = _utc_now()
+        delivered = False
+        try:
+            digest = get_reminder_service().render_due_notification(triggers)
+            if not digest:
+                # Nothing to say, but the schedule still has to move on.
+                delivered = True
+                return
+
+            logger.info(
+                "Dispatching reminder digest",
+                extra={"count": len(triggers), "trigger_ids": [t.id for t in triggers]},
+            )
+            await _dispatch_reminder_to_interaction_agent(digest)
+            delivered = True
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.exception(
+                "Reminder digest failed",
+                extra={"error": str(exc), "trigger_ids": [t.id for t in triggers]},
+            )
+        finally:
+            for trigger in triggers:
+                self._in_flight.discard(trigger.id)
+                if delivered:
+                    self._advance_reminder(trigger, fired_at)
+                else:
+                    # Leave the reminder due so the next poll retries instead of
+                    # silently losing it.
+                    logger.warning(
+                        "Reminder left due after failed dispatch",
+                        extra={"trigger_id": trigger.id},
+                    )
+
+    def _advance_reminder(self, trigger: TriggerRecord, fired_at: datetime) -> None:
+        """Advance a recurring reminder or retire a one-shot one."""
+        if trigger.recurrence_rule:
+            self._service.schedule_next_occurrence(trigger, fired_at=fired_at)
+        else:
+            self._service.mark_as_completed(trigger.id, agent_name=trigger.agent_name)
+
     def _format_instructions(self, trigger: TriggerRecord, fired_at: datetime) -> str:
         scheduled_for = trigger.next_trigger or _isoformat(fired_at)
         metadata_lines = [f"Trigger ID: {trigger.id}"]
@@ -147,6 +208,24 @@ class TriggerScheduler:
             f"Metadata:\n{metadata}\n\n"
             f"Payload:\n{trigger.payload}"
         )
+
+
+async def _dispatch_reminder_to_interaction_agent(payload: str) -> None:
+    """Deliver a reminder digest to the interaction agent.
+
+    Mirrors the execution batch dispatch path so reminders arrive as an
+    `<agent_message>` and benefit from the same history handling.
+    """
+    from ..agents.interaction_agent.runtime import InteractionAgentRuntime
+
+    runtime = InteractionAgentRuntime()
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:  # pragma: no cover - defensive
+        await runtime.handle_agent_message(payload)
+        return
+
+    loop.create_task(runtime.handle_agent_message(payload))
 
 
 _scheduler_instance: Optional[TriggerScheduler] = None

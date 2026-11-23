@@ -162,6 +162,17 @@ def _snippet(instructions: Optional[str]) -> str:
     return collapsed[: INSTRUCTION_SNIPPET_LENGTH - 1].rstrip() + "…"
 
 
+def _is_reserved_identity(agent_name: Optional[str]) -> bool:
+    """True for identities that must never occupy a prompt slot.
+
+    Imported lazily to avoid a circular import: the reminders package depends on
+    the trigger tools, which live under the execution agent.
+    """
+    from ..reminders import is_reminder_agent
+
+    return is_reminder_agent(agent_name)
+
+
 @dataclass
 class AgentRecord:
     """One execution agent and the activity metadata used to rank it."""
@@ -353,11 +364,22 @@ class AgentRoster:
         *,
         limit: int = MAX_PROMPT_AGENTS,
     ) -> List[AgentRecord]:
-        """Pick the agents worth showing for this turn, capped at *limit*."""
+        """Pick the agents worth showing for this turn, capped at *limit*.
+
+        Reminders are excluded: they live under a single reserved identity that
+        the prompt renders as a compact digest instead, so they cost no slots.
+        """
         if limit <= 0:
             return []
 
         candidates = self.get_records(include_archived=True)
+        if not candidates:
+            return []
+
+        # Reminders never compete for an agent slot (see services.reminders).
+        candidates = [
+            record for record in candidates if not _is_reserved_identity(record.name)
+        ]
         if not candidates:
             return []
 

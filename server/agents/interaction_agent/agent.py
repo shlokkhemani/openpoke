@@ -4,6 +4,7 @@ from html import escape
 from pathlib import Path
 from typing import Dict, List
 
+from ...logging_config import logger
 from ...services.execution import get_agent_roster
 
 _prompt_path = Path(__file__).parent / "system_prompt.md"
@@ -29,10 +30,27 @@ def prepare_message_with_history(
     sections.append(
         f"<active_agents>\n{_render_active_agents(latest_text, transcript)}\n</active_agents>"
     )
+
+    reminders = _render_reminders()
+    if reminders:
+        sections.append(f"<reminders>\n{reminders}\n</reminders>")
+
     sections.append(_render_current_turn(latest_text, message_type))
 
     content = "\n\n".join(sections)
     return [{"role": "user", "content": content}]
+
+
+# Summarize reminders as one compact block instead of one agent per reminder
+def _render_reminders() -> str:
+    """Render the reminder digest, or an empty string when there are none."""
+    try:
+        from ...services.reminders import get_reminder_service
+
+        return get_reminder_service().render_prompt_block()
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning("reminder digest unavailable", extra={"error": str(exc)})
+        return ""
 
 
 # Format conversation transcript into XML tags for LLM context
