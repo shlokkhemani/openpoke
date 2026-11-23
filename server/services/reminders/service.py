@@ -1,12 +1,17 @@
-"""Reminder pathway: a single reserved agent identity for all reminders.
+"""Reminder pathway backed by a reserved owner id.
 
 Every reminder used to be created against whichever execution agent happened to
 handle the request, so a dozen reminders became a dozen roster entries competing
-for the interaction agent's limited prompt slots. Reminders now live under one
-reserved identity and are surfaced as a compact digest instead.
+for the interaction agent's limited prompt slots. Reminders are now stored under
+one reserved owner id and surfaced as a compact digest instead.
 
-The reserved identity is never selected as an execution agent, so creating a
-reminder costs zero interaction-agent capacity no matter how many exist.
+This is an owner id, not an agent: there is no execution agent by that name,
+and it is deliberately excluded from prompt-slot selection. Creating a reminder
+therefore costs no interaction-agent capacity no matter how many exist.
+
+Provenance is preserved. Each reminder records ``created_by``, the execution
+agent that requested it, and visibility is scoped by that field so one agent
+cannot read or modify another agent's reminders.
 """
 
 from __future__ import annotations
@@ -19,8 +24,11 @@ from ..triggers import TriggerRecord, get_trigger_service
 from ..timezone_store import get_timezone_store
 from .organizer import ReminderDigest, ReminderItem, build_digest, summarize_payload
 
-# The one roster identity all reminders are stored under.
-REMINDER_AGENT_NAME = "Reminders"
+# The reserved owner id all reminders are stored under. Not an agent.
+REMINDER_OWNER_ID = "Reminders"
+
+# Backwards-compatible alias: the old name said "agent", which was misleading.
+REMINDER_AGENT_NAME = REMINDER_OWNER_ID
 
 # Reminders due within this window are surfaced as "imminent" so the
 # interaction agent can warn the user rather than only reacting after the fact.
@@ -30,9 +38,13 @@ IMMINENT_WINDOW = timedelta(hours=1)
 PROMPT_HINT_LIMIT = 5
 
 
-def is_reminder_agent(agent_name: Optional[str]) -> bool:
-    """Return True when the name is the reserved reminder identity."""
-    return (agent_name or "").strip().casefold() == REMINDER_AGENT_NAME.casefold()
+def is_reminder_owner(owner_id: Optional[str]) -> bool:
+    """Return True when the id is the reserved reminder owner id."""
+    return (owner_id or "").strip().casefold() == REMINDER_OWNER_ID.casefold()
+
+
+# Backwards-compatible alias for the previous helper name.
+is_reminder_agent = is_reminder_owner
 
 
 def _utc_now() -> datetime:
@@ -45,15 +57,19 @@ def create_reminder(
     recurrence_rule: Optional[str] = None,
     start_time: Optional[str] = None,
     status: Optional[str] = None,
+    created_by: Optional[str] = None,
 ) -> Dict[str, object]:
-    """Create a reminder under the reserved identity.
+    """Create a reminder under the reserved owner id.
 
-    Wraps the existing trigger tool so validation, timezone handling, and
-    logging all keep working unchanged.
+    ``created_by`` records the requesting execution agent so the reminder stays
+    visible to it later. Validation, timezone handling, and logging are reused
+    from the existing trigger tool.
     """
 
     return _create_trigger_tool(
-        agent_name=REMINDER_AGENT_NAME,
+        agent_name=REMINDER_OWNER_ID,
+        owner_id=REMINDER_OWNER_ID,
+        created_by=created_by,
         payload=payload,
         recurrence_rule=recurrence_rule,
         start_time=start_time,
@@ -75,18 +91,32 @@ class ReminderService:
         recurrence_rule: Optional[str] = None,
         start_time: Optional[str] = None,
         status: Optional[str] = None,
+        created_by: Optional[str] = None,
     ) -> Dict[str, object]:
-        """Create a reminder owned by the reserved identity."""
+        """Create a reminder owned by the reserved id, attributed to created_by."""
         return create_reminder(
             payload=payload,
             recurrence_rule=recurrence_rule,
             start_time=start_time,
             status=status,
+            created_by=created_by,
         )
 
     def list_reminders(self) -> List[TriggerRecord]:
-        """Return every reminder, soonest first."""
-        return self._service.list_triggers(agent_name=REMINDER_AGENT_NAME)
+        """Return every reminder, soonest first.
+
+        This is the full set, used for the prompt digest the interaction agent
+        sees. Per-agent scoping happens in ``list_for_agent``.
+        """
+        return self._service.list_triggers(agent_name=REMINDER_OWNER_ID)
+
+    def list_for_agent(self, agent_name: str) -> List[TriggerRecord]:
+        """Reminders this agent may see: ones it created, plus shared ones."""
+        return [
+            record
+            for record in self.list_reminders()
+            if (record.created_by or "") == agent_name or record.shared
+        ]
 
     def update(
         self,
@@ -100,7 +130,7 @@ class ReminderService:
         """Update a reminder by id."""
         return self._service.update_trigger(
             int(trigger_id),
-            agent_name=REMINDER_AGENT_NAME,
+            agent_name=REMINDER_OWNER_ID,
             payload=payload,
             recurrence_rule=recurrence_rule,
             start_time=start_time,

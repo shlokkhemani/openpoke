@@ -38,6 +38,8 @@ class TriggerService:
         start_time: Optional[str] = None,
         timezone_name: Optional[str] = None,
         status: Optional[str] = None,
+        created_by: Optional[str] = None,
+        shared: bool = False,
     ) -> TriggerRecord:
         tz = resolve_timezone(timezone_name)
         now = utc_now()
@@ -52,6 +54,9 @@ class TriggerService:
         timestamp = to_storage_timestamp(now)
         record: Dict[str, Any] = {
             "agent_name": agent_name,
+            # Provenance survives even when the row moves to a reserved owner.
+            "created_by": created_by or agent_name,
+            "shared": 1 if shared else 0,
             "payload": payload,
             "start_time": to_storage_timestamp(start_dt_local),
             "next_trigger": to_storage_timestamp(next_fire) if next_fire else None,
@@ -183,9 +188,100 @@ class TriggerService:
     def list_triggers(self, *, agent_name: str) -> List[TriggerRecord]:
         return self._store.list_for_agent(agent_name)
 
+    def list_visible_triggers(self, *, agent_name: str) -> List[TriggerRecord]:
+        """Triggers this agent owns plus any shared ones."""
+        return self._store.list_visible_to(agent_name)
+
     def fetch_trigger(self, trigger_id: int, *, agent_name: str) -> Optional[TriggerRecord]:
         """Return one trigger owned by *agent_name*, or None."""
         return self._store.fetch_one(trigger_id, agent_name)
+
+    def fetch_visible_trigger(
+        self, trigger_id: int, *, agent_name: str
+    ) -> Optional[TriggerRecord]:
+        """Return one trigger this agent may see, or None if it has no access."""
+        return self._store.fetch_visible(trigger_id, agent_name)
+
+    def update_visible_trigger(
+        self, trigger_id: int, *, agent_name: str, fields: Dict[str, Any]
+    ) -> bool:
+        """Update only if this agent owns, created, or may share the trigger."""
+        return self._store.update_visible(trigger_id, agent_name, fields)
+
+    def update_trigger_scoped(
+        self,
+        trigger_id: int,
+        *,
+        agent_name: str,
+        payload: Optional[str] = None,
+        recurrence_rule: Optional[str] = None,
+        start_time: Optional[str] = None,
+        timezone_name: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> Optional[TriggerRecord]:
+        """Update a trigger, but only within this agent's visibility.
+
+        Returns None when the trigger does not exist or this agent has no access
+        to it, so callers cannot use an update to probe for other agents' data.
+        """
+        visible = self._store.fetch_visible(trigger_id, agent_name)
+        if visible is None:
+            return None
+
+        tz = resolve_timezone(timezone_name or visible.timezone)
+        start_reference = parse_iso(visible.start_time) if visible.start_time else utc_now()
+        start_dt_local = coerce_start_datetime(start_time, tz, start_reference)
+
+        fields: Dict[str, Any] = {}
+        if payload is not None:
+            fields["payload"] = payload
+        if status is not None:
+            fields["status"] = normalize_status(status)
+        if start_time is not None:
+            fields["start_time"] = to_storage_timestamp(start_dt_local.astimezone(tz))
+        if timezone_name is not None:
+            fields["timezone"] = getattr(tz, "key", "UTC")
+
+        schedule_inputs_changed = any(
+            value is not None for value in (recurrence_rule, start_time, timezone_name)
+        )
+        recurrence_source = (
+            recurrence_rule if recurrence_rule is not None else visible.recurrence_rule
+        )
+        if schedule_inputs_changed:
+            fields["recurrence_rule"] = (
+                build_recurrence(recurrence_source, start_dt_local, tz)
+                if recurrence_source
+                else None
+            )
+            next_fire = self._compute_next_fire(
+                stored_recurrence=fields["recurrence_rule"],
+                start_dt_local=start_dt_local,
+                tz=tz,
+                now=utc_now(),
+            )
+            fields["next_trigger"] = (
+                to_storage_timestamp(next_fire) if next_fire else None
+            )
+
+        if not fields:
+            return visible
+
+        if not self._store.update_visible(trigger_id, agent_name, fields):
+            return None
+        return self._store.fetch_visible(trigger_id, agent_name)
+
+    def list_all_triggers(self) -> List[TriggerRecord]:
+        """Every trigger regardless of owner. Intended for migration."""
+        return self._store.list_all()
+
+    def assign_owner(
+        self, trigger_id: int, *, owner_id: str, created_by: Optional[str] = None
+    ) -> bool:
+        """Move a trigger under a reserved owner, keeping its creator."""
+        return self._store.assign_owner(
+            trigger_id, owner_id=owner_id, created_by=created_by
+        )
 
     def get_due_triggers(
         self, *, before: datetime, agent_name: Optional[str] = None

@@ -105,8 +105,10 @@ def get_schemas() -> List[Dict[str, Any]]:
 def _trigger_record_to_payload(record: TriggerRecord) -> Dict[str, Any]:
     return {
         "id": record.id,
-        # Which identity owns this trigger: the calling agent, or "Reminders".
+        # Which identity owns this trigger, and which agent created it.
         "owner": record.agent_name,
+        "created_by": record.created_by,
+        "shared": record.shared,
         "payload": record.payload,
         "start_time": record.start_time,
         "next_trigger": record.next_trigger,
@@ -127,6 +129,8 @@ def _create_trigger_tool(
     recurrence_rule: Optional[str] = None,
     start_time: Optional[str] = None,
     status: Optional[str] = None,
+    created_by: Optional[str] = None,
+    owner_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     timezone_value = get_timezone_store().get_timezone()
     summary_args = {
@@ -137,7 +141,10 @@ def _create_trigger_tool(
     }
     try:
         record = _TRIGGER_SERVICE.create_trigger(
-            agent_name=agent_name,
+            # ``owner_id`` moves the row to a reserved owner while ``created_by``
+            # keeps the real creator for later visibility checks.
+            agent_name=owner_id or agent_name,
+            created_by=created_by or agent_name,
             payload=payload,
             recurrence_rule=recurrence_rule,
             start_time=start_time,
@@ -162,6 +169,7 @@ def _create_trigger_tool(
         "start_time": record.start_time,
         "timezone": record.timezone,
         "recurrence_rule": record.recurrence_rule,
+        "created_by": record.created_by,
     }
 
 
@@ -186,9 +194,9 @@ def _update_trigger_tool(
 
     try:
         timezone_value = get_timezone_store().get_timezone()
-        record = _TRIGGER_SERVICE.update_trigger(
+        record = _TRIGGER_SERVICE.update_trigger_scoped(
             trigger_id_int,
-            agent_name=owner,
+            agent_name=agent_name,
             payload=payload,
             recurrence_rule=recurrence_rule,
             start_time=start_time,
@@ -220,26 +228,13 @@ def _update_trigger_tool(
     }
 
 
-# List triggers owned by this agent plus the shared reminders it can manage
+# List triggers this agent may see: its own, plus shared ones
 def _list_triggers_tool(*, agent_name: str) -> Dict[str, Any]:
-    # Imported lazily: the reminders package depends on this module at import time.
-    from server.services.reminders import REMINDER_AGENT_NAME, is_reminder_agent
-
     try:
-        # Reminders are created under the reserved identity, so an agent must
-        # also see those or it would be told it has no reminders it just made.
-        owners = [agent_name]
-        if not is_reminder_agent(agent_name):
-            owners.append(REMINDER_AGENT_NAME)
-
-        records: List[TriggerRecord] = []
-        seen: set[int] = set()
-        for owner in owners:
-            for record in _TRIGGER_SERVICE.list_triggers(agent_name=owner):
-                if record.id in seen:
-                    continue
-                seen.add(record.id)
-                records.append(record)
+        # Visibility is enforced in the store: ownership or shared, not "any
+        # reminder in the table". Reminders created here carry created_by, so an
+        # agent still sees the ones it made.
+        records = _TRIGGER_SERVICE.list_visible_triggers(agent_name=agent_name)
     except Exception as exc:  # pragma: no cover - defensive
         _LOG_STORE.record_action(
             agent_name,
@@ -254,37 +249,29 @@ def _list_triggers_tool(*, agent_name: str) -> Dict[str, Any]:
     return {"triggers": [_trigger_record_to_payload(record) for record in records]}
 
 
-# Route new reminders to the single reserved reminder identity.
+# Route new reminders to the single reserved reminder owner id.
 def _default_reminder_owner(agent_name: str) -> str:
-    """Return the identity new reminders are stored under.
+    """Return the owner id new reminders are stored under.
 
-    Previously every reminder was created against the calling execution agent,
-    so N reminders meant N roster entries competing for prompt slots. Sending
-    them all to one reserved identity removes that competition.
+    Reminders are stored under one reserved owner id, not under the calling
+    agent, so they do not each become a roster entry competing for prompt
+    slots. The caller is still recorded as ``created_by`` for visibility.
     """
-    from server.services.reminders import REMINDER_AGENT_NAME
+    from server.services.reminders import REMINDER_OWNER_ID
 
-    return REMINDER_AGENT_NAME
+    return REMINDER_OWNER_ID
 
 
-# Find who owns a trigger this agent is allowed to touch
+# Check this agent may touch a trigger, and return the identity that owns it
 def _resolve_trigger_owner(trigger_id: int, *, agent_name: str) -> Optional[str]:
-    """Return the owning identity for a trigger, or None if this agent has no access.
+    """Return the owning identity for a trigger this agent may modify, else None.
 
-    An agent may modify its own triggers and the shared reminders. It may not
-    reach another agent's triggers, even though they live in the same table.
+    Access is ownership-based: the agent must own it, have created it, or the
+    trigger must be explicitly shared. Another agent's private trigger is
+    invisible here.
     """
-    # Imported lazily: the reminders package depends on this module at import time.
-    from server.services.reminders import REMINDER_AGENT_NAME, is_reminder_agent
-
-    candidates = [agent_name]
-    if not is_reminder_agent(agent_name):
-        candidates.append(REMINDER_AGENT_NAME)
-
-    for owner in candidates:
-        if _TRIGGER_SERVICE.fetch_trigger(trigger_id, agent_name=owner) is not None:
-            return owner
-    return None
+    record = _TRIGGER_SERVICE.fetch_visible_trigger(trigger_id, agent_name=agent_name)
+    return record.agent_name if record is not None else None
 
 
 # Return trigger tool callables bound to a specific agent
@@ -292,7 +279,12 @@ def build_registry(agent_name: str) -> Dict[str, Callable[..., Any]]:
     """Return trigger tool callables bound to a specific agent."""
 
     return {
-        "createTrigger": partial(_create_trigger_tool, agent_name=_default_reminder_owner(agent_name)),
+        "createTrigger": partial(
+            _create_trigger_tool,
+            agent_name=agent_name,
+            owner_id=_default_reminder_owner(agent_name),
+            created_by=agent_name,
+        ),
         "updateTrigger": partial(_update_trigger_tool, agent_name=agent_name),
         "listTriggers": partial(_list_triggers_tool, agent_name=agent_name),
     }

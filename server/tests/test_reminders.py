@@ -202,8 +202,19 @@ def test_create_trigger_routes_to_the_reserved_identity() -> None:
     """New reminders must not spawn a per-agent roster entry."""
     captured: dict = {}
 
-    def _fake_tool(*, agent_name, payload, recurrence_rule=None, start_time=None, status=None):
+    def _fake_tool(
+        *,
+        agent_name,
+        payload,
+        recurrence_rule=None,
+        start_time=None,
+        status=None,
+        created_by=None,
+        owner_id=None,
+    ):
         captured["agent_name"] = agent_name
+        captured["owner_id"] = owner_id
+        captured["created_by"] = created_by
         captured["payload"] = payload
         return {"trigger_id": 1}
 
@@ -215,7 +226,9 @@ def test_create_trigger_routes_to_the_reserved_identity() -> None:
     finally:
         trigger_tools._create_trigger_tool = original
 
-    assert captured["agent_name"] == REMINDER_AGENT_NAME
+    # Stored under the reserved owner, but attributed to the real creator.
+    assert captured["owner_id"] == REMINDER_AGENT_NAME
+    assert captured["created_by"] == "Email Summary Agent"
     assert captured["payload"] == "remind me to pay rent"
 
 
