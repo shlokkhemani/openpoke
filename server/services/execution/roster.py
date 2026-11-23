@@ -84,6 +84,111 @@ _STOPWORDS = frozenset(
     }
 )
 
+# Channel and medium words. These say how work happens, not what it is about,
+# so they must never be the sole reason one agent is reused for another's task.
+# Without this, a Nanoleaf request matches an "Email Inbox Watcher" on the word
+# "emails" and gets silently absorbed into a general-purpose agent.
+_CHANNEL_WORDS = frozenset(
+    {
+        "email",
+        "emails",
+        "mail",
+        "inbox",
+        "message",
+        "messages",
+        "summary",
+        "summarize",
+        "summarise",
+        "summarization",
+        "update",
+        "updates",
+        "news",
+        "search",
+        "searches",
+        "searching",
+        "find",
+        "looking",
+        "check",
+        "list",
+        "fetch",
+        "read",
+        "review",
+        "monitor",
+        "monitoring",
+        "watch",
+        "watcher",
+        "notification",
+        "notifications",
+        "notify",
+        "deals",
+        "recent",
+        "latest",
+        "give",
+        "want",
+        "need",
+        "help",
+        "things",
+        "info",
+        "information",
+        "details",
+        "content",
+        # Generic modifiers and fillers: these describe scope or emphasis, not
+        # subject matter, so they must not make a request look topical.
+        "incoming",
+        "outgoing",
+        "every",
+        "current",
+        "ongoing",
+        "daily",
+        "regular",
+        "general",
+        "overall",
+        "specifically",
+        "actually",
+        "exactly",
+        "really",
+        "just",
+        "also",
+        "maybe",
+        "still",
+        "again",
+        "all",
+        "some",
+        "something",
+        "anything",
+        "everything",
+        # Common connective filler that carries no subject matter.
+        "important",
+        "know",
+        "let",
+        "looks",
+        "make",
+        "sure",
+        "tell",
+        "show",
+        "provide",
+        "analyze",
+        "analyse",
+        "report",
+        "about",
+        "regarding",
+        "related",
+    }
+)
+
+
+def _is_channel_word(word: str) -> bool:
+    """True when a word names a medium or a generic verb, not a topic."""
+    return word in _CHANNEL_WORDS
+
+
+def _topic_tokens(text: str) -> set[str]:
+    """Tokens carrying topical meaning, excluding channel words.
+
+    Used to decide whether two tasks are genuinely about the same subject.
+    """
+    return {word for word in _tokens(text) if not _is_channel_word(word)}
+
 
 def _lock_file(file_obj) -> None:
     """Acquire a non-blocking exclusive lock. Raises BlockingIOError if held."""
@@ -183,11 +288,19 @@ class AgentRecord:
     last_instructions: str = ""
     use_count: int = 0
     archived: bool = False
+    # A general-purpose agent handles a whole channel (e.g. inbox triage) and
+    # only accepts work that offers no more specific topic. Topic agents accept
+    # work when the subject matter actually matches.
+    general_purpose: bool = False
 
     @property
     def activity_at(self) -> Optional[datetime]:
         """Most recent activity, falling back to creation time."""
         return _from_iso(self.last_active_at) or _from_iso(self.created_at)
+
+    def topic_tokens(self) -> set[str]:
+        """Topic words this agent is about, ignoring channel vocabulary."""
+        return _topic_tokens(f"{self.name} {self.last_instructions}")
 
     def is_dormant(self, *, now: Optional[datetime] = None, days: int = ARCHIVE_AFTER_DAYS) -> bool:
         reference = self.activity_at
@@ -204,6 +317,7 @@ class AgentRecord:
             "last_instructions": self.last_instructions,
             "use_count": self.use_count,
             "archived": self.archived,
+            "general_purpose": self.general_purpose,
         }
 
     @classmethod
@@ -230,6 +344,7 @@ class AgentRecord:
             last_instructions=str(entry.get("last_instructions") or ""),
             use_count=max(use_count, 0),
             archived=bool(entry.get("archived")),
+            general_purpose=bool(entry.get("general_purpose")),
         )
 
 
@@ -318,7 +433,13 @@ class AgentRoster:
                 return record
         return None
 
-    def touch(self, agent_name: str, instructions: Optional[str] = None) -> bool:
+    def touch(
+        self,
+        agent_name: str,
+        instructions: Optional[str] = None,
+        *,
+        general_purpose: Optional[bool] = None,
+    ) -> bool:
         """Record use of an agent. Returns True when the agent was newly created."""
         name = (agent_name or "").strip()
         if not name:
@@ -334,6 +455,8 @@ class AgentRoster:
         record.last_active_at = _to_iso(now)
         record.use_count += 1
         record.archived = False
+        if general_purpose is not None:
+            record.general_purpose = general_purpose
         snippet = _snippet(instructions)
         if snippet:
             record.last_instructions = snippet
@@ -356,6 +479,59 @@ class AgentRoster:
     def get_records(self, *, include_archived: bool = False) -> List[AgentRecord]:
         records = [record for record in self._records if include_archived or not record.archived]
         return sorted(records, key=lambda record: record.activity_at or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+
+    def find_reusable_agent(self, latest_text: str, transcript: str = "") -> Optional[AgentRecord]:
+        """Return the one agent a new request should be routed to, if any.
+
+        Reuse requires topical overlap, never channel overlap alone. A request
+        about Nanoleaf deals must not land on "Email Inbox Watcher" merely
+        because both concern email; it should get its own agent unless a
+        genuinely topic-matching agent already exists.
+
+        General-purpose agents are only reused when the request offers no topic
+        of its own, so they keep handling channel-wide work without absorbing
+        specific tasks.
+        """
+        query_topics = _topic_tokens(latest_text)
+        lowered_transcript = (transcript or "").lower()
+
+        candidates = [
+            record
+            for record in self.get_records(include_archived=True)
+            if not _is_reserved_identity(record.name)
+        ]
+        if not candidates:
+            return None
+
+        # An explicit mention of the agent by name is a strong signal.
+        mentioned = [
+            record for record in candidates if record.name.lower() in lowered_transcript
+        ]
+        if mentioned:
+            return mentioned[0]
+
+        if not query_topics:
+            # Nothing topical to match on: only a general-purpose agent fits.
+            generals = [r for r in candidates if r.general_purpose]
+            return generals[0] if generals else None
+
+        scored: List[tuple[int, bool, float, AgentRecord]] = []
+        for record in candidates:
+            # A general-purpose agent does not compete for topic-matched work.
+            if record.general_purpose:
+                continue
+            overlap = len(query_topics & record.topic_tokens())
+            if overlap:
+                activity = record.activity_at or datetime.min.replace(tzinfo=timezone.utc)
+                scored.append((overlap, not record.archived, activity.timestamp(), record))
+
+        if scored:
+            scored.sort(key=lambda item: (-item[0], not item[1], -item[2]))
+            return scored[0][3]
+
+        # Topic request with no topic agent: create a new one. Do not fall back
+        # to a general-purpose agent, which is the bug this rule exists to stop.
+        return None
 
     def select_for_prompt(
         self,
@@ -398,15 +574,17 @@ class AgentRoster:
             if record.name.lower() in lowered_transcript:
                 add(record)
 
-        # Word overlap recalls dormant agents that still match this request
+        # Word overlap recalls dormant agents that still match this request.
+        # Matching uses topic words only: channel vocabulary like "email" would
+        # otherwise surface a general inbox watcher for any mail-adjacent task.
         if len(selected) < limit:
-            query_tokens = _tokens(latest_text)
-            if query_tokens:
+            query_topics = _topic_tokens(latest_text)
+            if query_topics:
                 scored: List[tuple[int, bool, float, AgentRecord]] = []
                 for record in candidates:
                     if record.name in chosen:
                         continue
-                    overlap = len(query_tokens & _tokens(f"{record.name} {record.last_instructions}"))
+                    overlap = len(query_topics & record.topic_tokens())
                     if overlap:
                         activity = record.activity_at or datetime.min.replace(tzinfo=timezone.utc)
                         scored.append((overlap, not record.archived, activity.timestamp(), record))
@@ -414,10 +592,27 @@ class AgentRoster:
                 for _, _, _, record in scored:
                     add(record)
 
-        # Remaining slots go to the most recently active agents
+        # Remaining slots go to the most recently active agents.
+        # General-purpose agents are held back when the request has a topic of
+        # its own: showing them invites the model to reuse a channel agent for
+        # specific work, which is how Nanoleaf requests got absorbed by the
+        # inbox watcher.
+        has_topic = bool(_topic_tokens(latest_text))
         for record in candidates:
-            if not record.archived:
-                add(record)
+            if record.archived:
+                continue
+            if has_topic and record.general_purpose:
+                continue
+            add(record)
+
+        # If nothing topical was available, fall back to general agents only when
+        # the request itself is channel-wide. For a topic request with no matching
+        # topic agent, show nothing: the prompt then tells the model to create a
+        # new agent, which is the behavior we want.
+        if not selected and not has_topic:
+            for record in candidates:
+                if not record.archived:
+                    add(record)
 
         return selected
 

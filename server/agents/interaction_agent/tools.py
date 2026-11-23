@@ -32,9 +32,13 @@ TOOL_SCHEMAS = [
                 "properties": {
                     "agent_name": {
                         "type": "string",
-                        "description": "Human-readable agent name describing its purpose (e.g., 'Vercel Job Offer', 'Email to Sharanjeet'). This name will be used to identify and potentially reuse the agent."
+                        "description": "Human-readable agent name describing its purpose (e.g., 'Vercel Job Offer', 'Nanoleaf Triangle Deals'). This name identifies and may reuse the agent, so name it after the specific task or subject, not the channel."
                     },
                     "instructions": {"type": "string", "description": "Instructions for the agent to execute."},
+                    "general_purpose": {
+                        "type": "boolean",
+                        "description": "Set true only for a channel-wide agent that handles general ongoing monitoring, such as inbox triage. Specific tasks must use their own topic-named agent instead of a general-purpose one.",
+                    },
                 },
                 "required": ["agent_name", "instructions"],
                 "additionalProperties": False,
@@ -131,12 +135,20 @@ _EXECUTION_BATCH_MANAGER = ExecutionBatchManager()
 
 
 # Create or reuse execution agent and dispatch instructions asynchronously
-def send_message_to_agent(agent_name: str, instructions: str) -> ToolResult:
+def send_message_to_agent(
+    agent_name: str,
+    instructions: str,
+    general_purpose: bool = False,
+) -> ToolResult:
     """Send instructions to an execution agent."""
     roster = get_agent_roster()
     roster.load()
     # Using an agent refreshes its activity so it stays visible to the interaction agent
-    is_new = roster.touch(agent_name, instructions)
+    is_new = roster.touch(
+        agent_name,
+        instructions,
+        general_purpose=general_purpose or None,
+    )
 
     get_execution_agent_logs().record_request(agent_name, instructions)
 
