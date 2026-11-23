@@ -1,15 +1,18 @@
 """Simplified Execution Agent Runtime."""
 
+import asyncio
 import inspect
 import json
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .agent import ExecutionAgent
+from .compaction import schedule_compaction
 from .tools import get_tool_schemas, get_tool_registry
 from ...config import get_settings
 from ...openrouter_client import request_chat_completion
 from ...logging_config import logger
+from ...services.execution import get_agent_roster
 
 
 @dataclass
@@ -25,7 +28,7 @@ class ExecutionResult:
 class ExecutionAgentRuntime:
     """Manages the execution of a single agent request."""
 
-    MAX_TOOL_ITERATIONS = 8
+    MAX_TOOL_ITERATIONS = 12
 
     # Initialize execution agent runtime with settings, tools, and agent instance
     def __init__(self, agent_name: str):
@@ -43,8 +46,10 @@ class ExecutionAgentRuntime:
     async def execute(self, instructions: str) -> ExecutionResult:
         """Execute the agent with given instructions."""
         try:
-            # Build system prompt with history
+            # Build system prompt with history (before logging this request, so it isn't shown twice)
             system_prompt = self.agent.build_system_prompt_with_history()
+            self.agent.record_request(instructions)
+            get_agent_roster().touch(self.agent.name)
 
             # Start conversation with the instruction
             messages = [{"role": "user", "content": instructions}]
@@ -76,28 +81,18 @@ class ExecutionAgentRuntime:
                     final_response = assistant_entry["content"] or "No action required."
                     break
 
+                # Run all tool calls of this iteration concurrently; report results in call order.
                 for tool_call in parsed_tool_calls:
-                    tool_name = tool_call.get("name", "")
+                    tools_executed.append(tool_call["name"])
+                    logger.info(f"[{self.agent.name}] Executing tool: {tool_call['name']}")
+                outcomes = await asyncio.gather(
+                    *(self._execute_tool(c["name"], c.get("arguments", {})) for c in parsed_tool_calls)
+                )
+
+                for tool_call, (success, result) in zip(parsed_tool_calls, outcomes):
+                    tool_name = tool_call["name"]
                     tool_args = tool_call.get("arguments", {})
                     call_id = tool_call.get("id")
-
-                    if not tool_name:
-                        logger.warning("Tool call missing name: %s", tool_call)
-                        failure = {"error": "Tool call missing name; unable to execute."}
-                        tool_message = {
-                            "role": "tool",
-                            "tool_call_id": call_id or "unknown_tool",
-                            "content": self._format_tool_result(
-                                tool_name or "<unknown>", False, failure, tool_args
-                            ),
-                        }
-                        messages.append(tool_message)
-                        continue
-
-                    tools_executed.append(tool_name)
-                    logger.info(f"[{self.agent.name}] Executing tool: {tool_name}")
-
-                    success, result = await self._execute_tool(tool_name, tool_args)
 
                     if success:
                         logger.info(f"[{self.agent.name}] Tool {tool_name} completed successfully")
@@ -113,12 +108,11 @@ class ExecutionAgentRuntime:
                         record_payload
                     )
 
-                    tool_message = {
+                    messages.append({
                         "role": "tool",
                         "tool_call_id": call_id or tool_name,
                         "content": self._format_tool_result(tool_name, success, result, tool_args),
-                    }
-                    messages.append(tool_message)
+                    })
 
             else:
                 raise RuntimeError("Reached tool iteration limit without final response")
@@ -127,6 +121,7 @@ class ExecutionAgentRuntime:
                 raise RuntimeError("LLM did not return a final response")
 
             self.agent.record_response(final_response)
+            schedule_compaction(self.agent.name)
 
             return ExecutionResult(
                 agent_name=self.agent.name,
@@ -228,9 +223,13 @@ class ExecutionAgentRuntime:
             return False, {"error": f"Unknown tool: {tool_name}"}
 
         try:
-            result = tool_func(**arguments)
-            if inspect.isawaitable(result):
-                result = await result
+            if inspect.iscoroutinefunction(tool_func):
+                result = await tool_func(**arguments)
+            else:
+                # Sync tools (SQLite, Composio HTTP) run in a thread so parallel calls don't block each other.
+                result = await asyncio.to_thread(tool_func, **arguments)
+                if inspect.isawaitable(result):
+                    result = await result
             return True, result
         except Exception as e:
             return False, {"error": str(e)}

@@ -59,41 +59,29 @@ class ExecutionAgent:
             agent_purpose=agent_purpose
         )
 
-    # Combine base system prompt with conversation history, applying conversation limits
+    # Combine base system prompt with the (compacted) execution history
     def build_system_prompt_with_history(self) -> str:
         """
         Build system prompt including agent history.
 
+        Old entries are folded into a task summary by `compaction.maybe_compact`; only the summary and
+        the recent entries are rendered here.
+
         Returns:
             System prompt with embedded history transcript
         """
+        from .compaction import render_history
+
         base_prompt = self.build_system_prompt()
-
-        # Load history transcript
-        transcript = self._log_store.load_transcript(self.name)
-
+        transcript = render_history(self.name)
         if transcript:
-            # Apply conversation limit if needed
-            if self.conversation_limit and self.conversation_limit > 0:
-                # Parse entries and limit them
-                lines = transcript.split('\n')
-                request_count = sum(1 for line in lines if '<agent_request' in line)
-
-                if request_count > self.conversation_limit:
-                    # Find where to cut
-                    kept_requests = 0
-                    cutoff_index = len(lines)
-                    for i in range(len(lines) - 1, -1, -1):
-                        if '<agent_request' in lines[i]:
-                            kept_requests += 1
-                            if kept_requests == self.conversation_limit:
-                                cutoff_index = i
-                                break
-                    transcript = '\n'.join(lines[cutoff_index:])
-
             return f"{base_prompt}\n\n# Execution History\n\n{transcript}"
 
         return base_prompt
+
+    def record_request(self, instructions: str) -> None:
+        """Record the incoming request in this agent's log."""
+        self._log_store.record_request(self.name, instructions)
 
     # Format current instruction as user message for LLM consumption
     def build_messages_for_llm(self, current_instruction: str) -> List[Dict[str, str]]:

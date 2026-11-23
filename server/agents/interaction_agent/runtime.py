@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set
 
 from .agent import build_system_prompt, prepare_message_with_history
-from .tools import ToolResult, get_tool_schemas, handle_tool_call
+from .tools import CURRENT_TURN_TYPE, ToolResult, get_tool_schemas, handle_tool_call
 from ...config import get_settings
 from ...services.conversation import get_conversation_log, get_working_memory_log
 from ...openrouter_client import request_chat_completion
@@ -75,7 +75,7 @@ class InteractionAgentRuntime:
             )
 
             logger.info("Processing user message through interaction agent")
-            summary = await self._run_interaction_loop(system_prompt, messages)
+            summary = await self._run_interaction_loop(system_prompt, messages, message_type="user")
 
             final_response = self._finalize_response(summary)
 
@@ -110,7 +110,7 @@ class InteractionAgentRuntime:
             )
 
             logger.info("Processing execution agent results")
-            summary = await self._run_interaction_loop(system_prompt, messages)
+            summary = await self._run_interaction_loop(system_prompt, messages, message_type="agent")
 
             final_response = self._finalize_response(summary)
 
@@ -136,8 +136,16 @@ class InteractionAgentRuntime:
         self,
         system_prompt: str,
         messages: List[Dict[str, Any]],
+        message_type: str = "user",
     ) -> _LoopSummary:
-        """Iteratively query the LLM until it issues a final response."""
+        """Iteratively query the LLM until it issues a final response.
+
+        The turn also ends right after a "terminal" tool call, instead of asking the model again:
+        `delegate` (work handed off; the result comes back as a new agent-message turn), `wait`
+        (nothing to do), and, when relaying an agent result, `send_message_to_user`.
+        """
+        terminal = {"delegate", "wait"} | ({"send_message_to_user"} if message_type == "agent" else set())
+        CURRENT_TURN_TYPE.set(message_type)
 
         summary = _LoopSummary()
 
@@ -166,7 +174,7 @@ class InteractionAgentRuntime:
             for tool_call in parsed_tool_calls:
                 summary.tool_names.append(tool_call.name)
 
-                if tool_call.name == "send_message_to_agent":
+                if tool_call.name == "delegate":
                     agent_name = tool_call.arguments.get("agent_name")
                     if isinstance(agent_name, str) and agent_name:
                         summary.execution_agents.add(agent_name)
@@ -182,6 +190,9 @@ class InteractionAgentRuntime:
                     "content": self._format_tool_result(tool_call, result),
                 }
                 messages.append(tool_message)
+
+            if any(call.name in terminal for call in parsed_tool_calls):
+                break
         else:
             raise RuntimeError("Reached tool iteration limit without final response")
 

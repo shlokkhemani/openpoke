@@ -1,0 +1,27 @@
+id: R6-compaction
+group: R
+title: Compaction keeps facts
+goals: 1
+config: {conversation_summary_threshold: 20, conversation_summary_tail_size: 5}
+turns:
+  - user: "fyi my sister's name is Ana"
+  - user: "how's your day going?"
+  - user: "lol same"
+  - user: "what's a good movie for a rainy night?"
+  - user: "seen it already, another one?"
+  - user: "nice, I'll try that"
+  - user: "do you like coffee or tea?"
+  - user: "I'm a tea person"
+  - user: "any tips for sleeping better?"
+  - user: "I'll try the no-screens thing"
+  - user: "what's a quick dinner idea?"
+  - user: "sounds good"
+  - user: "it's so cold today"
+  - user: "haha true"
+  - user: "ok gotta run"
+  - user: "actually one more thing"
+  - user: "remind me to call my sister tomorrow at 7pm"
+checks:
+  - {type: summary_exists}
+  - {type: payload_contains_all, where: {payload: "sister|ana|call"}, items: [ana]}
+judge: uses the remembered name naturally

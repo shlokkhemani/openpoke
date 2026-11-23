@@ -6,7 +6,7 @@ import re
 import threading
 from html import escape, unescape
 from pathlib import Path
-from typing import Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
 from ...logging_config import logger
 from ...utils.timezones import now_in_user_timezone
@@ -65,6 +65,27 @@ class ExecutionAgentLogStore:
     def _log_path(self, agent_name: str) -> Path:
         """Get log file path for an agent."""
         return self._base_dir / f"{_slugify(agent_name)}.log"
+
+    @property
+    def base_dir(self) -> Path:
+        return self._base_dir
+
+    @property
+    def archive_dir(self) -> Path:
+        return self._base_dir / "archive"
+
+    def summary_path(self, agent_name: str) -> Path:
+        """Path of the compaction summary for an agent's log."""
+        return self._base_dir / f"{_slugify(agent_name)}.summary.json"
+
+    def agent_files(self, agent_name: str) -> List[Path]:
+        """Existing live files (log + compaction summary) belonging to an agent."""
+        return [p for p in (self._log_path(agent_name), self.summary_path(agent_name)) if p.exists()]
+
+    def archived_files(self, agent_name: str) -> List[Path]:
+        """Existing archived files belonging to an agent."""
+        return [self.archive_dir / p.name for p in (self._log_path(agent_name), self.summary_path(agent_name))
+                if (self.archive_dir / p.name).exists()]
 
     def _append(self, agent_name: str, tag: str, payload: str) -> None:
         """Append an entry with the given tag."""
@@ -169,8 +190,9 @@ class ExecutionAgentLogStore:
     def clear_all(self) -> None:
         """Clear all execution agent logs."""
         try:
-            for log_file in self._base_dir.glob("*.log"):
-                log_file.unlink()
+            for pattern in ("*.log", "*.summary.json", "archive/*.log", "archive/*.summary.json"):
+                for log_file in self._base_dir.glob(pattern):
+                    log_file.unlink()
             logger.info("Cleared all execution agent logs")
         except Exception as exc:
             logger.error(f"Failed to clear execution logs: {exc}")

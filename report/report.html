@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OpenPoke Agent Architectures</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: one reading column; two full-width wiring diagrams, then the search mechanics. */
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --fg: #1b2230;
+    --muted: #5b6577;
+    --line: #c9cfda;
+    --accent: #0d7a6f;
+    --accent-soft: #e2f3f0;
+    --warn: #a85a12;
+    --warn-soft: #fbeee0;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161d; --panel: #1a2029; --fg: #e3e7ee; --muted: #9aa4b4; --line: #3a4352;
+      --accent: #3fc9b6; --accent-soft: #163631; --warn: #f0a868; --warn-soft: #3a2a1a; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161d; --panel: #1a2029; --fg: #e3e7ee; --muted: #9aa4b4; --line: #3a4352;
+    --accent: #3fc9b6; --accent-soft: #163631; --warn: #f0a868; --warn-soft: #3a2a1a; color-scheme: dark;
+  }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 64px;
+  }
+  main { max-width: 1040px; margin: 0 auto; display: grid; gap: 40px; }
+  header { display: grid; gap: 8px; max-width: 68ch; }
+  h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  h2 { font-size: 21px; font-weight: 600; margin: 0; text-wrap: balance; }
+  h3 { font-size: 16px; font-weight: 600; margin: 0; }
+  p { margin: 0; }
+  .lede { color: var(--muted); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+  figure { margin: 0; display: grid; gap: 12px; }
+  .diagram { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; }
+  .diagram svg { display: block; width: 100%; min-width: 720px; height: auto; color: var(--fg); }
+  figcaption { color: var(--muted); font-size: 14px; max-width: 75ch; }
+  .changes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .change { display: grid; gap: 6px; align-content: start; padding: 16px; border-top: 2px solid var(--accent); background: var(--panel); }
+  .change p { font-size: 14px; color: var(--muted); }
+  .tag { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
+  section { display: grid; gap: 16px; }
+  .steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 72ch; }
+  .formula { font-family: var(--font-mono); font-size: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; overflow-x: auto; white-space: pre; line-height: 1.7; }
+  .limits { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 72ch; color: var(--muted); }
+  .limits strong { color: var(--fg); font-weight: 500; }
+  .eval-steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 72ch; }
+  .metrics { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .metrics th, .metrics td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .metrics th { font-weight: 600; color: var(--muted); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .metrics td:first-child { white-space: nowrap; font-weight: 500; }
+  .table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .metrics a { color: var(--accent); }
+  .results td { font-variant-numeric: tabular-nums; }
+  .results td.num { text-align: right; white-space: nowrap; }
+  .results th.num { text-align: right; }
+  .results .best { font-weight: 600; color: var(--accent); }
+  .chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; border: 1px solid transparent; }
+  .chip.fork { background: var(--accent-soft); color: var(--accent); }
+  .chip.orig { background: var(--warn-soft); color: var(--warn); }
+  .chip.tie, .chip.pending { color: var(--muted); border-color: var(--line); }
+  .results-note { color: var(--muted); font-size: 14px; max-width: 75ch; }
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <span class="eyebrow">openpoke · main vs fork-architecture</span>
+    <h1>OpenPoke agent architectures</h1>
+    <p class="lede">The same reminder request, "set reminders for my 3 meds at 8am, 2pm and 8pm every day", traced through both versions. Highlighted parts are the hops the fork removes, or what replaces them.</p>
+  </header>
+
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 1000 390" role="img" aria-label="Original: Poke rewrites the request into instructions for three separate execution agents, reads every agent name each turn, and execution agents read their full uncompacted log; results return to Poke, which rewrites them for the user.">
+        <defs>
+          <marker id="o-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="o-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent)"/>
+          </marker>
+        </defs>
+
+        <!-- User -->
+        <rect x="20" y="150" width="100" height="60" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="70" y="185" font-size="14" font-weight="600" text-anchor="middle" fill="currentColor">User</text>
+
+        <!-- Poke -->
+        <rect x="190" y="110" width="210" height="140" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="295" y="140" font-size="14" font-weight="600" text-anchor="middle" fill="currentColor">Poke · interaction LLM</text>
+        <text x="295" y="166" font-size="12" text-anchor="middle" fill="currentColor">reads conversation history</text>
+        <text x="295" y="186" font-size="12" text-anchor="middle" style="fill: var(--accent)">+ every agent name, ever</text>
+        <text x="295" y="212" font-size="12" text-anchor="middle" fill="currentColor">writes instructions,</text>
+        <text x="295" y="230" font-size="12" text-anchor="middle" fill="currentColor">then rewrites results</text>
+
+        <!-- Execution agents: split per action -->
+        <text x="790" y="90" font-size="12" text-anchor="middle" style="fill: var(--accent)">3 agents: one per action</text>
+        <rect x="680" y="100" width="220" height="44" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="790" y="127" font-size="13" text-anchor="middle" fill="currentColor">Exec agent "Med 8am"</text>
+        <rect x="680" y="153" width="220" height="44" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="790" y="180" font-size="13" text-anchor="middle" fill="currentColor">Exec agent "Med 2pm"</text>
+        <rect x="680" y="206" width="220" height="44" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="790" y="233" font-size="13" text-anchor="middle" fill="currentColor">Exec agent "Med 8pm"</text>
+
+        <!-- User <-> Poke -->
+        <line x1="120" y1="168" x2="188" y2="168" stroke="currentColor" stroke-width="1.5" marker-end="url(#o-arrow)"/>
+        <text x="154" y="160" font-size="11" text-anchor="middle" fill="currentColor">message</text>
+        <line x1="188" y1="200" x2="122" y2="200" stroke="currentColor" stroke-width="1.5" marker-end="url(#o-arrow)"/>
+        <text x="154" y="217" font-size="11" text-anchor="middle" fill="currentColor">reply</text>
+
+        <!-- Poke -> exec: LLM-written instructions -->
+        <line x1="400" y1="168" x2="678" y2="168" style="stroke: var(--accent)" stroke-width="2.5" marker-end="url(#o-arrow-accent)"/>
+        <text x="540" y="159" font-size="12" text-anchor="middle" style="fill: var(--accent)">LLM writes instructions ×3</text>
+
+        <!-- exec -> Poke: results, rewritten -->
+        <line x1="678" y1="230" x2="402" y2="230" style="stroke: var(--accent)" stroke-width="2.5" marker-end="url(#o-arrow-accent)"/>
+        <text x="540" y="222" font-size="12" text-anchor="middle" style="fill: var(--accent)">final text → new Poke turn rewrites it</text>
+
+        <!-- Stores -->
+        <rect x="190" y="320" width="210" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="295" y="341" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">roster.json</text>
+        <text x="295" y="359" font-size="11" text-anchor="middle" fill="currentColor">names only · never pruned</text>
+        <line x1="295" y1="320" x2="295" y2="252" style="stroke: var(--accent)" stroke-width="2" marker-end="url(#o-arrow-accent)"/>
+        <text x="303" y="292" font-size="11" style="fill: var(--accent)">all names, every turn</text>
+
+        <rect x="680" y="320" width="220" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="790" y="341" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">Execution log (per agent)</text>
+        <text x="790" y="359" font-size="11" text-anchor="middle" fill="currentColor">full history · never compacted</text>
+        <line x1="790" y1="320" x2="790" y2="252" style="stroke: var(--accent)" stroke-width="2" marker-end="url(#o-arrow-accent)"/>
+        <text x="798" y="292" font-size="11" style="fill: var(--accent)">entire log → prompt</text>
+      </svg>
+    </div>
+    <figcaption><strong>Original.</strong> Poke writes the handoff itself and is told to split work, so one goal becomes three agents. Every turn carries every agent name ever created, and each agent's whole log goes into its prompt. Each result triggers a second Poke turn that rewrites it for the user. Tool calls inside an agent run one at a time.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="diagram">
+      <svg viewBox="0 0 1000 390" role="img" aria-label="Fork: Poke only routes with delegate; the server builds the handoff from the conversation log; one execution agent per goal reads more conversation on demand, reports its status to roster records that feed find_agents, and reads a compacted log; results return to Poke, which relays them.">
+        <defs>
+          <marker id="f-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="f-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent)"/>
+          </marker>
+        </defs>
+
+        <!-- Conversation log -->
+        <rect x="460" y="20" width="180" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="550" y="44" font-size="12" font-weight="600" text-anchor="middle" fill="currentColor">Conversation log</text>
+
+        <!-- User -->
+        <rect x="20" y="150" width="100" height="60" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="70" y="185" font-size="14" font-weight="600" text-anchor="middle" fill="currentColor">User</text>
+
+        <!-- Poke -->
+        <rect x="190" y="110" width="210" height="140" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="295" y="140" font-size="14" font-weight="600" text-anchor="middle" fill="currentColor">Poke · interaction LLM</text>
+        <text x="295" y="166" font-size="12" text-anchor="middle" fill="currentColor">reads conversation history</text>
+        <text x="295" y="186" font-size="12" text-anchor="middle" style="fill: var(--accent)">searches agents first</text>
+        <text x="295" y="212" font-size="12" text-anchor="middle" fill="currentColor">routes only,</text>
+        <text x="295" y="230" font-size="12" text-anchor="middle" fill="currentColor">then relays results</text>
+
+        <!-- Handoff (server-built) -->
+        <rect x="480" y="125" width="140" height="80" rx="8" style="fill: var(--accent-soft); stroke: var(--accent)" stroke-width="2"/>
+        <text x="550" y="145" font-size="12" font-weight="600" text-anchor="middle" style="fill: var(--accent)">Handoff · no LLM</text>
+        <text x="550" y="163" font-size="11" text-anchor="middle" fill="currentColor">time · previous reply</text>
+        <text x="550" y="178" font-size="11" text-anchor="middle" fill="currentColor">user message, verbatim</text>
+        <text x="550" y="193" font-size="11" text-anchor="middle" style="fill: var(--accent)">+ task, when split</text>
+
+        <!-- Execution agent: one per goal -->
+        <rect x="680" y="110" width="220" height="140" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="790" y="140" font-size="14" font-weight="600" text-anchor="middle" fill="currentColor">Exec agent "Daily meds"</text>
+        <text x="790" y="166" font-size="12" text-anchor="middle" style="fill: var(--accent)">one agent per goal</text>
+        <text x="790" y="186" font-size="12" text-anchor="middle" fill="currentColor">creates all 3 reminders</text>
+        <text x="790" y="206" font-size="12" text-anchor="middle" style="fill: var(--accent)">tool calls run in parallel</text>
+
+        <!-- User <-> Poke -->
+        <line x1="120" y1="168" x2="188" y2="168" stroke="currentColor" stroke-width="1.5" marker-end="url(#f-arrow)"/>
+        <text x="154" y="160" font-size="11" text-anchor="middle" fill="currentColor">message</text>
+        <line x1="188" y1="200" x2="122" y2="200" stroke="currentColor" stroke-width="1.5" marker-end="url(#f-arrow)"/>
+        <text x="154" y="217" font-size="11" text-anchor="middle" fill="currentColor">reply</text>
+
+        <!-- Poke -> handoff -> exec -->
+        <line x1="400" y1="168" x2="478" y2="168" style="stroke: var(--accent)" stroke-width="2.5" marker-end="url(#f-arrow-accent)"/>
+        <text x="440" y="159" font-size="11" text-anchor="middle" style="fill: var(--accent)">delegate(name)</text>
+        <line x1="620" y1="168" x2="678" y2="168" stroke="currentColor" stroke-width="1.5" marker-end="url(#f-arrow)"/>
+        <text x="649" y="159" font-size="11" text-anchor="middle" fill="currentColor">input</text>
+
+        <!-- conversation -> handoff -->
+        <line x1="550" y1="58" x2="550" y2="123" stroke="currentColor" stroke-width="1.5" marker-end="url(#f-arrow)"/>
+        <text x="558" y="96" font-size="11" fill="currentColor">copies latest</text>
+
+        <!-- exec -> conversation: read_conversation -->
+        <polyline points="780,110 780,39 642,39" fill="none" style="stroke: var(--accent)" stroke-width="2" marker-end="url(#f-arrow-accent)"/>
+        <text x="711" y="31" font-size="11" text-anchor="middle" style="fill: var(--accent)">read_conversation</text>
+        <text x="711" y="53" font-size="11" text-anchor="middle" style="fill: var(--accent)">on demand</text>
+
+        <!-- exec -> Poke: results relayed -->
+        <line x1="678" y1="230" x2="402" y2="230" stroke="currentColor" stroke-width="1.5" marker-end="url(#f-arrow)"/>
+        <text x="540" y="223" font-size="12" text-anchor="middle" fill="currentColor">result → Poke relays it</text>
+
+        <!-- Stores -->
+        <rect x="190" y="320" width="210" height="50" rx="6" fill="none" style="stroke: var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="295" y="341" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">Roster records</text>
+        <text x="295" y="359" font-size="11" text-anchor="middle" fill="currentColor">summary · status · entities</text>
+        <line x1="240" y1="320" x2="240" y2="252" style="stroke: var(--accent)" stroke-width="2" marker-end="url(#f-arrow-accent)"/>
+        <text x="232" y="292" font-size="11" text-anchor="end" style="fill: var(--accent)">find_agents, top 3 (BM25)</text>
+
+        <polyline points="720,250 720,288 350,288 350,318" fill="none" style="stroke: var(--accent)" stroke-width="2" marker-end="url(#f-arrow-accent)"/>
+        <text x="535" y="281" font-size="11" text-anchor="middle" style="fill: var(--accent)">report_status at end of run</text>
+
+        <rect x="450" y="320" width="180" height="50" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <text x="540" y="341" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">Daily sweep</text>
+        <text x="540" y="359" font-size="11" text-anchor="middle" fill="currentColor">archives done or idle</text>
+        <line x1="450" y1="345" x2="402" y2="345" stroke="currentColor" stroke-width="1.5" marker-end="url(#f-arrow)"/>
+
+        <rect x="680" y="320" width="220" height="50" rx="6" fill="none" style="stroke: var(--accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="790" y="341" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">Execution log (per agent)</text>
+        <text x="790" y="359" font-size="11" text-anchor="middle" fill="currentColor">task summary + last 10 entries</text>
+        <line x1="860" y1="320" x2="860" y2="252" style="stroke: var(--accent)" stroke-width="2" marker-end="url(#f-arrow-accent)"/>
+        <text x="868" y="292" font-size="11" style="fill: var(--accent)">compacted</text>
+      </svg>
+    </div>
+    <figcaption><strong>Fork.</strong> Poke only picks the agent, after searching for one that already owns the task. The server copies the user's message into the handoff, so Poke never paraphrases it; when a message is split across agents, or Poke follows up on an agent's result, a short <code>task</code> tells each agent which part is its own. One agent handles the whole goal and pulls older conversation only when it needs it. At the end of each run it records its status, which feeds the search that fills Poke's agent list. Each execution agent's own log (its requests, tool calls and results) is folded into a summary once it passes 40 entries. Results still return through Poke, which now relays them instead of writing a new reply. Delegating to an archived agent revives it.</figcaption>
+  </figure>
+
+  <section>
+    <h2>What changed, by problem</h2>
+    <div class="changes">
+      <div class="change" id="p1">
+        <span class="tag">§1 handoff</span>
+        <h3>The server writes the handoff</h3>
+        <p><code>delegate(name, task?, note?)</code> replaces LLM-written instructions. The agent gets the user's words verbatim and can call <code>read_conversation</code> for anything older. When one message holds several tasks, or Poke acts on an agent's result, <code>task</code> names the agent's part, and the agent does only that.</p>
+      </div>
+      <div class="change" id="p2">
+        <span class="tag">§2 granularity</span>
+        <h3>One goal, one agent</h3>
+        <p>The prompt no longer asks Poke to split work. One agent issues all its tool calls together, and they run in parallel. Long logs are compacted into a task summary.</p>
+      </div>
+      <div class="change" id="p3">
+        <span class="tag">§3 sprawl</span>
+        <h3>Search instead of a full list</h3>
+        <p>Roster entries carry a summary and status. Poke searches for the owning agent before delegating (top 3, BM25), instead of seeing every agent ever created. Finished agents are archived and revived on demand.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <section>
+    <h2>How the two versions are compared</h2>
+    <figure>
+      <div class="diagram">
+        <svg viewBox="0 0 1000 260" role="img" aria-label="Evaluation flow: 22 scenarios with 3 runs each are played by one harness against clean copies of the original and the fork; the transcript, LLM calls and reminder database are recorded and scored by code checks, an LLM judge and call logs.">
+          <defs>
+            <marker id="e-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- scenarios -->
+          <rect x="20" y="75" width="170" height="120" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="105" y="100" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">22 scenarios × 3 runs</text>
+          <text x="105" y="122" font-size="11" text-anchor="middle" fill="currentColor">A handoff · B goals</text>
+          <text x="105" y="139" font-size="11" text-anchor="middle" fill="currentColor">C many agents · R regression</text>
+          <text x="105" y="163" font-size="11" text-anchor="middle" fill="currentColor">Gmail off: every task</text>
+          <text x="105" y="179" font-size="11" text-anchor="middle" fill="currentColor">is a reminder</text>
+
+          <!-- harness -->
+          <rect x="230" y="95" width="150" height="80" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="305" y="120" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">Test harness</text>
+          <text x="305" y="141" font-size="11" text-anchor="middle" fill="currentColor">chats via the API</text>
+          <text x="305" y="158" font-size="11" text-anchor="middle" fill="currentColor">reminders fire for real</text>
+
+          <!-- versions -->
+          <rect x="420" y="45" width="150" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="495" y="71" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">Original</text>
+          <text x="495" y="92" font-size="11" text-anchor="middle" fill="currentColor">clean copy, same model</text>
+          <rect x="420" y="161" width="150" height="64" rx="8" style="fill: var(--accent-soft); stroke: var(--accent)" stroke-width="2"/>
+          <text x="495" y="187" font-size="13" font-weight="600" text-anchor="middle" style="fill: var(--accent)">Fork</text>
+          <text x="495" y="208" font-size="11" text-anchor="middle" fill="currentColor">clean copy, same model</text>
+
+          <!-- recorded -->
+          <rect x="610" y="75" width="150" height="120" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="685" y="100" font-size="13" font-weight="600" text-anchor="middle" fill="currentColor">Recorded</text>
+          <text x="685" y="124" font-size="11" text-anchor="middle" fill="currentColor">chat transcript</text>
+          <text x="685" y="144" font-size="11" text-anchor="middle" fill="currentColor">every LLM call</text>
+          <text x="685" y="164" font-size="11" text-anchor="middle" fill="currentColor">reminder database</text>
+
+          <!-- scoring -->
+          <rect x="800" y="30" width="180" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="890" y="53" font-size="12" font-weight="600" text-anchor="middle" fill="currentColor">Code checks</text>
+          <text x="890" y="71" font-size="11" text-anchor="middle" style="fill: var(--accent)">task completion</text>
+          <rect x="800" y="107" width="180" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="890" y="130" font-size="12" font-weight="600" text-anchor="middle" fill="currentColor">LLM judge</text>
+          <text x="890" y="148" font-size="11" text-anchor="middle" style="fill: var(--accent)">reply quality</text>
+          <rect x="800" y="184" width="180" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <text x="890" y="207" font-size="12" font-weight="600" text-anchor="middle" fill="currentColor">Call logs</text>
+          <text x="890" y="225" font-size="11" text-anchor="middle" style="fill: var(--accent)">latency, calls, tokens</text>
+
+          <!-- arrows -->
+          <line x1="190" y1="135" x2="228" y2="135" stroke="currentColor" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+          <line x1="380" y1="135" x2="400" y2="135" stroke="currentColor" stroke-width="1.5"/>
+          <polyline points="400,135 400,77 418,77" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+          <polyline points="400,135 400,193 418,193" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+          <polyline points="570,77 590,77 590,135 608,135" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+          <polyline points="570,193 590,193 590,135" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="760" y1="135" x2="780" y2="135" stroke="currentColor" stroke-width="1.5"/>
+          <polyline points="780,135 780,58 798,58" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+          <line x1="780" y1="135" x2="798" y2="135" stroke="currentColor" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+          <polyline points="780,135 780,212 798,212" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#e-arrow)"/>
+        </svg>
+      </div>
+      <figcaption>The harness only talks to each version through its chat API, so the agent code is the one thing that differs. Results are then compared case by case: fork minus original, with a 95% confidence interval over the 22 cases.</figcaption>
+    </figure>
+    <div class="table-wrap">
+      <table class="metrics">
+        <thead><tr><th>Group</th><th>Tests the problem</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>A · Handoff and context</td><td><a href="#p1">§1 handoff</a>: does the user's intent reach the agent intact?</td><td>"remind me tomorrow at 9am…" after "I'm in Berlin this week"</td></tr>
+          <tr><td>B · Goals per message</td><td><a href="#p2">§2 granularity</a>: one goal, one agent</td><td>"set reminders for my 3 meds…"</td></tr>
+          <tr><td>C · Many agents</td><td><a href="#p3">§3 sprawl</a>: finding the right agent among many</td><td>"cancel the 3pm one" after 10 reminders</td></tr>
+          <tr><td>R · Regression</td><td>None: existing features must keep working</td><td>"remind me to take my meds every day at 8am"</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table class="metrics">
+        <thead><tr><th>Metric</th><th>What it measures</th></tr></thead>
+        <tbody>
+          <tr><td>Task completion</td><td>Share of runs where every check passed: the right reminders, at the right times, set once, owned by the right agent</td></tr>
+          <tr><td>Reply quality</td><td>LLM judge (1–5): do the replies match what was actually set, and are they clear?</td></tr>
+          <tr><td>Latency</td><td>Seconds from the user's message to the last reply of that turn</td></tr>
+          <tr><td>LLM calls, tokens</td><td>Calls and input/output tokens per user turn, across all agents</td></tr>
+          <tr><td>Agents shown to Poke</td><td>Agents Poke can see per call: the original's full list vs the fork's search results</td></tr>
+          <tr><td>Split rate</td><td>Share of runs where one goal ended up spread over more than one agent</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+    <p class="results-note">Final run: 22 cases × 3 runs × 2 versions (132 runs). A verdict is given only when the 95% confidence interval of fork − original excludes zero.</p>
+    <div class="table-wrap">
+      <table class="metrics results">
+        <thead><tr><th>Metric</th><th class="num">Original</th><th class="num">Fork</th><th class="num">Fork − original (95% CI)</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>Task completion <span class="results-note">(share of runs passing all checks)</span></td><td class="num">97%</td><td class="num">97%</td><td class="num">0.00 [−0.09, 0.09]</td><td><span class="chip tie">no difference</span></td></tr>
+          <tr><td>Reply quality <span class="results-note">(judge, 1–5)</span></td><td class="num">4.58</td><td class="num">4.56</td><td class="num">−0.02 [−0.33, 0.30]</td><td><span class="chip tie">no difference</span></td></tr>
+          <tr><td>Latency <span class="results-note">(seconds per turn)</span></td><td class="num">12.0 s</td><td class="num">11.9 s</td><td class="num">−0.2 [−2.3, 2.0]</td><td><span class="chip tie">no difference</span></td></tr>
+          <tr><td>LLM calls <span class="results-note">(per user turn)</span></td><td class="num">7.7</td><td class="num best">5.9</td><td class="num">−1.7 [−2.3, −1.2]</td><td><span class="chip fork">fork better</span></td></tr>
+          <tr><td>Input tokens <span class="results-note">(per user turn)</span></td><td class="num">34.0K</td><td class="num best">27.2K</td><td class="num">−6.8K [−13.0K, −0.6K]</td><td><span class="chip fork">fork better</span></td></tr>
+          <tr><td>Output tokens <span class="results-note">(per user turn)</span></td><td class="num">1,789</td><td class="num best">1,392</td><td class="num">−397 [−626, −169]</td><td><span class="chip fork">fork better</span></td></tr>
+          <tr><td>Agents shown to Poke <span class="results-note">(per Poke call)</span></td><td class="num">0.87</td><td class="num best">0.14</td><td class="num">−0.73 [−1.18, −0.29]</td><td><span class="chip fork">fork better</span></td></tr>
+          <tr><td>Split rate <span class="results-note">(one goal in >1 agent)</span></td><td class="num">8%</td><td class="num">5%</td><td class="num">−0.03 [−0.07, 0.01]</td><td><span class="chip tie">no difference</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="results-note">Cases passing every run: original 21/22, fork 21/22. The fork fixed A2 (no extra, unrequested dentist reminders) and regressed on R6: in 2 of 3 runs its reminder said "call their sister" instead of "call Ana", because a name given 15 turns earlier stayed in Poke's history rather than the handoff.</p>
+    <p class="results-note"><strong>In short:</strong> the fork does the same work with 23% fewer LLM calls, 20% less input, 22% less output, and a bounded agent list, with no loss in task completion, reply quality or latency.</p>
+  </section>
+</main>
+</body>
+</html>

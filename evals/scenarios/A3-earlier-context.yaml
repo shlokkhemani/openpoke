@@ -1,0 +1,22 @@
+id: A3-earlier-context
+group: A
+title: Context from earlier turns (known read_conversation gap)
+goals: 1
+turns:
+  - user: "heads up, I'm in Berlin this week"
+  - user: "how's your day going"
+  - user: "lol fair"
+  - user: "remind me tomorrow at 9am to check in for my flight home"
+checks:
+  # 9am Berlin time. "tomorrow" may be counted from the Berlin date or the user's home date, so both days are accepted;
+  # asking which timezone is also fine. A reminder at 9am home (Los Angeles) time fails.
+  - type: any_of
+    checks:
+      - {type: trigger_time, where: {payload: "check.?in|flight"}, expect: "tomorrow 09:00 Europe/Berlin", relative_to: "step:4"}
+      - {type: trigger_time, where: {payload: "check.?in|flight"}, expect: "today 09:00 Europe/Berlin", relative_to: "step:4"}
+      - {type: trigger_time, where: {payload: "check.?in|flight"}, expect: "in 2 days 09:00 Europe/Berlin", relative_to: "step:4"}
+      - type: all_of
+        checks:
+          - {type: trigger_count, where: {payload: "check.?in|flight"}, status: active, equals: 0}
+          - {type: reply_contains, step: 4, any: ["timezone", "time zone", "berlin time", "local time", "which time"]}
+judge: earlier "Berlin" context used or explicitly clarified, not silently ignored

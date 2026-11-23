@@ -1,0 +1,25 @@
+id: C1-reuse-after-10
+group: C
+title: Reuse among active and finished agents
+goals: 11  # mom + 10 other reminders
+turns:
+  - user: "remind me to call mom in 3 days at 6pm"
+  - user: "remind me in 3 minutes to take the laundry out"
+  - user: "remind me in 4 minutes to check the oven"
+  - user: "remind me in 5 minutes to feed the parking meter"
+  - user: "remind me in 6 minutes to call back Jen"
+  - user: "remind me in 7 minutes to take my pills"
+  - wait_for_triggers: "laundry|oven|parking|jen|pills"
+  - user: "remind me to go to the gym tomorrow at 7am"
+  - user: "remind me to water the plants saturday at 10am"
+  - user: "remind me to pay rent on the 1st at 9am"
+  - user: "remind me about my dentist appointment thursday at 2pm"
+  - user: "remind me to take out the trash every tuesday at 8pm"
+  - user: "push the mom one to 7"
+checks:
+  - {type: trigger_count, where: {payload: "mom"}, status: active, equals: 1}
+  - {type: trigger_time, where: {payload: "mom"}, expect: "in 3 days 19:00", relative_to: "step:1"}
+  - {type: agent_unchanged, where: {payload: "mom"}, from_step: 1}
+  - {type: trigger_count, where: {payload: "laundry|oven|parking|jen|pills"}, status: completed, equals: 5}
+  - {type: trigger_count, where: {payload: "gym|plants|rent|dentist|trash"}, status: active, equals: 5}
+judge: confirms the change to the mom reminder, with no mention of other reminders

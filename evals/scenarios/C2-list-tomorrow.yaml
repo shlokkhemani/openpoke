@@ -1,0 +1,33 @@
+id: C2-list-tomorrow
+group: C
+title: Recall across many tasks, and prompt growth
+goals: 21  # 20 reminders + the recall question
+turns:
+  - user: "remind me tomorrow at 9am to email the landlord"
+  - user: "remind me in 2 days at 10am to renew my library books"
+  - user: "remind me tomorrow at noon to pick up the dry cleaning"
+  - user: "remind me in 3 days at 8am to defrost the freezer"
+  - user: "remind me in 2 days at 6pm to book a haircut"
+  - user: "remind me tomorrow at 3pm to call the vet"
+  - user: "remind me in 4 days at 11am to submit the expense report"
+  - user: "remind me in 5 days at 9am to order printer ink"
+  - user: "remind me in 3 days at 7pm to text the plumber"
+  - user: "remind me in 6 days at noon to cancel the gym trial"
+  - user: "remind me tomorrow at 7pm to buy birthday candles"
+  - user: "remind me in 4 days at 5pm to return the library DVD"
+  - user: "remind me in 7 days at 10am to change the air filter"
+  - user: "remind me in 5 days at 4pm to pay the electricity bill"
+  - user: "remind me in 6 days at 8pm to water the orchid"
+  - user: "remind me in 2 days at 1pm to wash the car"
+  - user: "remind me in 3 days at 2pm to schedule the eye exam"
+  - user: "remind me in 7 days at 6pm to call grandma"
+  - user: "remind me in 4 days at 9pm to check the passport renewal"
+  - user: "remind me in 5 days at 7am to go for a long run"
+  - user: "what reminders do I have tomorrow?"
+checks:
+  - {type: trigger_count, status: active, min: 20}
+  - type: reply_contains
+    step: 21
+    all: [landlord, dry cleaning, vet, candles]
+    none: [library, freezer, haircut, expense, printer, plumber, gym trial, air filter, electricity, orchid, wash the car, eye exam, grandma, passport, long run]
+judge: complete, correct, concise list of tomorrow's reminders

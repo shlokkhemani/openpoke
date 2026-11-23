@@ -1,0 +1,16 @@
+id: R3-recurring
+group: R
+title: Recurring reminder - create and fire
+goals: 1
+turns:
+  # {in:3m} is filled in with the local clock time 3 minutes from now (e.g. "1:23pm"), so it fires during the run.
+  - user: "remind me to take my meds every day at {in:3m}"
+  - wait_for_triggers: "med"
+checks:
+  - {type: field_contains, after_step: 1, where: {payload: "med"}, any: ["FREQ=DAILY"]}
+  - {type: trigger_time, after_step: 1, where: {payload: "med"}, expect: "now + 4 min", relative_to: "step:1", tolerance_min: 2}
+  - {type: message_count, step: 2, equals: 1}
+  - {type: reply_contains, step: 2, all: [med]}
+  - {type: trigger_count, where: {payload: "med"}, status: active, equals: 1}
+  - {type: trigger_time, where: {payload: "med"}, expect: "now + 1444 min", relative_to: "step:1", tolerance_min: 3}
+judge: confirms the schedule clearly; the reminder message is clear

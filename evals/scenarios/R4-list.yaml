@@ -1,0 +1,10 @@
+id: R4-list
+group: R
+title: List reminders
+goals: 2  # the reminder + the listing question
+turns:
+  - user: "remind me to water plants tomorrow at 9am"
+  - user: "what reminders do I have?"
+checks:
+  - {type: reply_contains, step: 2, all: [plant], any: ["9"]}
+judge: lists the reminder correctly

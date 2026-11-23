@@ -1,0 +1,10 @@
+id: B4-trip-forecast
+group: B
+title: One goal with a lookup-style part (trip prep with forecast)
+goals: 1
+turns:
+  - user: "I fly to Denver in 5 days at 7am. remind me the night before at 8pm to pack, that morning at 4:30am to leave for the airport, and check the forecast for me so I know whether to bring my heavy coat"
+checks:
+  - {type: trigger_count, where: {payload: "pack|leave|airport|coat|forecast"}, status: active, min: 2}
+  - {type: same_agent, where: {payload: "pack|leave|airport|coat|forecast"}, status: active}
+judge: sets both reminders; handles the forecast part honestly (no weather tool) without inventing a forecast

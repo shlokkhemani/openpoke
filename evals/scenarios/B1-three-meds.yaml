@@ -1,0 +1,13 @@
+id: B1-three-meds
+group: B
+title: Bundled reminders, then a follow-up
+goals: 1
+turns:
+  - user: "set reminders for my 3 meds every day: vitamin D at 8am, metformin at 2pm, and melatonin at 8pm"
+  - user: "skip the 2pm one, my doctor dropped it"
+checks:
+  - {type: fire_times_of_day, after_step: 1, where: {payload: "med|pill|vitamin|metformin|melatonin"}, expect: ["08:00", "14:00", "20:00"], relative_to: "step:1"}
+  - {type: same_agent, after_step: 1, where: {payload: "med|pill|vitamin|metformin|melatonin"}, status: active}
+  - {type: field_contains, after_step: 1, where: {payload: "med|pill|vitamin|metformin|melatonin"}, mode: all, any: ["FREQ=DAILY", "FREQ=HOURLY", "BYDAY=MO,TU,WE,TH,FR,SA,SU"]}
+  - {type: fire_times_of_day, where: {payload: "med|pill|vitamin|metformin|melatonin"}, expect: ["08:00", "20:00"], relative_to: "step:2"}
+judge: one clear confirmation for all three; then confirms which one was dropped

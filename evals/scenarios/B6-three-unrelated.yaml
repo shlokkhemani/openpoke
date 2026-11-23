@@ -1,0 +1,14 @@
+id: B6-three-unrelated
+group: B
+title: Several unrelated tasks in one message
+goals: 3
+turns:
+  - user: "remind me on the 1st at 9am to pay the internet bill, on friday at 10am to call the pharmacy, and every evening at 7pm to walk the dog"
+checks:
+  # each task done exactly once, with no duplicates across agents
+  - {type: trigger_count, where: {payload: "internet"}, status: active, equals: 1}
+  - {type: trigger_count, where: {payload: "pharmacy"}, status: active, equals: 1}
+  - {type: trigger_count, where: {payload: "dog"}, status: active, equals: 1}
+  - {type: trigger_count, status: active, equals: 3}
+  - {type: fire_times_of_day, where: {payload: "dog"}, expect: ["19:00"], relative_to: "step:1"}
+judge: one clear confirmation covering all three reminders

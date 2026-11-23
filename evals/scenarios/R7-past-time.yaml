@@ -1,0 +1,9 @@
+id: R7-past-time
+group: R
+title: Invalid (past) time
+goals: 1
+turns:
+  - user: "remind me yesterday at 5pm to call Joe"
+checks:
+  - {type: none_due_soon, minutes: 1}
+judge: points out the problem and offers an alternative

@@ -1,0 +1,10 @@
+id: R8-timezone
+group: R
+title: Timezone respected
+goals: 1
+config: {timezone: Asia/Tokyo}
+turns:
+  - user: "remind me at 8am tomorrow to call the office"
+checks:
+  - {type: trigger_time, where: {payload: "office"}, expect: "tomorrow 08:00 Asia/Tokyo", relative_to: "step:1"}
+judge: confirms the time clearly

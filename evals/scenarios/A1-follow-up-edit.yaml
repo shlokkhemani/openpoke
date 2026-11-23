@@ -1,0 +1,13 @@
+id: A1-follow-up-edit
+group: A
+title: Follow-up edits in place
+goals: 1
+turns:
+  - user: "remind me to call mom on saturday at 9am"
+  - user: "actually make it 10"
+  - user: "and make it every week"
+checks:
+  - {type: trigger_count, where: {payload: "mom"}, status: active, equals: 1}
+  - {type: trigger_time, where: {payload: "mom"}, expect: "saturday 10:00", relative_to: "step:3"}
+  - {type: field_contains, where: {payload: "mom"}, all: ["FREQ=WEEKLY"]}
+judge: each confirmation states the updated time and schedule correctly

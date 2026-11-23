@@ -1,0 +1,27 @@
+id: A4-large-input
+group: A
+title: Large input - handoff cost and detail preservation
+goals: 1
+turns:
+  - user: |
+      remind me in 3 minutes to pack for the Denver trip. here's everything:
+
+      carry-on: passport, the BLACK phone charger (not the white one, it's broken), laptop + laptop charger, headphones, the printed hotel confirmation, a pen for the customs form, allergy meds, and the reusable water bottle (empty it before security).
+
+      checked bag: 4 pairs of socks, 3 t-shirts, 2 pairs of jeans, the grey hoodie, the green rain jacket (NOT the blue one, the zipper is stuck), running shoes, hiking boots, toothbrush, toothpaste, contact lens case AND solution, sunscreen, and the gift for Sam (wrapped, in the side pocket).
+
+      backpack: trail snacks, the small first-aid kit, sunglasses, a headlamp, and the paper trail map.
+
+      if the forecast says below 30°F, also pack the thermal layer and gloves. don't pack the camping stove, Sam is bringing one. and skip the umbrella, the jacket is enough.
+  - wait_for_triggers: "pack|passport"
+checks:
+  - {type: trigger_count, after_step: 1, where: {payload: "pack|passport"}, status: active, equals: 1}
+  - {type: trigger_time, after_step: 1, where: {payload: "pack|passport"}, expect: "now + 3 min", relative_to: "step:1", tolerance_min: 2}
+  - type: payload_contains_all
+    after_step: 1
+    items: [passport, charger, laptop, headphones, hotel, pen, allergy, water bottle, socks, t-shirt|tshirt, jeans, hoodie, rain jacket, running shoes, hiking boots, toothbrush, toothpaste, lens, solution, sunscreen, gift, snacks, first-aid|first aid, sunglasses, headlamp, map, thermal, gloves,
+            white, empty, "4 pairs|four pairs", "3 t-shirts|three t-shirts|3 tshirts", "2 pairs|two pairs", blue, "30", stove, umbrella]
+  # The fired reminder must reach the user; it may summarize the list.
+  - {type: message_count, step: 2, min: 1}
+  - {type: reply_contains, step: 2, any: [pack, denver, trip]}
+judge: confirmation and fired reminder are clear and correct (summarizing the list is fine); negations not flipped

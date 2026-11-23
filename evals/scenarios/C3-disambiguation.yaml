@@ -1,0 +1,13 @@
+id: C3-disambiguation
+group: C
+title: Similar names
+goals: 3
+turns:
+  - user: "remind me to call mom sunday at 6pm"
+  - user: "remind me to call mom's doctor monday at 10am"
+  - user: "remind me to buy mom a birthday card friday at 5pm"
+  - user: "cancel the doctor one"
+checks:
+  - {type: status_in, where: {payload: "doctor"}, statuses: [paused, completed]}
+  - {type: trigger_count, where: {payload: "^(?!.*doctor).*mom"}, status: active, equals: 2}
+judge: picks the right one, or asks if it's genuinely unclear

@@ -1,0 +1,10 @@
+id: B3-birthday-prep
+group: B
+title: One goal, several independent parts (birthday prep)
+goals: 1
+turns:
+  - user: "mom's birthday is coming up. remind me in 3 days at 6pm to order a cake, in 4 days at 6pm to buy a card, and in 6 days at 9am to call her"
+checks:
+  - {type: trigger_count, where: {payload: "cake|card|call"}, status: active, equals: 3}
+  - {type: same_agent, where: {payload: "cake|card|call"}, status: active}
+judge: one clear confirmation covering all three reminders

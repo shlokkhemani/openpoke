@@ -1,0 +1,11 @@
+id: B2-mixed-message
+group: B
+title: Unrelated goals in one message
+goals: 1
+turns:
+  - user: "remind me to call mom tomorrow at 6pm, and how's your week been?"
+checks:
+  - {type: trigger_count, where: {payload: "mom"}, status: active, equals: 1}
+  - {type: trigger_time, where: {payload: "mom"}, expect: "tomorrow 18:00", relative_to: "step:1"}
+  - {type: agents_created, equals: 1}
+judge: chit-chat answered by Poke naturally alongside the confirmation

@@ -51,11 +51,11 @@ class Settings(BaseModel):
     server_port: int = Field(default=_env_int("OPENPOKE_PORT", 8001))
 
     # LLM model selection
-    interaction_agent_model: str = Field(default="anthropic/claude-sonnet-4")
-    execution_agent_model: str = Field(default="anthropic/claude-sonnet-4")
-    execution_agent_search_model: str = Field(default="anthropic/claude-sonnet-4")
-    summarizer_model: str = Field(default="anthropic/claude-sonnet-4")
-    email_classifier_model: str = Field(default="anthropic/claude-sonnet-4")
+    interaction_agent_model: str = Field(default="deepseek/deepseek-v4.1-flash")
+    execution_agent_model: str = Field(default="deepseek/deepseek-v4.1-flash")
+    execution_agent_search_model: str = Field(default="deepseek/deepseek-v4.1-flash")
+    summarizer_model: str = Field(default="deepseek/deepseek-v4.1-flash")
+    email_classifier_model: str = Field(default="deepseek/deepseek-v4.1-flash")
 
     # Credentials / integrations
     openrouter_api_key: Optional[str] = Field(default=os.getenv("OPENROUTER_API_KEY"))

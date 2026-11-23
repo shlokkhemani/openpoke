@@ -1,0 +1,10 @@
+id: R1-chit-chat
+group: R
+title: Chit-chat only (latency control)
+goals: 0
+turns:
+  - user: "hey, how's it going"
+checks:
+  - {type: no_execution_calls}
+  - {type: agents_created, equals: 0}
+judge: replies naturally to the greeting

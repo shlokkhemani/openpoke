@@ -1,0 +1,12 @@
+id: R5-cancel
+group: R
+title: Cancel a reminder
+goals: 1
+turns:
+  - user: "remind me to call the bank tomorrow at noon"
+  - user: "never mind, cancel that"
+  - fire_triggers: all
+checks:
+  - {type: status_in, where: {payload: "bank"}, statuses: [paused, completed]}
+  - {type: message_count, step: 3, equals: 0}
+judge: confirms the cancellation clearly

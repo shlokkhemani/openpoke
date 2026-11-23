@@ -1,0 +1,32 @@
+id: C4-hard-routing
+group: C
+title: Hard follow-ups - synonym, time, recency
+goals: 10   # 10 reminders; the 3 follow-ups belong to existing ones
+turns:
+  - user: "remind me to take my meds every day at 8pm"
+  - user: "remind me tomorrow at 7am to go for a run"
+  - user: "remind me tomorrow at 3pm to call the vet"
+  - user: "remind me in 2 days at noon to pick up the dry cleaning"
+  - user: "remind me in 2 days at 6pm to book a haircut"
+  - user: "remind me tomorrow at 9am to email the landlord"
+  - user: "remind me in 3 days at 8am to defrost the freezer"
+  - user: "remind me in 2 days at 5pm to buy birthday candles"
+  - user: "remind me in 4 days at 11am to submit the expense report"
+  - user: "remind me in 3 days at 10am to renew my library books"
+  # Follow-ups that share no keywords with the original request:
+  - user: "move the pills one to 9pm"                    # synonym: "pills" vs "meds"
+  - user: "cancel the 3pm one"                           # by time only: the vet reminder
+  - user: "push the last one I set back by a day"        # by recency: the library books reminder
+checks:
+  # synonym follow-up reached the meds agent and moved the daily time
+  - {type: trigger_count, where: {payload: "med|pill"}, status: active, equals: 1}
+  - {type: fire_times_of_day, where: {payload: "med|pill"}, expect: ["21:00"], relative_to: "step:13"}
+  - {type: agent_unchanged, where: {payload: "med|pill"}, from_step: 1}
+  # time-only follow-up cancelled exactly the vet reminder
+  - {type: status_in, where: {payload: "vet"}, statuses: [paused, completed]}
+  - {type: trigger_count, where: {payload: "run|dry clean|haircut|landlord|freezer|candle|expense|library"}, status: active, equals: 8}
+  # recency follow-up moved the library reminder by one day
+  - {type: trigger_count, where: {payload: "library"}, status: active, equals: 1}
+  - {type: trigger_time, where: {payload: "library"}, expect: "in 4 days 10:00", relative_to: "step:1"}
+  - {type: agent_unchanged, where: {payload: "library"}, from_step: 10}
+judge: each follow-up is applied to the right reminder and confirmed clearly

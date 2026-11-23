@@ -1,0 +1,11 @@
+id: B5-gym-week
+group: B
+title: One goal, paired recurring reminders (gym week)
+goals: 1
+turns:
+  - user: "set gym reminders for every monday, wednesday and friday at 7am, and remind me the night before each at 9pm to pack my gym bag"
+checks:
+  - {type: trigger_count, where: {payload: "gym|bag"}, status: active, min: 2}
+  - {type: same_agent, where: {payload: "gym|bag"}, status: active}
+  - {type: fire_times_of_day, where: {payload: "gym|bag"}, expect: ["07:00", "21:00"], relative_to: "step:1"}
+judge: one clear confirmation of both schedules (gym days at 7am, bag the evening before at 9pm)

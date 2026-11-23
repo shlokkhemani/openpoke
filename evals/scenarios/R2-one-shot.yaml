@@ -1,0 +1,15 @@
+id: R2-one-shot
+group: R
+title: One-shot reminder - create and fire
+goals: 1
+turns:
+  - user: "remind me to take the laundry out in 2 minutes"
+  - wait_for_triggers: "laundry"
+checks:
+  - {type: trigger_count, after_step: 1, where: {payload: "laundry"}, status: active, equals: 1}
+  - {type: trigger_time, after_step: 1, where: {payload: "laundry"}, expect: "now + 2 min", relative_to: "step:1", tolerance_min: 2}
+  - {type: field_empty, after_step: 1, where: {payload: "laundry"}}
+  - {type: message_count, step: 2, equals: 1}
+  - {type: reply_contains, step: 2, all: [laundry]}
+  - {type: trigger_count, where: {payload: "laundry"}, status: completed, equals: 1}
+judge: confirms the time clearly; the reminder message is clear

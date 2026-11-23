@@ -1,0 +1,13 @@
+id: A2-clarification
+group: A
+title: Clarification answer
+goals: 1
+turns:
+  - user: "remind me about the dentist"
+  - user: "4pm tomorrow"
+checks:
+  - {type: none_due_soon, after_step: 1, minutes: 1}
+  # Exactly one reminder, due between now and the 4pm appointment ("4pm tomorrow" may be read as the appointment time).
+  - {type: trigger_count, where: {payload: "dentist"}, status: active, equals: 1}
+  - {type: trigger_window, where: {payload: "dentist"}, before: "tomorrow 16:00", relative_to: "step:2"}
+judge: asks for the time instead of guessing; understands the bare answer
